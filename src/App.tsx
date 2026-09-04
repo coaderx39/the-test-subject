@@ -20,7 +20,7 @@ import {
   ArrowLeft, Zap, Check, History, Target, Shield, Camera, Edit3, Trash2, Plus,
   BrainCircuit, Circle, Send, Skull, Trophy, FolderOpen, MoveRight,
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
-  ShieldAlert, Mic, Clock
+  ShieldAlert, Mic, Clock, Volume2, Pause, Play, Loader2
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -341,6 +341,8 @@ interface KrishnaMessage {
   role: 'user' | 'model';
   text: string;
   timestamp: string;
+  audioUrl?: string; // Base64 data URL for generated divine voice note
+  audioGenerating?: boolean; // Loading state for audio generation
 }
 
 interface KrishnaConversation {
@@ -597,6 +599,9 @@ export default function App() {
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
   const [editTitleText, setEditTitleText] = useState("");
   const [isKrishnaVoiceListening, setIsKrishnaVoiceListening] = useState(false);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const krishnaChatEndRef = useRef<HTMLDivElement | null>(null);
 
   const t = (THEMES as any)[profile.activeTheme] || THEMES.brutalist;
@@ -719,6 +724,17 @@ export default function App() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Cleanup Krishna Audio on unmount or tab switch
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (ambientAudioRef.current) {
+        ambientAudioRef.current.pause();
+        ambientAudioRef.current.currentTime = 0;
+      }
+    };
+  }, [appMode]);
 
   // Update Brain Global Date Logic
   useEffect(() => {
@@ -1481,6 +1497,153 @@ CORE MANNERISMS & ESSENCE:
     );
     updateKrishnaFirebase({ conversations: updated });
     showMessage("Conversation renamed ✨");
+  };
+
+  // ==========================================
+  // DIVINE VOICE NOTE GENERATOR (Web Speech API + Ambient Flute)
+  // ==========================================
+  const generateDivineVoiceNote = async (messageId: string, messageText: string) => {
+    if (!profile.geminiKey) {
+      showMessage("Gemini API Key required for voice generation 🔑");
+      return;
+    }
+
+    // Mark message as generating audio
+    const updatedConvs = krishnaState.conversations.map(conv => {
+      if (conv.id === krishnaState.activeConversationId) {
+        return {
+          ...conv,
+          messages: conv.messages.map(msg =>
+            msg.id === messageId ? { ...msg, audioGenerating: true } : msg
+          )
+        };
+      }
+      return conv;
+    });
+    updateKrishnaFirebase({ conversations: updatedConvs });
+
+    try {
+      // Generate extended spiritual voice script via Gemini
+      const voicePrompt = `Based on this divine guidance, create a deeply meditative, extended voice narration in natural Hindi/Hinglish that Shri Krishna would speak to ${profile.name || "Parth"}.
+
+Original Message:
+${messageText}
+
+VOICE SCRIPT REQUIREMENTS:
+- Expand this into a 2-3 minute divine audio experience
+- Use deeply serene, compassionate, fraternal tone
+- Add natural breathing pauses (use "..." for dramatic pauses)
+- Include poetic elaboration of key spiritual concepts
+- Speak as Krishna directly addressing the listener with love and authority
+- Keep language flowing, warm, and profoundly reassuring
+- Add contextual wisdom beyond the text message
+- Make it feel like a personal sakha (friend) speaking, not reading
+
+Return ONLY the voice script text that will be spoken. No JSON, no formatting, just the flowing Hindi/Hinglish narration.`;
+
+      const voiceScriptResponse = await callGeminiApi(
+        profile.geminiKey,
+        [{ role: "user", parts: [{ text: voicePrompt }] }],
+        "",
+        false
+      );
+
+      // Use Web Speech API for Hindi TTS
+      const utterance = new SpeechSynthesisUtterance(voiceScriptResponse);
+      utterance.lang = 'hi-IN';
+      utterance.rate = 0.85; // Slower, meditative pace
+      utterance.pitch = 0.95; // Slightly deeper, divine voice
+      utterance.volume = 0.9;
+
+      // Try to find best Hindi voice
+      const voices = window.speechSynthesis.getVoices();
+      const hindiVoice = voices.find(v => v.lang.startsWith('hi')) || voices.find(v => v.lang.startsWith('en-IN')) || voices[0];
+      if (hindiVoice) utterance.voice = hindiVoice;
+
+      // Start ambient bansuri/tanpura loop at 5% volume
+      if (!ambientAudioRef.current) {
+        ambientAudioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_4c3b8a871e.mp3'); // Royalty-free meditation flute
+        ambientAudioRef.current.loop = true;
+        ambientAudioRef.current.volume = 0.05;
+      }
+      ambientAudioRef.current.play();
+
+      utterance.onstart = () => {
+        setPlayingAudioId(messageId);
+      };
+
+      utterance.onend = () => {
+        setPlayingAudioId(null);
+        if (ambientAudioRef.current) {
+          ambientAudioRef.current.pause();
+          ambientAudioRef.current.currentTime = 0;
+        }
+      };
+
+      utterance.onerror = () => {
+        setPlayingAudioId(null);
+        if (ambientAudioRef.current) ambientAudioRef.current.pause();
+        showMessage("Voice playback error. Try again.");
+      };
+
+      window.speechSynthesis.speak(utterance);
+
+      // Mark audio as ready (no URL needed for Web Speech API)
+      const finalConvs = krishnaState.conversations.map(conv => {
+        if (conv.id === krishnaState.activeConversationId) {
+          return {
+            ...conv,
+            messages: conv.messages.map(msg =>
+              msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl: 'web-speech-ready' } : msg
+            )
+          };
+        }
+        return conv;
+      });
+      updateKrishnaFirebase({ conversations: finalConvs });
+
+    } catch (e: any) {
+      console.error("Voice generation error:", e);
+      showMessage("Voice generation failed. Check connection.");
+
+      // Remove generating state
+      const failedConvs = krishnaState.conversations.map(conv => {
+        if (conv.id === krishnaState.activeConversationId) {
+          return {
+            ...conv,
+            messages: conv.messages.map(msg =>
+              msg.id === messageId ? { ...msg, audioGenerating: false } : msg
+            )
+          };
+        }
+        return conv;
+      });
+      updateKrishnaFirebase({ conversations: failedConvs });
+    }
+  };
+
+  const stopKrishnaAudio = () => {
+    window.speechSynthesis.cancel();
+    if (ambientAudioRef.current) {
+      ambientAudioRef.current.pause();
+      ambientAudioRef.current.currentTime = 0;
+    }
+    setPlayingAudioId(null);
+  };
+
+  const toggleKrishnaVoiceNote = (messageId: string, messageText: string, hasAudio: boolean) => {
+    if (playingAudioId === messageId) {
+      stopKrishnaAudio();
+    } else {
+      if (playingAudioId) stopKrishnaAudio();
+      if (hasAudio) {
+        // Replay existing audio
+        generateDivineVoiceNote(messageId, messageText);
+      } else {
+        // Generate for first time
+        generateDivineVoiceNote(messageId, messageText);
+      }
+    }
   };
 
   const sendKrishnaMessage = async (
@@ -3473,6 +3636,45 @@ CORE MANNERISMS & ESSENCE:
                       <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm space-y-2">
                         {msg.text}
                       </div>
+
+                      {/* Divine Voice Note Player (Krishna messages only) */}
+                      {!isUser && (
+                        <div className="mt-3 pt-3 border-t border-amber-400/20">
+                          <button
+                            onClick={() => toggleKrishnaVoiceNote(msg.id, msg.text, !!msg.audioUrl)}
+                            disabled={msg.audioGenerating}
+                            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all tap-effect ${
+                              msg.audioGenerating
+                                ? "bg-amber-400/20 text-amber-300 cursor-wait"
+                                : playingAudioId === msg.id
+                                ? "bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse"
+                                : "bg-gradient-to-r from-amber-400 to-yellow-500 text-[#071326] hover:from-amber-300 hover:to-yellow-400 shadow-[0_4px_15px_rgba(251,191,36,0.3)]"
+                            }`}
+                          >
+                            {msg.audioGenerating ? (
+                              <>
+                                <Loader2 size={16} className="animate-spin" />
+                                <span>Generating Divine Voice...</span>
+                              </>
+                            ) : playingAudioId === msg.id ? (
+                              <>
+                                <Pause size={16} />
+                                <span>Pause Krishna's Vani</span>
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 size={16} />
+                                <span>🪶 Suniye Shri Krishna ki Vani</span>
+                              </>
+                            )}
+                          </button>
+                          {msg.audioUrl && !msg.audioGenerating && (
+                            <p className="text-[9px] text-amber-200/50 text-center mt-1.5 font-medium">
+                              Extended divine narration with peaceful bansuri ambience
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       {/* User timestamp */}
                       {isUser && (
