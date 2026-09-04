@@ -1244,9 +1244,136 @@ export default function App() {
     const todayCompleted = Object.values(todayTasks).filter((v: any) => v === "X").length;
     const activePerks = (profile.inventory || []).filter((i: any) => i.status === "active").map((i: any) => i.name).join(", ") || "None";
 
-    const systemPrompt = `You are a wise Habit Coach for ${profile.name}.
-    Status: ${profile.stars} Stars, Perfect Streak: ${streaks.perfect}, Study Streak: ${streaks.study}, Progress: ${todayCompleted}/${(profile.customTasks || DEFAULT_TASKS).length}. Perks: ${activePerks}.
-    Keep it impactful, firm yet caring.`;
+    // ==========================================
+    // COMPREHENSIVE DATA FEED FOR AI COACH
+    // ==========================================
+
+    // 1. Calculate Monthly Statistics
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const monthlyDates = Object.keys(trackerData).filter(dateStr => {
+      const [year, month] = dateStr.split('-').map(Number);
+      return year === currentYear && month - 1 === currentMonth;
+    });
+
+    let monthlyStreakBreaks = 0;
+    let monthlyPerfectDays = 0;
+    let monthlyFailedDays = 0;
+    let monthlyTotalTasks = 0;
+    let monthlyCompletedTasks = 0;
+    const monthlyDaySummaries: string[] = [];
+
+    monthlyDates.forEach(dateStr => {
+      const dayData = trackerData[dateStr];
+      if (dayData && dayData.tasks) {
+        const tasks = Object.values(dayData.tasks);
+        const xCount = tasks.filter((v: any) => v === "X").length;
+        const oCount = tasks.filter((v: any) => v === "O").length;
+        const totalTasks = tasks.length;
+
+        monthlyTotalTasks += totalTasks;
+        monthlyCompletedTasks += xCount;
+
+        if (xCount === totalTasks) monthlyPerfectDays++;
+        if (oCount > 0) {
+          monthlyFailedDays++;
+          monthlyStreakBreaks++;
+        }
+
+        if (dayData.summary) {
+          monthlyDaySummaries.push(`${dateStr}: ${dayData.summary}`);
+        }
+      }
+    });
+
+    const monthlyCompletionRate = monthlyTotalTasks > 0 ? Math.round((monthlyCompletedTasks / monthlyTotalTasks) * 100) : 0;
+
+    // 2. Reward Shop Purchase History
+    const purchaseHistory = (profile.inventory || []).map((item: any) =>
+      `${item.name} (${item.status}) - Purchased: ${new Date(parseInt(item.instanceId)).toLocaleDateString()}`
+    ).join(", ") || "No purchases yet";
+
+    // 3. Recent Habit History (Last 7 days)
+    const last7Days: string[] = [];
+    let tempDate = new Date(todayStr + "T00:00:00");
+    for (let i = 0; i < 7; i++) {
+      const dateStr = formatDate(tempDate);
+      const dayData = trackerData[dateStr];
+      if (dayData && dayData.tasks) {
+        const xCount = Object.values(dayData.tasks).filter((v: any) => v === "X").length;
+        const totalCount = Object.keys(dayData.tasks).length;
+        last7Days.push(`${dateStr}: ${xCount}/${totalCount} tasks completed`);
+      }
+      tempDate.setDate(tempDate.getDate() - 1);
+    }
+
+    // 4. Second Brain Summary
+    const brainSummary = `
+    📚 Study Topics: ${brain.stagingTopics?.length || 0} staging, ${brain.studyTopics?.length || 0} active, ${brain.masteredTopics?.length || 0} mastered
+    💡 Wisdom Notes: ${brain.wisdomNotes?.length || 0} quick thoughts, ${brain.vaultNotes?.length || 0} vault notes
+    🎯 Custom Missions: ${brain.customMissions?.length || 0} ongoing
+    ⏰ Global Deadline: ${brain.globalDeadlineDays || 30} days remaining`;
+
+    // 5. Ongoing Plans (Active Goals/Resources)
+    const ongoingPlans: string[] = [];
+    if (brain.customMissions && brain.customMissions.length > 0) {
+      brain.customMissions.forEach((mission: any) => {
+        ongoingPlans.push(`${mission.title}: ${mission.desc || 'No description'}`);
+      });
+    }
+
+    // 6. Current Tasks List
+    const currentTasksList = (profile.customTasks || DEFAULT_TASKS).map((task: any) =>
+      `${task.title} (${task.desc})${task.isLocked ? ' [LOCKED]' : ''}`
+    ).join(", ");
+
+    const systemPrompt = `You are an advanced AI Habit Coach and Personal Analytics Assistant for ${profile.name}.
+
+🎯 CURRENT STATUS:
+- Stars: ${profile.stars} ⭐
+- Perfect Streak: ${streaks.perfect} days 🔥
+- Study Streak: ${streaks.study} days 📚
+- Trigger Control Streak: ${streaks.trigger} days 🎯
+- Title: ${playerTitle}
+- Today's Progress: ${todayCompleted}/${(profile.customTasks || DEFAULT_TASKS).length} tasks completed
+- Active Perks: ${activePerks}
+
+📊 THIS MONTH'S ANALYTICS (${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}):
+- Days Tracked: ${monthlyDates.length}
+- Perfect Days: ${monthlyPerfectDays} 🏆
+- Streak Breaks: ${monthlyStreakBreaks} ❌
+- Failed Days: ${monthlyFailedDays}
+- Overall Completion Rate: ${monthlyCompletionRate}%
+- Total Tasks: ${monthlyCompletedTasks}/${monthlyTotalTasks}
+
+📅 LAST 7 DAYS PERFORMANCE:
+${last7Days.join('\n')}
+
+🛒 REWARD SHOP HISTORY:
+${purchaseHistory}
+
+📝 RECENT DAY SUMMARIES:
+${monthlyDaySummaries.slice(-5).join('\n') || 'No summaries recorded yet'}
+
+🧠 SECOND BRAIN STATUS:
+${brainSummary}
+
+🎯 ONGOING PLANS/MISSIONS:
+${ongoingPlans.length > 0 ? ongoingPlans.join('\n') : 'No active missions'}
+
+📋 CURRENT HABIT TASKS:
+${currentTasksList}
+
+🔥 YOUR ROLE:
+You have COMPLETE access to ${profile.name}'s entire app data. You can:
+1. Answer specific queries about streaks, breaks, stats, and patterns
+2. Provide monthly/weekly summaries based on actual day logs
+3. Track reward purchases and active perks
+4. Monitor Second Brain progress (study topics, notes, missions)
+5. Give data-driven insights and personalized recommendations
+6. Identify weak patterns and suggest improvements
+
+Be analytical, precise, and data-driven. When asked about specific numbers (streak breaks, purchases, completion rates), give EXACT answers based on the data above. Keep responses impactful, firm yet caring, like a tough but supportive coach who knows every detail of their athlete's performance.`;
 
     // Build properly alternating history without error notices or leading assistant messages
     const formattedHistory: any[] = [];
