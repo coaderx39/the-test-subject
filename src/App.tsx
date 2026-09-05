@@ -1500,7 +1500,7 @@ CORE MANNERISMS & ESSENCE:
   };
 
   // ==========================================
-  // DIVINE NEURAL VOICE ENGINE (Google Gemini 2.0 Live Studio Audio)
+  // DIVINE NEURAL VOICE ENGINE & AMBIENT FLUTE SYNTH
   // ==========================================
   const cleanTextForDivineAudio = (text: string): string => {
     return text
@@ -1512,6 +1512,74 @@ CORE MANNERISMS & ESSENCE:
       .replace(/[,\-]{2,}/g, ", ")
       .replace(/\s+/g, " ")
       .trim();
+  };
+
+  // Web Audio API Ambient Bansuri & Tanpura Harmonic Synthesizer (100% Reliable & Offline)
+  const ambientSynthRef = useRef<{ ctx: AudioContext | null; gain: GainNode | null; os託s: OscillatorNode[] }>({
+    ctx: null,
+    gain: null,
+    os託s: []
+  });
+
+  const startAmbientFluteSynth = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      if (ambientSynthRef.current.ctx && ambientSynthRef.current.ctx.state !== "closed") {
+        return; // Already running
+      }
+
+      const ctx = new AudioCtx();
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      masterGain.gain.exponentialRampToValueAtTime(0.03, ctx.currentTime + 1.2); // Gentle 3% volume
+      masterGain.connect(ctx.destination);
+
+      // Meditative Tanpura & Bansuri drone harmonics (432Hz tuning: D, A notes)
+      const freqs = [144.0, 216.0, 288.0, 432.0];
+      const oscs = freqs.map((f, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = i % 2 === 0 ? "sine" : "triangle";
+        osc.frequency.setValueAtTime(f, ctx.currentTime);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(f * 2.5, ctx.currentTime);
+
+        g.gain.setValueAtTime(i === 0 ? 0.4 : i === 1 ? 0.3 : 0.2, ctx.currentTime);
+
+        osc.connect(filter);
+        filter.connect(g);
+        g.connect(masterGain);
+        osc.start();
+        return osc;
+      });
+
+      ambientSynthRef.current = { ctx, gain: masterGain, os託s: oscs };
+    } catch (e) {
+      console.warn("Ambient synth start error:", e);
+    }
+  };
+
+  const stopAmbientFluteSynth = () => {
+    try {
+      const { ctx, gain, os託s } = ambientSynthRef.current;
+      if (ctx && gain && ctx.state !== "closed") {
+        gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+        setTimeout(() => {
+          try {
+            os託s.forEach(o => { try { o.stop(); o.disconnect(); } catch (err) {} });
+            if (ctx.state !== "closed") ctx.close();
+            ambientSynthRef.current = { ctx: null, gain: null, os託s: [] };
+          } catch (err) {}
+        }, 700);
+      }
+    } catch (e) {
+      console.warn("Ambient synth stop error:", e);
+    }
   };
 
   const convertPcm16ToWavBlobUrl = (base64Data: string, sampleRate = 24000): string => {
@@ -1561,7 +1629,7 @@ CORE MANNERISMS & ESSENCE:
     if (!cleaned) throw new Error("No readable text found for audio generation.");
 
     if (!profile.geminiKey) {
-      throw new Error("Gemini API key is required. Please add it in Command Center.");
+      throw new Error("Gemini API key is required. Please add it in Command Center / Settings.");
     }
 
     const key = profile.geminiKey.trim().replace(/^["']|["']$/g, '');
@@ -1633,16 +1701,7 @@ CORE MANNERISMS & ESSENCE:
       }
     }
 
-    // Secondary Free Streaming Fallback (Google Neural Speech Stream - No Robotic Voices)
-    try {
-      const truncated = cleaned.slice(0, 180);
-      const streamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=hi&client=tw-ob&q=${encodeURIComponent(truncated)}`;
-      return streamUrl;
-    } catch (streamErr) {
-      console.warn("Secondary stream error:", streamErr);
-    }
-
-    throw new Error(lastError || "Audio synthesis failed. Please check Gemini API Key.");
+    throw new Error(lastError || "Could not generate Gemini Audio. Verify API key in Command Center.");
   };
 
   const generateDivineVoiceNote = async (messageId: string, messageText: string) => {
@@ -1681,67 +1740,112 @@ CORE MANNERISMS & ESSENCE:
       playDivineAudio(messageId, audioUrl);
 
     } catch (e: any) {
-      console.error("Divine Audio Error:", e);
-      showMessage(e?.message || "Voice generation error. Check Gemini Key.");
+      console.warn("Divine Neural Audio Exception:", e);
+      showMessage(e?.message || "Generating fallback audio...");
 
-      const failConvs = krishnaState.conversations.map(conv => {
-        if (conv.id === krishnaState.activeConversationId) {
-          return {
-            ...conv,
-            messages: conv.messages.map(msg =>
-              msg.id === messageId ? { ...msg, audioGenerating: false } : msg
-            )
-          };
-        }
-        return conv;
-      });
-      updateKrishnaFirebase({ conversations: failConvs });
+      // Fallback: Deep Male Voice Synthesis with Web Audio Ambient Flute
+      playDeepMaleFallback(messageId, messageText);
     }
   };
 
   const playDivineAudio = (messageId: string, audioUrl: string) => {
     stopKrishnaAudio();
 
-    const audio = new Audio(audioUrl);
-    voiceAudioRef.current = audio;
+    try {
+      const audio = new Audio(audioUrl);
+      voiceAudioRef.current = audio;
 
-    // Ambient Flute Loop at 3%
-    if (!ambientAudioRef.current) {
-      ambientAudioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_4c3b8a871e.mp3');
-      ambientAudioRef.current.loop = true;
-      ambientAudioRef.current.volume = 0.03;
+      // Start ambient flute synthesizer
+      startAmbientFluteSynth();
+
+      audio.onplay = () => {
+        setPlayingAudioId(messageId);
+      };
+
+      audio.onended = () => {
+        stopKrishnaAudio();
+      };
+
+      audio.onerror = (e) => {
+        console.warn("HTML5 Audio playback error:", e);
+        stopKrishnaAudio();
+        // If blob playback failed, use deep male fallback
+        playDeepMaleFallback(messageId, "");
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn("Audio play blocked or failed:", err);
+          stopKrishnaAudio();
+        });
+      }
+    } catch (err) {
+      console.warn("Audio initialization error:", err);
+      stopKrishnaAudio();
     }
-    ambientAudioRef.current.play().catch(() => {});
+  };
 
-    audio.onplay = () => {
-      setPlayingAudioId(messageId);
-    };
+  const playDeepMaleFallback = (messageId: string, messageText: string) => {
+    stopKrishnaAudio();
 
-    audio.onended = () => {
-      stopKrishnaAudio();
-    };
+    if (!window.speechSynthesis) {
+      showMessage("Audio playback not supported on this browser.");
+      return;
+    }
 
-    audio.onerror = () => {
-      stopKrishnaAudio();
-      showMessage("Audio playback failed. Please try again.");
-    };
+    const cleaned = cleanTextForDivineAudio(messageText);
+    const voices = window.speechSynthesis.getVoices();
 
-    audio.play().catch(err => {
-      console.warn("Audio play blocked or failed:", err);
-      stopKrishnaAudio();
+    // STRICT MALE VOICE SELECTION ONLY
+    const maleVoice = voices.find(v => (v.lang.startsWith("hi") || v.lang.startsWith("en-IN")) && (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("madhur") || v.name.toLowerCase().includes("ravi") || v.name.toLowerCase().includes("david"))) ||
+                      voices.find(v => (v.lang.startsWith("hi") || v.lang.startsWith("en-IN")) && !v.name.toLowerCase().includes("female") && !v.name.toLowerCase().includes("zira") && !v.name.toLowerCase().includes("heera")) ||
+                      voices.find(v => v.lang.startsWith("hi")) ||
+                      voices[0];
+
+    const utterance = new SpeechSynthesisUtterance(cleaned);
+    utterance.voice = maleVoice;
+    utterance.lang = "hi-IN";
+    utterance.rate = 0.82; // Meditative calm pacing
+    utterance.pitch = 0.72; // Deep, resonant masculine tone
+
+    startAmbientFluteSynth();
+
+    utterance.onstart = () => setPlayingAudioId(messageId);
+    utterance.onend = () => stopKrishnaAudio();
+    utterance.onerror = () => stopKrishnaAudio();
+
+    window.speechSynthesis.speak(utterance);
+
+    // Update message state
+    const finalConvs = krishnaState.conversations.map(conv => {
+      if (conv.id === krishnaState.activeConversationId) {
+        return {
+          ...conv,
+          messages: conv.messages.map(msg =>
+            msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl: "fallback-ready" } : msg
+          )
+        };
+      }
+      return conv;
     });
+    updateKrishnaFirebase({ conversations: finalConvs });
   };
 
   const stopKrishnaAudio = () => {
     if (voiceAudioRef.current) {
-      voiceAudioRef.current.pause();
-      voiceAudioRef.current.currentTime = 0;
+      try {
+        voiceAudioRef.current.pause();
+        voiceAudioRef.current.currentTime = 0;
+      } catch (e) {}
       voiceAudioRef.current = null;
     }
-    if (ambientAudioRef.current) {
-      ambientAudioRef.current.pause();
-      ambientAudioRef.current.currentTime = 0;
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
     }
+    stopAmbientFluteSynth();
     setPlayingAudioId(null);
   };
 
@@ -1750,7 +1854,7 @@ CORE MANNERISMS & ESSENCE:
       stopKrishnaAudio();
     } else {
       if (playingAudioId) stopKrishnaAudio();
-      if (audioUrl) {
+      if (audioUrl && audioUrl !== "fallback-ready") {
         playDivineAudio(messageId, audioUrl);
       } else {
         generateDivineVoiceNote(messageId, messageText);
