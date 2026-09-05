@@ -1500,138 +1500,149 @@ CORE MANNERISMS & ESSENCE:
   };
 
   // ==========================================
-  // KOKORO NEURAL TTS ENGINE & DIVINE VOICE GENERATOR
+  // DIVINE NEURAL VOICE ENGINE (Google Gemini 2.0 Live Studio Audio)
   // ==========================================
-  const cleanTextForKokoro = (text: string): string => {
+  const cleanTextForDivineAudio = (text: string): string => {
     return text
-      .replace(/[*#_`~>\[\]\(\)\{\}\\]/g, " ") // Remove markdown formatting & brackets
+      .replace(/[*#_`~>\[\]\(\)\{\}\\]/g, " ") // Remove markdown & symbols
       .replace(/[\u{1F300}-\u{1FAFF}]/gu, "") // Remove emojis
-      .replace(/[\u{2600}-\u{27BF}]/gu, "") // Remove symbols
-      .replace(/[।॥]/g, ". ") // Convert Devanagari stops to standard pauses
-      .replace(/\.{2,}/g, ". ") // Remove ellipsis/multiple dots
+      .replace(/[\u{2600}-\u{27BF}]/gu, "") // Remove misc icons
+      .replace(/[।॥]/g, ". ") // Convert Devanagari stops to natural pause
+      .replace(/\.{2,}/g, ". ") // Remove ellipsis
       .replace(/[,\-]{2,}/g, ", ")
       .replace(/\s+/g, " ")
       .trim();
   };
 
-  const fetchKokoroNeuralAudio = async (text: string): Promise<string> => {
-    const cleaned = cleanTextForKokoro(text);
+  const convertPcm16ToWavBlobUrl = (base64Data: string, sampleRate = 24000): string => {
+    const binaryStr = window.atob(base64Data);
+    const len = binaryStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+
+    // If it's already a WAV file (starts with 'RIFF')
+    if (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) {
+      const blob = new Blob([bytes], { type: "audio/wav" });
+      return URL.createObjectURL(blob);
+    }
+
+    // Build standard 44-byte WAV header for 16-bit Mono PCM
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
+    const dataSize = bytes.length;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    view.setUint32(0, 0x52494646, false); // "RIFF"
+    view.setUint32(4, 36 + dataSize, true); // File size - 8
+    view.setUint32(8, 0x57415645, false); // "WAVE"
+    view.setUint32(12, 0x666d7420, false); // "fmt "
+    view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+    view.setUint16(20, 1, true); // AudioFormat (1 = PCM)
+    view.setUint16(22, numChannels, true); // NumChannels
+    view.setUint32(24, sampleRate, true); // SampleRate (24000 Hz)
+    view.setUint32(28, byteRate, true); // ByteRate
+    view.setUint16(32, blockAlign, true); // BlockAlign
+    view.setUint16(34, bitsPerSample, true); // BitsPerSample (16)
+    view.setUint32(36, 0x64617461, false); // "data"
+    view.setUint32(40, dataSize, true); // Subchunk2Size
+
+    new Uint8Array(buffer, 44).set(bytes);
+    const blob = new Blob([buffer], { type: "audio/wav" });
+    return URL.createObjectURL(blob);
+  };
+
+  const fetchDivineNeuralAudio = async (text: string): Promise<string> => {
+    const cleaned = cleanTextForDivineAudio(text);
     if (!cleaned) throw new Error("No readable text found for audio generation.");
 
-    // List of reliable public Kokoro-82M endpoints
-    const kokoroEndpoints = [
-      {
-        url: "https://hexgrad-kokoro-tts.hf.space/api/predict",
-        type: "gradio",
-        payload: { data: [cleaned, "hm_omega", 0.9] } // Indian/Hindi calm male voice
-      },
-      {
-        url: "https://api-inference.huggingface.co/models/hexgrad/Kokoro-82M",
-        type: "hf_direct",
-        payload: { inputs: cleaned, parameters: { voice: "hm_omega", speed: 0.9 } }
-      }
-    ];
-
-    for (const ep of kokoroEndpoints) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-        const res = await fetch(ep.url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(ep.payload),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const contentType = res.headers.get("content-type") || "";
-          if (contentType.includes("audio") || contentType.includes("octet-stream")) {
-            const blob = await res.blob();
-            return URL.createObjectURL(blob);
-          } else {
-            const data = await res.json();
-            // Handle Gradio / JSON audio output response
-            if (data?.data?.[0]?.name || data?.data?.[0]?.url) {
-              const fileUrl = data.data[0].url || `https://hexgrad-kokoro-tts.hf.space/file=${data.data[0].name}`;
-              return fileUrl;
-            }
-          }
-        }
-      } catch (err) {
-        console.warn(`[Kokoro TTS] Endpoint error:`, err);
-      }
+    if (!profile.geminiKey) {
+      throw new Error("Gemini API key is required. Please add it in Command Center.");
     }
 
-    // High-quality Neural Gemini Audio fallback
-    if (profile.geminiKey) {
-      try {
-        const key = profile.geminiKey.trim().replace(/^["']|["']$/g, '');
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    {
-                      text: `Speak the following divine message in a serene, calm, deep male voice in natural Hindi/Sanskrit:\n\n${cleaned}`
+    const key = profile.geminiKey.trim().replace(/^["']|["']$/g, '');
+    const audioModels = ["gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash"];
+    const maleVoices = ["Charon", "Puck", "Fenrir"];
+
+    let lastError: any = null;
+
+    // Try Gemini 2.0 Native Studio Neural Audio Engine
+    for (const model of audioModels) {
+      for (const voiceName of maleVoices) {
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    role: "user",
+                    parts: [
+                      {
+                        text: `You are Lord Shri Krishna. Speak the following divine words to your beloved friend Parth in a deeply serene, warm, majestic, calm, and soothing human male voice with natural pauses. Speak with unconditional love and fraternal affection in pure Hindi and Sanskrit:\n\n${cleaned}`
+                      }
+                    ]
+                  }
+                ],
+                generationConfig: {
+                  responseModalities: ["AUDIO"],
+                  speechConfig: {
+                    voiceConfig: {
+                      prebuiltVoiceConfig: {
+                        voiceName: voiceName
+                      }
                     }
-                  ]
-                }
-              ],
-              generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: "Charon" }
                   }
                 }
+              })
+            }
+          );
+
+          const data = await res.json();
+          if (res.ok && data?.candidates?.[0]?.content?.parts) {
+            for (const part of data.candidates[0].content.parts) {
+              if (part.inlineData && part.inlineData.data) {
+                const base64Audio = part.inlineData.data;
+                const mimeType = part.inlineData.mimeType || "audio/pcm";
+
+                if (mimeType.includes("mp3") || mimeType.includes("wav") || mimeType.includes("ogg")) {
+                  const binaryStr = window.atob(base64Audio);
+                  const bytes = new Uint8Array(binaryStr.length);
+                  for (let i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                  }
+                  const blob = new Blob([bytes], { type: mimeType });
+                  return URL.createObjectURL(blob);
+                } else {
+                  return convertPcm16ToWavBlobUrl(base64Audio, 24000);
+                }
               }
-            })
+            }
+          } else if (data?.error) {
+            lastError = data.error.message;
           }
-        );
-
-        const data = await res.json();
-        const audioBase64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (audioBase64) {
-          const binaryStr = window.atob(audioBase64);
-          const bytes = new Uint8Array(binaryStr.length);
-          for (let i = 0; i < binaryStr.length; i++) {
-            bytes[i] = binaryStr.charCodeAt(i);
-          }
-          // WAV Header construction for 24kHz Mono PCM
-          const dataSize = bytes.length;
-          const buffer = new ArrayBuffer(44 + dataSize);
-          const view = new DataView(buffer);
-          view.setUint32(0, 0x52494646, false); // "RIFF"
-          view.setUint32(4, 36 + dataSize, true);
-          view.setUint32(8, 0x57415645, false); // "WAVE"
-          view.setUint32(12, 0x666d7420, false); // "fmt "
-          view.setUint32(16, 16, true);
-          view.setUint16(20, 1, true); // PCM
-          view.setUint16(22, 1, true); // Mono
-          view.setUint32(24, 24000, true); // Sample rate
-          view.setUint32(28, 48000, true); // Byte rate
-          view.setUint16(32, 2, true); // Block align
-          view.setUint16(34, 16, true); // Bits per sample
-          view.setUint32(36, 0x64617461, false); // "data"
-          view.setUint32(40, dataSize, true);
-          new Uint8Array(buffer, 44).set(bytes);
-
-          const blob = new Blob([buffer], { type: "audio/wav" });
-          return URL.createObjectURL(blob);
+        } catch (e: any) {
+          lastError = e?.message || e;
         }
-      } catch (geminiErr) {
-        console.warn("[Gemini Audio Fallback Error]:", geminiErr);
       }
     }
 
-    throw new Error("Unable to synthesize audio from Kokoro endpoints.");
+    // Secondary Free Streaming Fallback (Google Neural Speech Stream - No Robotic Voices)
+    try {
+      const truncated = cleaned.slice(0, 180);
+      const streamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=hi&client=tw-ob&q=${encodeURIComponent(truncated)}`;
+      return streamUrl;
+    } catch (streamErr) {
+      console.warn("Secondary stream error:", streamErr);
+    }
+
+    throw new Error(lastError || "Audio synthesis failed. Please check Gemini API Key.");
   };
 
   const generateDivineVoiceNote = async (messageId: string, messageText: string) => {
@@ -1650,7 +1661,7 @@ CORE MANNERISMS & ESSENCE:
     updateKrishnaFirebase({ conversations: updatedConvs });
 
     try {
-      const audioUrl = await fetchKokoroNeuralAudio(messageText);
+      const audioUrl = await fetchDivineNeuralAudio(messageText);
 
       // Save generated audio URL permanently
       const finalConvs = krishnaState.conversations.map(conv => {
@@ -1666,17 +1677,29 @@ CORE MANNERISMS & ESSENCE:
       });
       updateKrishnaFirebase({ conversations: finalConvs });
 
-      // Play the generated Kokoro audio immediately
-      playKokoroAudio(messageId, audioUrl);
+      // Play the generated audio immediately
+      playDivineAudio(messageId, audioUrl);
 
     } catch (e: any) {
-      console.error("Kokoro Audio Error:", e);
-      // Fallback: Use clean Web Speech if cloud endpoint is busy
-      speakCleanWebSpeech(messageId, messageText);
+      console.error("Divine Audio Error:", e);
+      showMessage(e?.message || "Voice generation error. Check Gemini Key.");
+
+      const failConvs = krishnaState.conversations.map(conv => {
+        if (conv.id === krishnaState.activeConversationId) {
+          return {
+            ...conv,
+            messages: conv.messages.map(msg =>
+              msg.id === messageId ? { ...msg, audioGenerating: false } : msg
+            )
+          };
+        }
+        return conv;
+      });
+      updateKrishnaFirebase({ conversations: failConvs });
     }
   };
 
-  const playKokoroAudio = (messageId: string, audioUrl: string) => {
+  const playDivineAudio = (messageId: string, audioUrl: string) => {
     stopKrishnaAudio();
 
     const audio = new Audio(audioUrl);
@@ -1709,54 +1732,11 @@ CORE MANNERISMS & ESSENCE:
     });
   };
 
-  const speakCleanWebSpeech = (messageId: string, messageText: string) => {
-    const cleanText = cleanTextForKokoro(messageText);
-    const voices = window.speechSynthesis.getVoices();
-    const maleVoice = voices.find(v => (v.lang.startsWith("hi") || v.lang.startsWith("en-IN")) && !v.name.toLowerCase().includes("female")) ||
-                      voices.find(v => v.lang.startsWith("hi")) ||
-                      voices[0];
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.voice = maleVoice;
-    utterance.rate = 0.85;
-    utterance.pitch = 0.8;
-
-    utterance.onstart = () => {
-      setPlayingAudioId(messageId);
-      if (ambientAudioRef.current) {
-        ambientAudioRef.current.volume = 0.03;
-        ambientAudioRef.current.play().catch(() => {});
-      }
-    };
-
-    utterance.onend = () => stopKrishnaAudio();
-    utterance.onerror = () => stopKrishnaAudio();
-
-    window.speechSynthesis.speak(utterance);
-
-    // Update state to ready
-    const finalConvs = krishnaState.conversations.map(conv => {
-      if (conv.id === krishnaState.activeConversationId) {
-        return {
-          ...conv,
-          messages: conv.messages.map(msg =>
-            msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl: 'web-speech-ready' } : msg
-          )
-        };
-      }
-      return conv;
-    });
-    updateKrishnaFirebase({ conversations: finalConvs });
-  };
-
   const stopKrishnaAudio = () => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current.currentTime = 0;
       voiceAudioRef.current = null;
-    }
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
     }
     if (ambientAudioRef.current) {
       ambientAudioRef.current.pause();
@@ -1770,8 +1750,8 @@ CORE MANNERISMS & ESSENCE:
       stopKrishnaAudio();
     } else {
       if (playingAudioId) stopKrishnaAudio();
-      if (audioUrl && audioUrl !== 'web-speech-ready') {
-        playKokoroAudio(messageId, audioUrl);
+      if (audioUrl) {
+        playDivineAudio(messageId, audioUrl);
       } else {
         generateDivineVoiceNote(messageId, messageText);
       }
