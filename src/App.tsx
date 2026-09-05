@@ -1500,144 +1500,264 @@ CORE MANNERISMS & ESSENCE:
   };
 
   // ==========================================
-  // DIVINE VOICE NOTE GENERATOR (Optimized Free Web Speech)
+  // KOKORO NEURAL TTS ENGINE & DIVINE VOICE GENERATOR
   // ==========================================
-  const generateDivineVoiceNote = async (messageId: string, messageText: string) => {
-    // Clean text for better voice synthesis (remove punctuation that sounds bad)
-    const cleanText = messageText
-      .replace(/[।॥]/g, ' ') // Remove Hindi punctuation
-      .replace(/[{}[\]()]/g, ' ') // Remove brackets
-      .replace(/[*_#]/g, '') // Remove markdown symbols
-      .replace(/\.\.\./g, ' pause ') // Replace ... with natural pause word
-      .replace(/([।॥\.])\s*([A-Za-z])/g, '$1 pause $2') // Add pause between sentences
-      .replace(/\s+/g, ' ') // Clean extra spaces
+  const cleanTextForKokoro = (text: string): string => {
+    return text
+      .replace(/[*#_`~>\[\]\(\)\{\}\\]/g, " ") // Remove markdown formatting & brackets
+      .replace(/[\u{1F300}-\u{1FAFF}]/gu, "") // Remove emojis
+      .replace(/[\u{2600}-\u{27BF}]/gu, "") // Remove symbols
+      .replace(/[।॥]/g, ". ") // Convert Devanagari stops to standard pauses
+      .replace(/\.{2,}/g, ". ") // Remove ellipsis/multiple dots
+      .replace(/[,\-]{2,}/g, ", ")
+      .replace(/\s+/g, " ")
       .trim();
+  };
+
+  const fetchKokoroNeuralAudio = async (text: string): Promise<string> => {
+    const cleaned = cleanTextForKokoro(text);
+    if (!cleaned) throw new Error("No readable text found for audio generation.");
+
+    // List of reliable public Kokoro-82M endpoints
+    const kokoroEndpoints = [
+      {
+        url: "https://hexgrad-kokoro-tts.hf.space/api/predict",
+        type: "gradio",
+        payload: { data: [cleaned, "hm_omega", 0.9] } // Indian/Hindi calm male voice
+      },
+      {
+        url: "https://api-inference.huggingface.co/models/hexgrad/Kokoro-82M",
+        type: "hf_direct",
+        payload: { inputs: cleaned, parameters: { voice: "hm_omega", speed: 0.9 } }
+      }
+    ];
+
+    for (const ep of kokoroEndpoints) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const res = await fetch(ep.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ep.payload),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("audio") || contentType.includes("octet-stream")) {
+            const blob = await res.blob();
+            return URL.createObjectURL(blob);
+          } else {
+            const data = await res.json();
+            // Handle Gradio / JSON audio output response
+            if (data?.data?.[0]?.name || data?.data?.[0]?.url) {
+              const fileUrl = data.data[0].url || `https://hexgrad-kokoro-tts.hf.space/file=${data.data[0].name}`;
+              return fileUrl;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`[Kokoro TTS] Endpoint error:`, err);
+      }
+    }
+
+    // High-quality Neural Gemini Audio fallback
+    if (profile.geminiKey) {
+      try {
+        const key = profile.geminiKey.trim().replace(/^["']|["']$/g, '');
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `Speak the following divine message in a serene, calm, deep male voice in natural Hindi/Sanskrit:\n\n${cleaned}`
+                    }
+                  ]
+                }
+              ],
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: "Charon" }
+                  }
+                }
+              }
+            })
+          }
+        );
+
+        const data = await res.json();
+        const audioBase64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (audioBase64) {
+          const binaryStr = window.atob(audioBase64);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          // WAV Header construction for 24kHz Mono PCM
+          const dataSize = bytes.length;
+          const buffer = new ArrayBuffer(44 + dataSize);
+          const view = new DataView(buffer);
+          view.setUint32(0, 0x52494646, false); // "RIFF"
+          view.setUint32(4, 36 + dataSize, true);
+          view.setUint32(8, 0x57415645, false); // "WAVE"
+          view.setUint32(12, 0x666d7420, false); // "fmt "
+          view.setUint32(16, 16, true);
+          view.setUint16(20, 1, true); // PCM
+          view.setUint16(22, 1, true); // Mono
+          view.setUint32(24, 24000, true); // Sample rate
+          view.setUint32(28, 48000, true); // Byte rate
+          view.setUint16(32, 2, true); // Block align
+          view.setUint16(34, 16, true); // Bits per sample
+          view.setUint32(36, 0x64617461, false); // "data"
+          view.setUint32(40, dataSize, true);
+          new Uint8Array(buffer, 44).set(bytes);
+
+          const blob = new Blob([buffer], { type: "audio/wav" });
+          return URL.createObjectURL(blob);
+        }
+      } catch (geminiErr) {
+        console.warn("[Gemini Audio Fallback Error]:", geminiErr);
+      }
+    }
+
+    throw new Error("Unable to synthesize audio from Kokoro endpoints.");
+  };
+
+  const generateDivineVoiceNote = async (messageId: string, messageText: string) => {
+    // 1. Mark message as loading
+    const updatedConvs = krishnaState.conversations.map(conv => {
+      if (conv.id === krishnaState.activeConversationId) {
+        return {
+          ...conv,
+          messages: conv.messages.map(msg =>
+            msg.id === messageId ? { ...msg, audioGenerating: true } : msg
+          )
+        };
+      }
+      return conv;
+    });
+    updateKrishnaFirebase({ conversations: updatedConvs });
 
     try {
-      // Mark as generating
-      const updatedConvs = krishnaState.conversations.map(conv => {
+      const audioUrl = await fetchKokoroNeuralAudio(messageText);
+
+      // Save generated audio URL permanently
+      const finalConvs = krishnaState.conversations.map(conv => {
         if (conv.id === krishnaState.activeConversationId) {
           return {
             ...conv,
             messages: conv.messages.map(msg =>
-              msg.id === messageId ? { ...msg, audioGenerating: true } : msg
+              msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl } : msg
             )
           };
         }
         return conv;
       });
-      updateKrishnaFirebase({ conversations: updatedConvs });
+      updateKrishnaFirebase({ conversations: finalConvs });
 
-      // Load voices (might take a moment on first call)
-      await new Promise<void>((resolve) => {
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          resolve();
-        } else {
-          window.speechSynthesis.onvoiceschanged = () => resolve();
-          setTimeout(() => resolve(), 100); // Fallback timeout
-        }
-      });
-
-      // Find BEST male Hindi/Indian voice available
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoices = [
-        voices.find(v => v.lang === 'hi-IN' && v.name.toLowerCase().includes('male')),
-        voices.find(v => v.lang === 'hi-IN' && !v.name.toLowerCase().includes('female')),
-        voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('male')),
-        voices.find(v => v.lang.startsWith('hi')),
-        voices.find(v => v.lang === 'en-IN'),
-        voices.find(v => !v.name.toLowerCase().includes('female') && v.lang.startsWith('en')),
-        voices[0] // Ultimate fallback
-      ];
-      const selectedVoice = preferredVoices.find(v => v) || voices[0];
-
-      // Configure voice for divine, calm, deep male tone
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice?.lang || 'hi-IN';
-      utterance.rate = 0.8; // Slower for meditative feel
-      utterance.pitch = 0.75; // Lower pitch for deeper male voice
-      utterance.volume = 1.0;
-
-      utterance.onstart = () => {
-        setPlayingAudioId(messageId);
-        // Start optional ambient flute at very low volume
-        if (ambientAudioRef.current) {
-          ambientAudioRef.current.volume = 0.03; // Even lower for less distraction
-          ambientAudioRef.current.play().catch(() => {}); // Silent fail if blocked
-        }
-      };
-
-      utterance.onend = () => {
-        setPlayingAudioId(null);
-        if (ambientAudioRef.current) {
-          ambientAudioRef.current.pause();
-          ambientAudioRef.current.currentTime = 0;
-        }
-        // Mark as ready for replay
-        const finalConvs = krishnaState.conversations.map(conv => {
-          if (conv.id === krishnaState.activeConversationId) {
-            return {
-              ...conv,
-              messages: conv.messages.map(msg =>
-                msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl: 'ready' } : msg
-              )
-            };
-          }
-          return conv;
-        });
-        updateKrishnaFirebase({ conversations: finalConvs });
-      };
-
-      utterance.onerror = (e) => {
-        console.warn('Voice synthesis error:', e);
-        setPlayingAudioId(null);
-        if (ambientAudioRef.current) ambientAudioRef.current.pause();
-        const errorConvs = krishnaState.conversations.map(conv => {
-          if (conv.id === krishnaState.activeConversationId) {
-            return {
-              ...conv,
-              messages: conv.messages.map(msg =>
-                msg.id === messageId ? { ...msg, audioGenerating: false } : msg
-              )
-            };
-          }
-          return conv;
-        });
-        updateKrishnaFirebase({ conversations: errorConvs });
-      };
-
-      // Initialize ambient audio only once (lazy load)
-      if (!ambientAudioRef.current) {
-        ambientAudioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_4c3b8a871e.mp3');
-        ambientAudioRef.current.loop = true;
-        ambientAudioRef.current.volume = 0.03;
-      }
-
-      // Start speaking immediately
-      window.speechSynthesis.speak(utterance);
+      // Play the generated Kokoro audio immediately
+      playKokoroAudio(messageId, audioUrl);
 
     } catch (e: any) {
-      console.error("Voice error:", e);
-      showMessage("Voice unavailable on this device");
-      const failConvs = krishnaState.conversations.map(conv => {
-        if (conv.id === krishnaState.activeConversationId) {
-          return {
-            ...conv,
-            messages: conv.messages.map(msg =>
-              msg.id === messageId ? { ...msg, audioGenerating: false } : msg
-            )
-          };
-        }
-        return conv;
-      });
-      updateKrishnaFirebase({ conversations: failConvs });
+      console.error("Kokoro Audio Error:", e);
+      // Fallback: Use clean Web Speech if cloud endpoint is busy
+      speakCleanWebSpeech(messageId, messageText);
     }
   };
 
+  const playKokoroAudio = (messageId: string, audioUrl: string) => {
+    stopKrishnaAudio();
+
+    const audio = new Audio(audioUrl);
+    voiceAudioRef.current = audio;
+
+    // Ambient Flute Loop at 3%
+    if (!ambientAudioRef.current) {
+      ambientAudioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_4c3b8a871e.mp3');
+      ambientAudioRef.current.loop = true;
+      ambientAudioRef.current.volume = 0.03;
+    }
+    ambientAudioRef.current.play().catch(() => {});
+
+    audio.onplay = () => {
+      setPlayingAudioId(messageId);
+    };
+
+    audio.onended = () => {
+      stopKrishnaAudio();
+    };
+
+    audio.onerror = () => {
+      stopKrishnaAudio();
+      showMessage("Audio playback failed. Please try again.");
+    };
+
+    audio.play().catch(err => {
+      console.warn("Audio play blocked or failed:", err);
+      stopKrishnaAudio();
+    });
+  };
+
+  const speakCleanWebSpeech = (messageId: string, messageText: string) => {
+    const cleanText = cleanTextForKokoro(messageText);
+    const voices = window.speechSynthesis.getVoices();
+    const maleVoice = voices.find(v => (v.lang.startsWith("hi") || v.lang.startsWith("en-IN")) && !v.name.toLowerCase().includes("female")) ||
+                      voices.find(v => v.lang.startsWith("hi")) ||
+                      voices[0];
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.voice = maleVoice;
+    utterance.rate = 0.85;
+    utterance.pitch = 0.8;
+
+    utterance.onstart = () => {
+      setPlayingAudioId(messageId);
+      if (ambientAudioRef.current) {
+        ambientAudioRef.current.volume = 0.03;
+        ambientAudioRef.current.play().catch(() => {});
+      }
+    };
+
+    utterance.onend = () => stopKrishnaAudio();
+    utterance.onerror = () => stopKrishnaAudio();
+
+    window.speechSynthesis.speak(utterance);
+
+    // Update state to ready
+    const finalConvs = krishnaState.conversations.map(conv => {
+      if (conv.id === krishnaState.activeConversationId) {
+        return {
+          ...conv,
+          messages: conv.messages.map(msg =>
+            msg.id === messageId ? { ...msg, audioGenerating: false, audioUrl: 'web-speech-ready' } : msg
+          )
+        };
+      }
+      return conv;
+    });
+    updateKrishnaFirebase({ conversations: finalConvs });
+  };
+
   const stopKrishnaAudio = () => {
-    window.speechSynthesis.cancel();
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current.currentTime = 0;
+      voiceAudioRef.current = null;
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     if (ambientAudioRef.current) {
       ambientAudioRef.current.pause();
       ambientAudioRef.current.currentTime = 0;
@@ -1645,16 +1765,14 @@ CORE MANNERISMS & ESSENCE:
     setPlayingAudioId(null);
   };
 
-  const toggleKrishnaVoiceNote = (messageId: string, messageText: string, hasAudio: boolean) => {
+  const toggleKrishnaVoiceNote = (messageId: string, messageText: string, audioUrl?: string) => {
     if (playingAudioId === messageId) {
       stopKrishnaAudio();
     } else {
       if (playingAudioId) stopKrishnaAudio();
-      if (hasAudio) {
-        // Replay existing audio
-        generateDivineVoiceNote(messageId, messageText);
+      if (audioUrl && audioUrl !== 'web-speech-ready') {
+        playKokoroAudio(messageId, audioUrl);
       } else {
-        // Generate for first time
         generateDivineVoiceNote(messageId, messageText);
       }
     }
@@ -3655,11 +3773,11 @@ CORE MANNERISMS & ESSENCE:
                       {!isUser && (
                         <div className="mt-3 pt-3 border-t border-amber-400/20">
                           <button
-                            onClick={() => toggleKrishnaVoiceNote(msg.id, msg.text, !!msg.audioUrl)}
+                            onClick={() => toggleKrishnaVoiceNote(msg.id, msg.text, msg.audioUrl)}
                             disabled={msg.audioGenerating}
                             className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all tap-effect ${
                               msg.audioGenerating
-                                ? "bg-amber-400/20 text-amber-300 cursor-wait"
+                                ? "bg-amber-400/20 text-amber-300 cursor-wait ring-2 ring-amber-400/50 animate-pulse"
                                 : playingAudioId === msg.id
                                 ? "bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse"
                                 : "bg-gradient-to-r from-amber-400 to-yellow-500 text-[#071326] hover:from-amber-300 hover:to-yellow-400 shadow-[0_4px_15px_rgba(251,191,36,0.3)]"
@@ -3668,25 +3786,25 @@ CORE MANNERISMS & ESSENCE:
                             {msg.audioGenerating ? (
                               <>
                                 <Loader2 size={16} className="animate-spin" />
-                                <span>Generating Divine Voice...</span>
+                                <span>✨ Kokoro AI दिव्य वाणी तैयार हो रही है...</span>
                               </>
                             ) : playingAudioId === msg.id ? (
                               <>
                                 <Pause size={16} />
-                                <span>Pause Krishna's Vani</span>
+                                <span>⏸️ वाणी विराम दें (Pause)</span>
                               </>
                             ) : (
                               <>
                                 <Volume2 size={16} />
-                                <span>🪶 Suniye Shri Krishna ki Vani</span>
+                                <span>🪶 सुनिए श्रीकृष्ण की दिव्य वाणी</span>
                               </>
                             )}
                           </button>
-                          {msg.audioUrl && !msg.audioGenerating && (
-                            <p className="text-[9px] text-amber-200/50 text-center mt-1.5 font-medium">
-                              Extended divine narration with peaceful bansuri ambience
-                            </p>
-                          )}
+                          <p className="text-[9px] text-amber-200/50 text-center mt-1.5 font-medium">
+                            {playingAudioId === msg.id
+                              ? "🎵 शांत बांसुरी एवं कोमल दिव्य वाणी प्रवाहमान है..."
+                              : "✨ Kokoro Neural Studio Audio • शांत पुरुष स्वर • 3% बांसुरी धुन"}
+                          </p>
                         </div>
                       )}
 
