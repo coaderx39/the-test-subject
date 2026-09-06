@@ -24,7 +24,8 @@ import {
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
   ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle,
   Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer, Layers, CheckSquare,
-  ListTodo, Inbox, TrendingUp, PieChart, Crown, Compass
+  ListTodo, Inbox, TrendingUp, PieChart, Crown, Compass, Bell, BellRing, GraduationCap,
+  Users, CalendarDays, CheckCheck
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -739,6 +740,55 @@ export const getPlayerRankData = (stars: number = 0, xp: number = 0) => {
 };
 
 // ==========================================
+// SCHEDULED EVENTS, CLASSES & MEETINGS TYPES
+// ==========================================
+export type EventCategory = "class" | "meeting" | "exam" | "urgent" | "personal";
+
+export interface ScheduledEvent {
+  id: string;
+  title: string;
+  date: string;               // YYYY-MM-DD (e.g. "2027-02-12")
+  time?: string;              // e.g. "10:00 AM", "04:30 PM"
+  category: EventCategory;
+  notes?: string;             // Room/Zoom link, instructor, description
+  completed?: boolean;        // Marked attended / done
+  notified?: boolean;         // Has browser notification fired
+  createdAt: string;
+}
+
+export const EVENT_CATEGORIES: { id: EventCategory; label: string; icon: string; color: string; badgeBg: string }[] = [
+  { id: "class", label: "Class / Lecture", icon: "🎓", color: "text-sky-400", badgeBg: "bg-sky-500/20 text-sky-300 border-sky-400/30" },
+  { id: "meeting", label: "Meeting / Sync", icon: "💼", color: "text-amber-400", badgeBg: "bg-amber-500/20 text-amber-300 border-amber-400/30" },
+  { id: "exam", label: "Exam / Test", icon: "📝", color: "text-rose-400", badgeBg: "bg-rose-500/20 text-rose-300 border-rose-400/30" },
+  { id: "urgent", label: "Urgent Deadline", icon: "⚡", color: "text-yellow-400", badgeBg: "bg-yellow-500/20 text-yellow-300 border-yellow-400/30" },
+  { id: "personal", label: "Personal / Event", icon: "🎯", color: "text-emerald-400", badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30" }
+];
+
+export const formatEventDateLabel = (dateStr: string, currentToday: string): string => {
+  if (dateStr === currentToday) return "🚨 TODAY";
+  if (dateStr === addDays(currentToday, 1)) return "⏳ TOMORROW";
+  if (dateStr === addDays(currentToday, -1)) return "YESTERDAY";
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    if (!y || !m || !d) return dateStr;
+    const dateObj = new Date(y, m - 1, d);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthName = months[dateObj.getMonth()];
+    const todayParts = currentToday.split("-").map(Number);
+    const todayObj = new Date(todayParts[0], todayParts[1] - 1, todayParts[2]);
+    const diffTime = dateObj.getTime() - todayObj.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 1 && diffDays <= 30) {
+      return `📅 In ${diffDays} Days (${monthName} ${d})`;
+    }
+    return `📅 ${monthName} ${d}, ${y}`;
+  } catch {
+    return dateStr;
+  }
+};
+
+// ==========================================
 // KRISHNA MODE - TYPE DEFINITIONS
 // ==========================================
 interface KrishnaMessage {
@@ -957,7 +1007,7 @@ export default function App() {
       return {
         syllabusCategories: ["Raw Backlog"], stagingTopics: [], studyTopics: [], masteredTopics: [],
         wisdomCategories: ["Quick Thoughts"], wisdomNotes: [], vaultNotes: [], vaultCategories: ["Others"],
-        globalDeadlineDays: 30, customMissions: [], lastActiveDate: getRealTodayStr(),
+        globalDeadlineDays: 30, customMissions: [], scheduledEvents: [], lastActiveDate: getRealTodayStr(),
         ...local
       };
     }
@@ -974,8 +1024,24 @@ export default function App() {
       vaultCategories: oldV4.vaultCategories || ["Others"],
       globalDeadlineDays: oldV4.globalDeadlineDays || 30,
       customMissions: oldV4.customMissions || [],
+      scheduledEvents: oldV4.scheduledEvents || [],
       lastActiveDate: oldV4.lastActiveDate || getRealTodayStr()
     };
+  });
+
+  // ================= SCHEDULED EVENTS & CLASSES STATE =================
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleEventTitle, setScheduleEventTitle] = useState("");
+  const [scheduleEventDate, setScheduleEventDate] = useState(() => addDays(getRealTodayStr(), 1));
+  const [scheduleEventTime, setScheduleEventTime] = useState("10:00 AM");
+  const [scheduleEventCategory, setScheduleEventCategory] = useState<EventCategory>("class");
+  const [scheduleEventNotes, setScheduleEventNotes] = useState("");
+  const [scheduleFilter, setScheduleFilter] = useState<string>("all");
+  const [notificationStatus, setNotificationStatus] = useState<string>(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      return Notification.permission;
+    }
+    return "default";
   });
 
   const [newSyllabusCat, setNewSyllabusCat] = useState("");
@@ -1218,6 +1284,133 @@ export default function App() {
       toastTimerRef.current = null;
     }, 3000);
   };
+
+  // ==========================================
+  // SCHEDULED EVENTS & NOTIFICATION SYSTEM
+  // ==========================================
+  const requestNotificationPermission = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      showMessage("❌ Browser Notifications not supported on this device/browser.");
+      return false;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      setNotificationStatus(perm);
+      if (perm === "granted") {
+        showMessage("🔔 Notifications Enabled! You will receive class & meeting alerts.");
+        try {
+          new Notification("🔔 Schedule Notifications Active", {
+            body: "You will now get alerts for your scheduled classes, meetings, and deadlines!",
+            icon: "./favicon.png",
+          });
+        } catch (e) {
+          console.warn("Test notification failed:", e);
+        }
+        return true;
+      } else {
+        showMessage("⚠️ Notification permission was denied in browser settings.");
+        return false;
+      }
+    } catch (err) {
+      console.error("Notification permission error:", err);
+      return false;
+    }
+  };
+
+  const addScheduledEvent = (
+    title: string,
+    date: string,
+    time: string,
+    category: EventCategory,
+    notes: string
+  ) => {
+    if (!title.trim()) {
+      showMessage("Please enter an event or class name!");
+      return;
+    }
+    if (!date) {
+      showMessage("Please select a valid date!");
+      return;
+    }
+
+    const newEv: ScheduledEvent = {
+      id: `ev_${Date.now()}`,
+      title: title.trim(),
+      date,
+      time: time.trim() || undefined,
+      category,
+      notes: notes.trim() || undefined,
+      completed: false,
+      notified: false,
+      createdAt: getRealTodayStr(),
+    };
+
+    const currentList: ScheduledEvent[] = brain.scheduledEvents || [];
+    const updated = [...currentList, newEv];
+    updateBrainFirebase({ scheduledEvents: updated });
+    showMessage(`📅 Scheduled: "${title.trim()}" on ${date}!`);
+    setScheduleEventTitle("");
+    setScheduleEventNotes("");
+
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      requestNotificationPermission();
+    }
+  };
+
+  const deleteScheduledEvent = (id: string) => {
+    const currentList: ScheduledEvent[] = brain.scheduledEvents || [];
+    const updated = currentList.filter((e: ScheduledEvent) => e.id !== id);
+    updateBrainFirebase({ scheduledEvents: updated });
+    showMessage("🗑️ Scheduled event removed.");
+  };
+
+  const toggleCompleteScheduledEvent = (id: string) => {
+    const currentList: ScheduledEvent[] = brain.scheduledEvents || [];
+    const updated = currentList.map((e: ScheduledEvent) => {
+      if (e.id === id) {
+        const nextState = !e.completed;
+        if (nextState) {
+          triggerCrossReward(2, `Attended: ${e.title}!`);
+        }
+        return { ...e, completed: nextState };
+      }
+      return e;
+    });
+    updateBrainFirebase({ scheduledEvents: updated });
+  };
+
+  // Notification Trigger Effect for Today's Scheduled Events
+  useEffect(() => {
+    if (!brain.scheduledEvents || brain.scheduledEvents.length === 0) return;
+
+    const todaysUnnotified = brain.scheduledEvents.filter(
+      (ev: ScheduledEvent) => ev.date === todayStr && !ev.completed && !ev.notified
+    );
+
+    if (todaysUnnotified.length > 0) {
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        todaysUnnotified.forEach((ev: ScheduledEvent) => {
+          try {
+            new Notification(`🔔 Today's ${ev.category.toUpperCase()}: ${ev.title}`, {
+              body: `Today is your "${ev.title}"${ev.time ? ` at ${ev.time}` : ""}. Don't forget it!`,
+              icon: "./favicon.png",
+              badge: "./favicon.png",
+            });
+          } catch (e) {
+            console.error("Error firing notification:", e);
+          }
+        });
+      }
+
+      const updatedEvents = brain.scheduledEvents.map((ev: ScheduledEvent) => {
+        if (ev.date === todayStr && !ev.completed) {
+          return { ...ev, notified: true };
+        }
+        return ev;
+      });
+      updateBrainFirebase({ scheduledEvents: updatedEvents });
+    }
+  }, [brain.scheduledEvents, todayStr]);
 
   // ==========================================
   // DUAL SAVE WRAPPERS
@@ -2372,8 +2565,27 @@ CORE MANNERISMS & ESSENCE:
               </div>
             </div>
 
-            {/* Star Counter & Streak Shield Pill */}
+            {/* Star Counter, Streak Shield & Schedule Dispatcher Pills */}
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+              {/* Scheduled Classes & Meetings Quick Pill */}
+              <div
+                onClick={() => setIsScheduleModalOpen(true)}
+                className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl flex items-center gap-2 flex-shrink-0 shadow-lg border tap-effect cursor-pointer ${
+                  (brain.scheduledEvents || []).filter((e: ScheduledEvent) => e.date === todayStr && !e.completed).length > 0
+                    ? "bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-400/50 animate-pulse"
+                    : `${t.cardInner} ${t.borderAccent}`
+                }`}
+                title="Class & Meeting Dispatcher: Schedule future dates & get alerts"
+              >
+                <span className="text-lg sm:text-2xl">📅</span>
+                <div className="text-right">
+                  <span className={`text-base sm:text-2xl font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
+                    {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
+                  </span>
+                  <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-widest ${t.textMuted}`}>Schedule</span>
+                </div>
+              </div>
+
               {/* Streak Shield Status Pill */}
               <div
                 onClick={() => setHabitRoute("shop")}
@@ -2429,6 +2641,86 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </div>
         </div>
+
+        {/* 🚨 TODAY'S SCHEDULED CLASSES & COMMITMENTS ALERT BANNER */}
+        {(() => {
+          const todaysActiveEvents: ScheduledEvent[] = (brain.scheduledEvents || []).filter(
+            (e: ScheduledEvent) => e.date === todayStr && !e.completed
+          );
+          if (todaysActiveEvents.length === 0) return null;
+
+          return (
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border-2 border-amber-400/70 shadow-[0_0_30px_rgba(251,191,36,0.3)] space-y-3 animate-in fade-in zoom-in duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-amber-400 text-black font-black text-xs animate-bounce">
+                    🚨 TODAY
+                  </span>
+                  <h3 className={`text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 ${t.fontHeading}`}>
+                    Scheduled Classes & Meetings Today ({todaysActiveEvents.length})
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsScheduleModalOpen(true)}
+                  className="text-[10px] font-black uppercase tracking-wider text-amber-200 hover:text-white underline tap-effect"
+                >
+                  View All 📅
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {todaysActiveEvents.map((ev) => {
+                  const catMeta = EVENT_CATEGORIES.find((c) => c.id === ev.category) || EVENT_CATEGORIES[0];
+                  return (
+                    <div
+                      key={ev.id}
+                      className="p-3 sm:p-3.5 rounded-2xl bg-black/60 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md"
+                    >
+                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                        <span className="text-xl flex-shrink-0 mt-0.5">{catMeta.icon}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border ${catMeta.badgeBg}`}>
+                              {catMeta.label}
+                            </span>
+                            {ev.time && (
+                              <span className="text-[9px] font-bold text-amber-200 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/30 flex items-center gap-1">
+                                <Clock size={10} /> {ev.time}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-black text-white mt-1 truncate">
+                            {ev.title}
+                          </h4>
+                          {ev.notes && (
+                            <p className="text-[10px] text-slate-300 line-clamp-1 mt-0.5 font-sans">
+                              {ev.notes}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+                        <button
+                          onClick={() => startFocusSession(ev.title, ev.id)}
+                          className={`px-3 py-1.5 rounded-xl tap-effect text-[10px] font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                        >
+                          <Zap size={12} /> Focus ⚡
+                        </button>
+                        <button
+                          onClick={() => toggleCompleteScheduledEvent(ev.id)}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 text-[10px] font-black uppercase tap-effect flex items-center gap-1"
+                        >
+                          <CheckCircle2 size={13} /> Attended ✅
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* HIGH-VELOCITY ACTION ROW: FOCUS CHAMBER & TWO-BOX REFLECTION */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
@@ -2522,7 +2814,24 @@ CORE MANNERISMS & ESSENCE:
             <p className={`text-[9px] sm:text-xs mt-1 relative z-10 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Your personal AI discipline strategist & mentor.</p>
           </button>
 
-          <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+          <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
+            <button onClick={() => setIsScheduleModalOpen(true)} className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg flex items-center justify-center sm:justify-start gap-3.5 border ${t.cardInner} hover:${t.borderAccent}`}>
+              <div className={`p-2.5 rounded-xl border ${t.card} ${t.borderAccent}`}>
+                <CalendarDays className={`w-5 h-5 ${t.textAccent}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs sm:text-sm font-black block ${t.textMain} ${t.fontHeading}`}>Dispatcher</span>
+                  {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length > 0 && (
+                    <span className={`text-[7px] px-1.5 py-0.2 rounded-full font-black ${t.badge}`}>
+                      {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[8px] sm:text-[10px] ${t.textMuted}`}>Classes & meetings</span>
+              </div>
+            </button>
+
             <button onClick={() => setHabitRoute("vault")} className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg flex items-center justify-center sm:justify-start gap-3.5 border ${t.cardInner} hover:${t.borderAccent}`}>
               <div className={`p-2.5 rounded-xl border ${t.card} ${t.borderAccent}`}>
                 <Download className={`w-5 h-5 ${t.textAccent}`} />
@@ -3672,6 +3981,97 @@ CORE MANNERISMS & ESSENCE:
           )}
         </div>
 
+        {/* 📅 TODAY'S SCHEDULED CLASSES & COMMITMENTS */}
+        {(() => {
+          const todaysScheduledList: ScheduledEvent[] = (brain.scheduledEvents || []).filter(
+            (e: ScheduledEvent) => e.date === todayStr && !e.completed
+          );
+
+          return (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className={`text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center gap-2 ${t.textAccent} ${t.fontHeading}`}>
+                  <CalendarDays size={15} /> TODAY'S SCHEDULED CLASSES & EVENTS ({todaysScheduledList.length})
+                </h3>
+                <button
+                  onClick={() => setIsScheduleModalOpen(true)}
+                  className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1 ${t.badge} tap-effect hover:scale-105 transition-transform`}
+                >
+                  <Plus size={11} /> Schedule
+                </button>
+              </div>
+
+              {todaysScheduledList.length === 0 ? (
+                <div className={`p-4 rounded-2xl border border-dashed border-white/10 ${t.cardInner} flex items-center justify-between text-[10px] sm:text-xs ${t.textMuted}`}>
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                    <span>✨ No classes or meetings scheduled for today.</span>
+                  </div>
+                  <button
+                    onClick={() => setIsScheduleModalOpen(true)}
+                    className="text-amber-300 font-black uppercase hover:underline tap-effect"
+                  >
+                    + Add Class
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {todaysScheduledList.map((ev: ScheduledEvent) => {
+                    const catMeta = EVENT_CATEGORIES.find((c) => c.id === ev.category) || EVENT_CATEGORIES[0];
+                    return (
+                      <div
+                        key={ev.id}
+                        className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-transparent border border-amber-400/60 shadow-[0_0_20px_rgba(251,191,36,0.2)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover-lift"
+                      >
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <span className="text-2xl mt-0.5">{catMeta.icon}</span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border ${catMeta.badgeBg}`}>
+                                {catMeta.label}
+                              </span>
+                              <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-400 text-black animate-pulse">
+                                🚨 TODAY
+                              </span>
+                              {ev.time && (
+                                <span className="text-[9px] font-bold text-amber-200 bg-black/40 px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1">
+                                  <Clock size={10} /> {ev.time}
+                                </span>
+                              )}
+                            </div>
+                            <h4 className={`text-xs sm:text-sm font-black mt-1 ${t.textMain} ${t.fontHeading}`}>
+                              {ev.title}
+                            </h4>
+                            {ev.notes && (
+                              <p className="text-[10px] sm:text-xs text-slate-300 mt-1 font-sans bg-black/30 p-2 rounded-xl border border-white/5">
+                                {ev.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+                          <button
+                            onClick={() => startFocusSession(ev.title, ev.id)}
+                            className={`px-3 py-1.5 rounded-xl tap-effect text-[10px] font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                          >
+                            <Zap size={12} /> Focus
+                          </button>
+                          <button
+                            onClick={() => toggleCompleteScheduledEvent(ev.id)}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 text-[10px] font-black uppercase tap-effect flex items-center gap-1"
+                          >
+                            <CheckCircle2 size={13} /> Attended
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* TODAY'S CUSTOM MISSIONS */}
         {todaysCustomMissions.length > 0 && (
           <div className="space-y-3">
@@ -4140,6 +4540,11 @@ CORE MANNERISMS & ESSENCE:
               <User className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
               <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>Profile Config</h2>
               <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Name, avatar & API key</p>
+            </button>
+            <button onClick={() => setIsScheduleModalOpen(true)} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-sky-500/10 hover:bg-sky-500/20 border-sky-400/40 hover:border-sky-400`}>
+              <CalendarDays className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-sky-400" />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-sky-300 ${t.fontHeading}`}>Class & Meeting Dispatcher</h2>
+              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-sky-200/70">Future dates, auto-tasks & notifications</p>
             </button>
             <button onClick={() => setIsDevHubOpen(true)} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/40 hover:border-amber-400`}>
               <Sliders className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-amber-400" />
@@ -4916,6 +5321,7 @@ One short, electrifying sentence of raw motivation.`;
         vaultCategories: ["Others"],
         globalDeadlineDays: 30,
         customMissions: [],
+        scheduledEvents: [],
         lastActiveDate: getRealTodayStr(),
       };
 
@@ -5521,6 +5927,388 @@ One short, electrifying sentence of raw motivation.`;
   };
 
   // ==========================================
+  // 📅 SCHEDULED EVENTS, CLASSES & MEETING DISPATCHER MODAL
+  // ==========================================
+  const renderScheduleModal = () => {
+    const rawEvents: ScheduledEvent[] = brain.scheduledEvents || [];
+    const sortedEvents = [...rawEvents].sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return a.date.localeCompare(b.date);
+    });
+
+    const todayEvents = sortedEvents.filter((e) => e.date === todayStr && !e.completed);
+    const upcomingEvents = sortedEvents.filter((e) => e.date > todayStr && !e.completed);
+    const completedEvents = sortedEvents.filter((e) => e.completed);
+
+    const filteredEvents = sortedEvents.filter((ev) => {
+      if (scheduleFilter === "today") return ev.date === todayStr && !ev.completed;
+      if (scheduleFilter === "upcoming") return ev.date > todayStr && !ev.completed;
+      if (scheduleFilter === "completed") return ev.completed;
+      if (scheduleFilter !== "all") return ev.category === scheduleFilter;
+      return true;
+    });
+
+    return (
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
+        <div className={`w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative max-h-[92vh] overflow-y-auto space-y-5 text-white`}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 shadow-sm text-2xl">
+                📅
+              </div>
+              <div>
+                <h3 className={`font-black text-base sm:text-xl uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                  Class & Meeting Dispatcher
+                </h3>
+                <p className={`text-xs font-medium ${t.textMuted}`}>
+                  Auto-injects on target date • Web Push Notifications
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Notification Status & Permission Trigger */}
+              {notificationStatus === "granted" ? (
+                <div className="px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                  <BellRing size={13} className="animate-pulse" />
+                  <span className="hidden sm:inline">Alerts</span> Active
+                </div>
+              ) : (
+                <button
+                  onClick={requestNotificationPermission}
+                  className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[10px] font-black uppercase flex items-center gap-1.5 tap-effect transition-all"
+                  title="Click to enable browser notifications for your scheduled classes"
+                >
+                  <Bell size={13} />
+                  <span>Enable Alerts</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setIsScheduleModalOpen(false)}
+                className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all tap-effect"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* EVENT CREATION FORM */}
+          <div className={`p-4 sm:p-5 rounded-2xl border ${t.cardInner} ${t.borderAccent} space-y-3.5 shadow-lg`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${t.textAccent} ${t.fontHeading}`}>
+                <Plus size={14} /> Schedule New Class, Meeting or Exam
+              </span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase font-mono">
+                Auto-injects to Today's Tasks
+              </span>
+            </div>
+
+            {/* Title */}
+            <div>
+              <input
+                type="text"
+                value={scheduleEventTitle}
+                onChange={(e) => setScheduleEventTitle(e.target.value)}
+                placeholder="Event Title (e.g. Economics Class, Math Exam, Client Sync)"
+                className={`w-full p-3 text-xs sm:text-sm rounded-xl outline-none transition-colors ${t.input} ${t.fontHeading}`}
+              />
+            </div>
+
+            {/* Date & Time Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1 block">
+                  Target Date:
+                </label>
+                <input
+                  type="date"
+                  value={scheduleEventDate}
+                  onChange={(e) => setScheduleEventDate(e.target.value)}
+                  className={`w-full p-2.5 text-xs rounded-xl outline-none transition-colors font-mono ${t.input}`}
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1 block">
+                  Time / Slot (Optional):
+                </label>
+                <input
+                  type="text"
+                  value={scheduleEventTime}
+                  onChange={(e) => setScheduleEventTime(e.target.value)}
+                  placeholder="e.g. 10:00 AM, 04:30 PM"
+                  className={`w-full p-2.5 text-xs rounded-xl outline-none transition-colors ${t.input}`}
+                />
+              </div>
+            </div>
+
+            {/* Category Chips */}
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                Category:
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {EVENT_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setScheduleEventCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all tap-effect border ${
+                      scheduleEventCategory === cat.id
+                        ? `${cat.badgeBg} ring-2 ring-current shadow-md scale-105`
+                        : `bg-white/5 border-white/10 text-slate-400 hover:text-slate-200`
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes / Meeting Links */}
+            <div>
+              <textarea
+                value={scheduleEventNotes}
+                onChange={(e) => setScheduleEventNotes(e.target.value)}
+                placeholder="Notes, Zoom Link, Room number, or preparation points..."
+                rows={2}
+                className={`w-full p-2.5 text-xs rounded-xl outline-none transition-colors ${t.input}`}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={() =>
+                addScheduledEvent(
+                  scheduleEventTitle,
+                  scheduleEventDate,
+                  scheduleEventTime,
+                  scheduleEventCategory,
+                  scheduleEventNotes
+                )
+              }
+              className={`w-full py-3 rounded-2xl tap-effect flex items-center justify-center gap-2 ${t.btnPrimary} ${t.fontHeading} text-xs sm:text-sm shadow-xl`}
+            >
+              <CalendarDays size={16} />
+              <span>Save & Arm Alert Notification</span>
+            </button>
+          </div>
+
+          {/* FILTER TABS & COUNT */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className={`text-[11px] font-black uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                Your Schedule ({rawEvents.length})
+              </span>
+              <div className="flex items-center gap-1">
+                {todayEvents.length > 0 && (
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 animate-pulse">
+                    🚨 {todayEvents.length} TODAY
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1 text-[10px] font-black uppercase">
+              <button
+                onClick={() => setScheduleFilter("all")}
+                className={`px-3 py-1.5 rounded-xl border tap-effect transition-all flex-shrink-0 ${
+                  scheduleFilter === "all"
+                    ? `${t.btnPrimary}`
+                    : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                }`}
+              >
+                All ({rawEvents.length})
+              </button>
+              <button
+                onClick={() => setScheduleFilter("today")}
+                className={`px-3 py-1.5 rounded-xl border tap-effect transition-all flex-shrink-0 ${
+                  scheduleFilter === "today"
+                    ? "bg-amber-400 text-black border-amber-400 font-black"
+                    : "bg-amber-500/10 border-amber-400/30 text-amber-300 hover:bg-amber-500/20"
+                }`}
+              >
+                🚨 Today ({todayEvents.length})
+              </button>
+              <button
+                onClick={() => setScheduleFilter("upcoming")}
+                className={`px-3 py-1.5 rounded-xl border tap-effect transition-all flex-shrink-0 ${
+                  scheduleFilter === "upcoming"
+                    ? `${t.btnPrimary}`
+                    : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                }`}
+              >
+                ⏳ Upcoming ({upcomingEvents.length})
+              </button>
+              <button
+                onClick={() => setScheduleFilter("completed")}
+                className={`px-3 py-1.5 rounded-xl border tap-effect transition-all flex-shrink-0 ${
+                  scheduleFilter === "completed"
+                    ? "bg-emerald-500 text-black border-emerald-400 font-black"
+                    : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                }`}
+              >
+                ✅ Done ({completedEvents.length})
+              </button>
+            </div>
+
+            {/* EVENT CARDS LIST */}
+            {filteredEvents.length === 0 ? (
+              <div className={`text-center py-10 rounded-2xl border border-dashed border-white/10 ${t.cardInner} space-y-2`}>
+                <span className="text-3xl block">📅</span>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  {scheduleFilter === "all"
+                    ? "No classes or meetings scheduled yet."
+                    : `No events in "${scheduleFilter}" category.`}
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  Use the form above to add future events like "Economics Class on Feb 12, 2027".
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-[40vh] overflow-y-auto pr-1">
+                {filteredEvents.map((ev) => {
+                  const catMeta = EVENT_CATEGORIES.find((c) => c.id === ev.category) || EVENT_CATEGORIES[0];
+                  const isToday = ev.date === todayStr;
+                  const isTomorrow = ev.date === addDays(todayStr, 1);
+                  const isPast = ev.date < todayStr && !ev.completed;
+
+                  return (
+                    <div
+                      key={ev.id}
+                      className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
+                        ev.completed
+                          ? "bg-white/5 border-white/10 opacity-60"
+                          : isToday
+                          ? "bg-amber-500/15 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)] ring-1 ring-amber-400/40"
+                          : isTomorrow
+                          ? "bg-sky-500/10 border-sky-400/50 shadow-md"
+                          : isPast
+                          ? "bg-rose-500/10 border-rose-500/40"
+                          : `${t.cardInner} ${t.borderAccent}`
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          {/* Complete Checkbox Toggle */}
+                          <button
+                            onClick={() => toggleCompleteScheduledEvent(ev.id)}
+                            className={`mt-0.5 p-1 rounded-xl transition-all tap-effect flex-shrink-0 ${
+                              ev.completed
+                                ? "text-emerald-400 bg-emerald-500/20"
+                                : "text-slate-400 hover:text-emerald-400 bg-white/5 border border-white/10"
+                            }`}
+                            title={ev.completed ? "Mark Uncompleted" : "Mark Attended / Done (+2 Stars)"}
+                          >
+                            <CheckCircle2 size={20} className={ev.completed ? "stroke-[2.5]" : "stroke-2"} />
+                          </button>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              {/* Category Badge */}
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border ${catMeta.badgeBg}`}>
+                                {catMeta.icon} {catMeta.label}
+                              </span>
+
+                              {/* Relative Date Badge */}
+                              <span
+                                className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg font-mono ${
+                                  isToday
+                                    ? "bg-amber-400 text-black font-black animate-pulse shadow-sm"
+                                    : isTomorrow
+                                    ? "bg-sky-400/20 text-sky-300 border border-sky-400/40"
+                                    : isPast
+                                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                    : "bg-white/10 text-slate-300 border border-white/10"
+                                }`}
+                              >
+                                {formatEventDateLabel(ev.date, todayStr)}
+                              </span>
+
+                              {ev.time && (
+                                <span className="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1">
+                                  <Clock size={10} /> {ev.time}
+                                </span>
+                              )}
+                            </div>
+
+                            <h4
+                              className={`text-xs sm:text-sm font-black tracking-wide ${
+                                ev.completed ? "line-through text-slate-400" : t.textMain
+                              } ${t.fontHeading}`}
+                            >
+                              {ev.title}
+                            </h4>
+
+                            {ev.notes && (
+                              <p className="text-[10px] sm:text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-wrap bg-black/30 p-2 rounded-xl border border-white/5 font-sans">
+                                {ev.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions: Focus in Chamber & Delete */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {!ev.completed && (
+                            <button
+                              onClick={() => {
+                                setIsScheduleModalOpen(false);
+                                startFocusSession(ev.title, ev.id);
+                              }}
+                              className={`px-2.5 py-1.5 rounded-xl tap-effect text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                              title="Start Focus Session for this class/meeting"
+                            >
+                              <Zap size={12} /> <span className="hidden sm:inline">Focus</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => deleteScheduledEvent(ev.id)}
+                            className="p-1.5 rounded-xl bg-white/5 hover:bg-red-500/20 hover:text-red-400 border border-white/10 text-slate-400 transition-all tap-effect"
+                            title="Delete event"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer with Preset Suggestions */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[9px] text-slate-400">
+            <span>💡 Automatically alerts you when the scheduled day arrives.</span>
+            <button
+              onClick={() => {
+                setScheduleEventTitle("Economics Class");
+                setScheduleEventDate("2027-02-12");
+                setScheduleEventTime("10:00 AM");
+                setScheduleEventCategory("class");
+                setScheduleEventNotes("Room 304 / Macroeconomics Class & Notes Review");
+                showMessage("✨ Preset loaded: Economics Class on Feb 12, 2027");
+              }}
+              className="text-amber-300 hover:text-amber-200 uppercase font-black tap-effect underline"
+            >
+              + Preset: Economics 2027
+            </button>
+          </div>
+        </div>
+
+        {/* Click backdrop to close */}
+        <div className="flex-1" onClick={() => setIsScheduleModalOpen(false)}></div>
+      </div>
+    );
+  };
+
+  // ==========================================
   // TOP BAR & APP WRAPPER
   // ==========================================
   return (
@@ -5629,6 +6417,51 @@ One short, electrifying sentence of raw motivation.`;
                             ))}
                           </div>
                        )}
+
+                       {/* Tomorrow's Scheduled Classes & Events */}
+                       {(() => {
+                         const tomorrowEvents = (brain.scheduledEvents || []).filter(
+                           (e: ScheduledEvent) => e.date === addDays(todayStr, 1) && !e.completed
+                         );
+                         return (
+                           <div className="mb-4 space-y-1.5 border-t pt-3 border-white/10">
+                             <div className="flex items-center justify-between">
+                               <span className={`text-[9px] font-black uppercase tracking-widest ${t.textAccent}`}>
+                                 📅 TOMORROW'S CLASSES ({tomorrowEvents.length})
+                               </span>
+                               <button
+                                 onClick={() => {
+                                   setIsNightShiftOpen(false);
+                                   setIsScheduleModalOpen(true);
+                                 }}
+                                 className="text-[8px] font-black uppercase text-amber-300 hover:underline"
+                               >
+                                 + Schedule
+                               </button>
+                             </div>
+                             {tomorrowEvents.length > 0 ? (
+                               <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
+                                 {tomorrowEvents.map((ev: ScheduledEvent) => (
+                                   <div
+                                     key={ev.id}
+                                     className={`text-[9px] font-black uppercase tracking-wider p-2 rounded-xl flex items-center justify-between border bg-sky-500/10 border-sky-400/40 text-sky-200`}
+                                   >
+                                     <span className="truncate">🎓 {ev.title} {ev.time ? `(${ev.time})` : ''}</span>
+                                     <button
+                                       onClick={() => deleteScheduledEvent(ev.id)}
+                                       className="text-slate-400 hover:text-red-400 ml-1 shrink-0"
+                                     >
+                                       <Trash2 size={11} />
+                                     </button>
+                                   </div>
+                                 ))}
+                               </div>
+                             ) : (
+                               <p className="text-[8px] text-slate-400 italic">No classes scheduled for tomorrow.</p>
+                             )}
+                           </div>
+                         );
+                       })()}
                        {brain.stagingTopics.length > 0 && (
                          <>
                            <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3 border-t pt-3 sm:pt-4 ${t.textAccent} ${t.borderAccent} opacity-80`}>PIN SYLLABUS TARGET</div>
@@ -6940,11 +7773,67 @@ One short, electrifying sentence of raw motivation.`;
                   </div>
                 </div>
 
-                {/* 8. DANGER ZONE: FACTORY RESET APP (START FROM 0) */}
+                {/* 8. CLASS & NOTIFICATION ENGINE TESTING */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-sky-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-300 flex items-center gap-1">
+                      <Bell size={12} /> 8. Class & Notification Engine
+                    </span>
+                    <span className="text-[9px] font-bold text-sky-300 font-mono">
+                      {(brain.scheduledEvents || []).length} Scheduled
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        addScheduledEvent(
+                          "Economics Class",
+                          todayStr,
+                          "10:00 AM",
+                          "class",
+                          "Room 304 / Semester Review & Problem Sets"
+                        );
+                        showMessage("🎓 Injected Economics Class for TODAY!");
+                      }}
+                      className="py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 text-[9px] font-black uppercase tap-effect"
+                    >
+                      🎓 Inject Today Class
+                    </button>
+                    <button
+                      onClick={() => {
+                        addScheduledEvent(
+                          "Economics Class",
+                          "2027-02-12",
+                          "10:00 AM",
+                          "class",
+                          "Room 304 / Economics Macroeconomics Review"
+                        );
+                        showMessage("🎓 Injected Economics Class for Feb 12, 2027!");
+                      }}
+                      className="py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 text-[9px] font-black uppercase tap-effect"
+                    >
+                      📅 Inject Feb 12, 2027
+                    </button>
+                    <button
+                      onClick={requestNotificationPermission}
+                      className="py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      🔔 Test Notification API
+                    </button>
+                    <button
+                      onClick={() => setIsScheduleModalOpen(true)}
+                      className="py-1.5 px-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-[9px] font-black uppercase tap-effect"
+                    >
+                      📅 Open Scheduler
+                    </button>
+                  </div>
+                </div>
+
+                {/* 9. DANGER ZONE: FACTORY RESET APP (START FROM 0) */}
                 <div className="p-3.5 rounded-2xl bg-red-950/40 border-2 border-red-500/60 space-y-2.5 shadow-lg shadow-red-950/30">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-                      <AlertTriangle size={13} className="stroke-[2.5]" /> 8. Factory Reset
+                      <AlertTriangle size={13} className="stroke-[2.5]" /> 9. Factory Reset
                     </span>
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 border border-red-500/40 font-mono">
                       FRESH INSTALL (0)
@@ -6976,6 +7865,11 @@ One short, electrifying sentence of raw motivation.`;
           <div className="flex-1" onClick={() => setIsDevHubOpen(false)}></div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* 📅 CLASS & MEETING DISPATCHER MODAL */}
+      {/* ========================================== */}
+      {isScheduleModalOpen && renderScheduleModal()}
     </div>
   );
 }
