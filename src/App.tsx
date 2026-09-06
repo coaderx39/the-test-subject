@@ -24,7 +24,7 @@ import {
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
   ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle,
   Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer, Layers, CheckSquare,
-  ListTodo, Inbox
+  ListTodo, Inbox, TrendingUp, PieChart, Crown, Compass
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -458,6 +458,287 @@ const getDailyGitaShloka = (): GitaShloka => {
 };
 
 // ==========================================
+// 15-TIER RPG RANK & MASTERY PROGRESSION
+// ==========================================
+export interface RpgRank {
+  tier: number;
+  id: string;
+  name: string;
+  title: string;
+  badge: string;
+  minLevel: number;
+  minXp: number;
+  color: string;
+  borderColor: string;
+  bgGlow: string;
+  lore: string;
+  perk: string;
+}
+
+export const RPG_RANKS: RpgRank[] = [
+  {
+    tier: 1,
+    id: "r_novice",
+    name: "Novice Initiate",
+    title: "🌱 Novice Initiate",
+    badge: "🌱",
+    minLevel: 1,
+    minXp: 0,
+    color: "text-emerald-400",
+    borderColor: "border-emerald-500/50",
+    bgGlow: "rgba(16, 185, 129, 0.2)",
+    lore: "Every journey of 10,000 steps begins with day one. The spark of discipline is ignited.",
+    perk: "Access to Habit Arena, Focus Chamber & Second Brain Core."
+  },
+  {
+    tier: 2,
+    id: "r_sentinel",
+    name: "Apprentice Sentinel",
+    title: "🛡️ Apprentice Sentinel",
+    badge: "🛡️",
+    minLevel: 3,
+    minXp: 200,
+    color: "text-teal-400",
+    borderColor: "border-teal-500/50",
+    bgGlow: "rgba(20, 184, 166, 0.2)",
+    lore: "Laying the foundation of daily routine. Weak impulses begin to yield to planned intent.",
+    perk: "+5% Daily Focus clarity & Streak Shield protection synergy."
+  },
+  {
+    tier: 3,
+    id: "r_vanguard",
+    name: "Iron Vanguard",
+    title: "⚔️ Iron Vanguard",
+    badge: "⚔️",
+    minLevel: 5,
+    minXp: 500,
+    color: "text-cyan-400",
+    borderColor: "border-cyan-500/50",
+    bgGlow: "rgba(6, 182, 212, 0.2)",
+    lore: "Forging mental steel through daily repetitions. Discipline begins to override fleeting emotions.",
+    perk: "Unlocks Two-Box daily reflection mastery & momentum bonus."
+  },
+  {
+    tier: 4,
+    id: "r_striker",
+    name: "Shadow Striker",
+    title: "⚡ Shadow Striker",
+    badge: "⚡",
+    minLevel: 8,
+    minXp: 1000,
+    color: "text-blue-400",
+    borderColor: "border-blue-500/50",
+    bgGlow: "rgba(59, 130, 246, 0.2)",
+    lore: "Decisive action without hesitation. Slashing through friction and excuses.",
+    perk: "+10 XP on Deep Flow sessions & enhanced Gita guidance."
+  },
+  {
+    tier: 5,
+    id: "r_centurion",
+    name: "Disciplined Centurion",
+    title: "🏹 Disciplined Centurion",
+    badge: "🏹",
+    minLevel: 11,
+    minXp: 1800,
+    color: "text-indigo-400",
+    borderColor: "border-indigo-500/50",
+    bgGlow: "rgba(99, 102, 241, 0.2)",
+    lore: "Leading yourself through friction and resistance with stoic command.",
+    perk: "Prestige Centurion border in Command Center & Habit Hub."
+  },
+  {
+    tier: 6,
+    id: "r_strategist",
+    name: "Arcane Strategist",
+    title: "🔮 Arcane Strategist",
+    badge: "🔮",
+    minLevel: 15,
+    minXp: 3000,
+    color: "text-purple-400",
+    borderColor: "border-purple-500/50",
+    bgGlow: "rgba(168, 85, 247, 0.2)",
+    lore: "Mastery over time, habits, and mental architecture. Chaos turns to predictable order.",
+    perk: "Deep Work Intelligence Insights unlocked in Analytics."
+  },
+  {
+    tier: 7,
+    id: "r_paragon",
+    name: "Diamond Paragon",
+    title: "💎 Diamond Paragon",
+    badge: "💎",
+    minLevel: 20,
+    minXp: 4500,
+    color: "text-fuchsia-400",
+    borderColor: "border-fuchsia-500/50",
+    bgGlow: "rgba(217, 70, 239, 0.2)",
+    lore: "Unbreakable consistency under intense pressure. Crystalline mental resilience.",
+    perk: "Diamond Aura on Hero Profile Card & Priority Krishna Counsel."
+  },
+  {
+    tier: 8,
+    id: "r_dragonslayer",
+    name: "Dragon Slayer",
+    title: "🐉 Dragon Slayer",
+    badge: "🐉",
+    minLevel: 26,
+    minXp: 6500,
+    color: "text-rose-400",
+    borderColor: "border-rose-500/50",
+    bgGlow: "rgba(244, 63, 94, 0.2)",
+    lore: "Conquering the internal beast of procrastination. Obstacles become fuel for the fire.",
+    perk: "Double Star burst chance on 7-day perfect streaks."
+  },
+  {
+    tier: 9,
+    id: "r_warlord",
+    name: "Warlord of Willpower",
+    title: "👑 Warlord of Willpower",
+    badge: "👑",
+    minLevel: 33,
+    minXp: 9000,
+    color: "text-amber-400",
+    borderColor: "border-amber-500/50",
+    bgGlow: "rgba(245, 158, 11, 0.2)",
+    lore: "Iron rule over daily execution. Your habits operate with ruthless military precision.",
+    perk: "Crown Badge & Golden Focus Timer styling."
+  },
+  {
+    tier: 10,
+    id: "r_voidwalker",
+    name: "Void Walker",
+    title: "🌌 Void Walker",
+    badge: "🌌",
+    minLevel: 41,
+    minXp: 12500,
+    color: "text-violet-300",
+    borderColor: "border-violet-400/60",
+    bgGlow: "rgba(139, 92, 246, 0.3)",
+    lore: "Operating in the timeless flow state where distractions evaporate into the void.",
+    perk: "Access to Celestial Void styling & hyper-focus state."
+  },
+  {
+    tier: 11,
+    id: "r_solar",
+    name: "Solar Sovereign",
+    title: "☀️ Solar Sovereign",
+    badge: "☀️",
+    minLevel: 51,
+    minXp: 17000,
+    color: "text-yellow-300",
+    borderColor: "border-yellow-400/60",
+    bgGlow: "rgba(250, 204, 21, 0.3)",
+    lore: "Radiating pure, relentless productive energy to every task, mission, and person.",
+    perk: "Solar Glow Profile frame & unlimited motivation resonance."
+  },
+  {
+    tier: 12,
+    id: "r_overlord",
+    name: "Mythic Overlord",
+    title: "⚡ Mythic Overlord",
+    badge: "⚡",
+    minLevel: 66,
+    minXp: 23000,
+    color: "text-emerald-300",
+    borderColor: "border-emerald-400/60",
+    bgGlow: "rgba(52, 211, 153, 0.3)",
+    lore: "Among the top 0.1% disciplined achievers. Legendary habit consistency recorded in the annals.",
+    perk: "Mythic Overlord status banner across all OS modules."
+  },
+  {
+    tier: 13,
+    id: "r_brahman",
+    name: "Ascended Brahman",
+    title: "🪶 Ascended Brahman",
+    badge: "🪶",
+    minLevel: 81,
+    minXp: 30000,
+    color: "text-sky-300",
+    borderColor: "border-sky-400/60",
+    bgGlow: "rgba(56, 189, 248, 0.3)",
+    lore: "Total detachment from failure, total devotion to righteous action. Karma Yoga perfected.",
+    perk: "Eternal Shloka blessing & Divine Sarathi bond."
+  },
+  {
+    tier: 14,
+    id: "r_maharathi",
+    name: "Maharathi of Karma",
+    title: "🕉️ Maharathi of Karma",
+    badge: "🕉️",
+    minLevel: 100,
+    minXp: 40000,
+    color: "text-amber-300",
+    borderColor: "border-amber-400/70",
+    bgGlow: "rgba(251, 191, 36, 0.35)",
+    lore: "The supreme battlefield master of mind, senses, and destiny. Unshakable under any storm.",
+    perk: "Maharathi Golden Aura & Eternal Archival in Second Brain."
+  },
+  {
+    tier: 15,
+    id: "r_eternal",
+    name: "Apex Eternal",
+    title: "🌌 Apex Eternal",
+    badge: "🌌",
+    minLevel: 150,
+    minXp: 55000,
+    color: "text-rose-300",
+    borderColor: "border-rose-400/80",
+    bgGlow: "rgba(251, 113, 133, 0.4)",
+    lore: "Absolute mastery. You have conquered the greatest enemy of all: the undisciplined self.",
+    perk: "Apex Transcendence — All features permanently mastered."
+  }
+];
+
+export const getPlayerLevel = (stars: number = 0, xp: number = 0): number => {
+  const starLevels = Math.floor((stars || 0) / 10);
+  const xpLevels = Math.floor((xp || 0) / 100);
+  return Math.max(1, 1 + starLevels + xpLevels);
+};
+
+export const getPlayerRankData = (stars: number = 0, xp: number = 0) => {
+  const level = getPlayerLevel(stars, xp);
+  const userXp = xp || 0;
+
+  let currentRankIndex = 0;
+  for (let i = 0; i < RPG_RANKS.length; i++) {
+    if (level >= RPG_RANKS[i].minLevel || userXp >= RPG_RANKS[i].minXp) {
+      currentRankIndex = i;
+    }
+  }
+
+  const currentRank = RPG_RANKS[currentRankIndex];
+  const nextRank = currentRankIndex < RPG_RANKS.length - 1 ? RPG_RANKS[currentRankIndex + 1] : null;
+
+  let progressToNext = 100;
+  let xpNeededForNext = 0;
+  let levelsNeededForNext = 0;
+
+  if (nextRank) {
+    const xpRange = nextRank.minXp - currentRank.minXp;
+    const currentXpProgress = Math.max(0, userXp - currentRank.minXp);
+    const xpPct = xpRange > 0 ? (currentXpProgress / xpRange) * 100 : 100;
+
+    const levelRange = nextRank.minLevel - currentRank.minLevel;
+    const currentLevelProgress = Math.max(0, level - currentRank.minLevel);
+    const lvlPct = levelRange > 0 ? (currentLevelProgress / levelRange) * 100 : 100;
+
+    progressToNext = Math.min(99, Math.max(5, Math.round(Math.max(xpPct, lvlPct))));
+    xpNeededForNext = Math.max(0, nextRank.minXp - userXp);
+    levelsNeededForNext = Math.max(0, nextRank.minLevel - level);
+  }
+
+  return {
+    level,
+    currentRank,
+    nextRank,
+    progressToNext,
+    xpNeededForNext,
+    levelsNeededForNext,
+    allRanks: RPG_RANKS,
+    currentRankIndex
+  };
+};
+
+// ==========================================
 // KRISHNA MODE - TYPE DEFINITIONS
 // ==========================================
 interface KrishnaMessage {
@@ -764,6 +1045,13 @@ export default function App() {
 
   // ================= DEVELOPER TESTING HUB STATE =================
   const [isDevHubOpen, setIsDevHubOpen] = useState(false);
+
+  // ================= RPG RANK PROGRESSION & ROADMAP STATE =================
+  const [isRankRoadmapOpen, setIsRankRoadmapOpen] = useState(false);
+
+  // ================= ADVANCED ANALYTICS STATE =================
+  const [analyticsTab, setAnalyticsTab] = useState<"heatmap" | "focus" | "habits" | "economy">("heatmap");
+  const [hoveredHeatmapDay, setHoveredHeatmapDay] = useState<any | null>(null);
 
   // ================= KRISHNA STATE =================
   const [krishnaState, setKrishnaState] = useState<KrishnaState>(() =>
@@ -1220,7 +1508,9 @@ export default function App() {
     return { study, trigger, perfect };
   };
   const streaks = getStreaks();
-  let playerTitle = streaks.perfect >= 21 ? "👑 Ascended Master" : streaks.perfect >= 7 ? "⚔️ Disciplined Warrior" : streaks.perfect >= 3 ? "🛡️ Focused Soldier" : "🌱 Novice Tracker";
+  const rankData = getPlayerRankData(profile.stars || 0, profile.xp || 0);
+  let playerTitle = rankData.currentRank.title;
+  let currentLvl = rankData.level;
 
   const getWeeklyData = (offset: number) => {
     const dataPoints = [];
@@ -2048,11 +2338,6 @@ CORE MANNERISMS & ESSENCE:
   // HABIT RENDERERS
   // ==========================================
   const renderHabitHub = () => {
-    const currentLvl = Math.floor(profile.stars / 10) + 1;
-    const currentLvlStars = (currentLvl - 1) * 10;
-    const starsInLvl = profile.stars - currentLvlStars;
-    const lvlProgress = Math.min(100, Math.max(0, (starsInLvl / 10) * 100));
-
     return (
       <div className="space-y-6 sm:space-y-8 pb-10 animate-in fade-in zoom-in duration-300">
         {/* HERO PROFILE & XP PROGRESS CARD */}
@@ -2064,17 +2349,24 @@ CORE MANNERISMS & ESSENCE:
                 {profile.dp ? (
                   <img src={profile.dp} alt="User DP" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl sm:text-4xl animate-bounce-subtle">🦊</span>
+                  <span className="text-3xl sm:text-4xl animate-bounce-subtle">{rankData.currentRank.badge}</span>
                 )}
               </div>
               <div className="min-w-0 overflow-hidden">
                 <h1 className={`text-lg sm:text-3xl font-black truncate tracking-tight ${t.textMain} ${t.fontHeading}`}>{profile.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-[9px] sm:text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${t.badge} ${t.fontHeading}`}>
-                    {playerTitle}
-                  </span>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <button
+                    onClick={() => setIsRankRoadmapOpen(true)}
+                    className={`text-[9px] sm:text-xs font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${t.badge} ${t.fontHeading} tap-effect flex items-center gap-1 hover:scale-105 transition-transform shadow-md`}
+                    title="Click to view full 15-tier RPG Rank Progression Roadmap!"
+                  >
+                    <Crown size={12} /> {rankData.currentRank.title}
+                  </button>
                   <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${t.textAccent} ${t.fontHeading}`}>
-                    Level {currentLvl}
+                    Level {rankData.level}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] font-mono text-slate-400 font-bold">
+                    ({profile.xp || 0} XP)
                   </span>
                 </div>
               </div>
@@ -2112,17 +2404,27 @@ CORE MANNERISMS & ESSENCE:
           </div>
 
           {/* Dynamic XP Progress Bar */}
-          <div className="mt-5 sm:mt-6 pt-4 border-t border-current/20">
+          <div
+            onClick={() => setIsRankRoadmapOpen(true)}
+            className="mt-5 sm:mt-6 pt-4 border-t border-current/20 cursor-pointer group"
+            title="Click to view RPG Rank Progression"
+          >
             <div className="flex justify-between items-center text-[9px] sm:text-xs font-bold uppercase tracking-wider mb-1.5">
-              <span className={`flex items-center gap-1.5 ${t.textMain}`}>
-                <Sparkles size={13} className={t.textAccent} /> Level {currentLvl} Mastery Progress
+              <span className={`flex items-center gap-1.5 ${t.textMain} group-hover:${t.textAccent} transition-colors`}>
+                <Sparkles size={13} className={t.textAccent} /> Tier {rankData.currentRank.tier}: {rankData.currentRank.name} Mastery
               </span>
-              <span className={t.textAccent}>{starsInLvl} / 10 ⭐ ({lvlProgress}%)</span>
+              {rankData.nextRank ? (
+                <span className={t.textAccent}>
+                  {rankData.xpNeededForNext} XP to {rankData.nextRank.badge} Tier {rankData.nextRank.tier} ({rankData.progressToNext}%)
+                </span>
+              ) : (
+                <span className="text-emerald-400 font-black">👑 MAX RANK ACHIEVED</span>
+              )}
             </div>
             <div className={`w-full h-2.5 sm:h-3 rounded-full overflow-hidden p-0.5 border ${t.cardInner} ${t.borderAccent}`}>
               <div
                 className={`h-full rounded-full transition-all duration-700 ease-out animate-shimmer ${t.btnPrimary}`}
-                style={{ width: `${Math.max(4, lvlProgress)}%` }}
+                style={{ width: `${Math.max(4, rankData.progressToNext)}%` }}
               ></div>
             </div>
           </div>
@@ -2481,84 +2783,657 @@ CORE MANNERISMS & ESSENCE:
 
   const renderAnalysis = () => {
     const weeklyData = getWeeklyData(weekOffset);
-    if (weeklyData.length === 0) return null;
     const weekStart = weeklyData[0]?.date || "";
     const weekEnd = weeklyData[6]?.date || "";
 
+    // 1. 60-Day Heatmap Calculation
+    const heatmapDays: any[] = [];
+    const todayObj = new Date(todayStr + "T00:00:00");
+    let totalTrackedDays = 0;
+    let totalPerfectDays = 0;
+    let totalWinsCount = 0;
+    let totalTasksEvaluated = 0;
+
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(todayObj);
+      d.setDate(d.getDate() - i);
+      const dStr = formatDate(d);
+      const data = trackerData[dStr];
+      const activeTasks = data?.taskSnapshot || profile.customTasks || DEFAULT_TASKS;
+      const total = activeTasks.length;
+
+      let xCount = 0;
+      let oCount = 0;
+      let isLogged = false;
+
+      if (data && data.tasks && Object.keys(data.tasks).length > 0) {
+        isLogged = true;
+        totalTrackedDays++;
+        const vals = Object.values(data.tasks);
+        xCount = vals.filter((v) => v === "X").length;
+        oCount = vals.filter((v) => v === "O").length;
+        totalWinsCount += xCount;
+        totalTasksEvaluated += total;
+        if (xCount === total && oCount === 0) totalPerfectDays++;
+      }
+
+      const score = total > 0 && isLogged ? Math.round((xCount / total) * 100) : 0;
+      const isPerfect = isLogged && xCount === total && oCount === 0;
+      const isFailed = isLogged && (oCount > 0 || (xCount < total && xCount > 0));
+      const hasShield = data?.shieldProtected;
+
+      heatmapDays.push({
+        date: dStr,
+        dayOfWeek: d.toLocaleDateString("en-US", { weekday: "narrow" }),
+        dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
+        dayNum: d.getDate(),
+        monthName: d.toLocaleDateString("en-US", { month: "short" }),
+        isToday: dStr === todayStr,
+        isLogged,
+        score,
+        xCount,
+        total,
+        isPerfect,
+        isFailed,
+        hasShield,
+        note: data?.notes || data?.reasonForO || ""
+      });
+    }
+
+    const consistencyRate = totalTasksEvaluated > 0 ? Math.round((totalWinsCount / totalTasksEvaluated) * 100) : 0;
+
+    // 2. Habit-by-Habit Win-Rate Matrix
+    const habitStats = (profile.customTasks || DEFAULT_TASKS).map((task: any) => {
+      let taskTotal = 0;
+      let taskWins = 0;
+      Object.keys(trackerData).forEach((dateKey) => {
+        const dayData = trackerData[dateKey];
+        if (dayData && dayData.tasks && dayData.tasks[task.id] !== undefined) {
+          taskTotal++;
+          if (dayData.tasks[task.id] === "X") taskWins++;
+        }
+      });
+      const winRate = taskTotal > 0 ? Math.round((taskWins / taskTotal) * 100) : 0;
+      return {
+        ...task,
+        total: taskTotal,
+        wins: taskWins,
+        winRate
+      };
+    }).sort((a: any, b: any) => b.winRate - a.winRate);
+
+    const mvpHabit = habitStats.length > 0 && habitStats[0].total > 0 ? habitStats[0] : null;
+    const lowestHabit = habitStats.length > 1 && habitStats[habitStats.length - 1].total > 0 ? habitStats[habitStats.length - 1] : null;
+
+    // 3. Deep Work & Focus Metrics
+    const totalFocusMinutes = profile.totalFocusMinutes || 0;
+    const focusHours = Math.floor(totalFocusMinutes / 60);
+    const focusRemainingMins = totalFocusMinutes % 60;
+    const estimatedSessions = Math.max(1, Math.ceil(totalFocusMinutes / 25));
+
     return (
       <div className="space-y-6 pb-20 max-w-4xl mx-auto animate-in fade-in duration-300">
-        <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4">
-          <button onClick={() => setHabitRoute("hub")} className={`p-2 sm:p-3 tap-effect rounded-xl ${t.cardInner} ${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-          <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}><BarChart2 className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} /> Analytics Dashboard</h2>
-        </div>
-
-        {/* TOP 3 STREAK STAT TILES */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 mb-4 sm:mb-6">
-          <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-orange-500/40 hover-lift`}>
-            <div className="absolute -right-4 -bottom-4 opacity-10 text-orange-500 animate-float"><Flame size={110} /></div>
-            <span className="text-orange-400 font-black flex items-center gap-2 mb-1 uppercase tracking-wider text-[10px] sm:text-xs"><Flame size={18} className="animate-pulse" /> Perfect Day Streak</span>
-            <span className={`text-4xl sm:text-5xl font-black tracking-tight ${t.textMain}`}>{streaks.perfect} <span className={`text-sm sm:text-lg font-normal ${t.textMuted}`}>days</span></span>
-          </div>
-
-          <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-blue-500/40 hover-lift`}>
-            <div className="absolute -right-4 -bottom-4 opacity-10 text-blue-500 animate-float"><Target size={110} /></div>
-            <span className="text-blue-400 font-black flex items-center gap-2 mb-1 uppercase tracking-wider text-[10px] sm:text-xs"><Target size={18} /> Deep Study Streak</span>
-            <span className={`text-4xl sm:text-5xl font-black tracking-tight ${t.textMain}`}>{streaks.study} <span className={`text-sm sm:text-lg font-normal ${t.textMuted}`}>days</span></span>
-          </div>
-
-          <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-yellow-500/40 hover-lift`}>
-            <div className="absolute -right-4 -bottom-4 opacity-10 text-yellow-500 animate-float"><Shield size={110} /></div>
-            <span className="text-yellow-400 font-black flex items-center gap-2 mb-1 uppercase tracking-wider text-[10px] sm:text-xs"><Shield size={18} /> Trigger Free Streak</span>
-            <span className={`text-4xl sm:text-5xl font-black tracking-tight ${t.textMain}`}>{streaks.trigger} <span className={`text-sm sm:text-lg font-normal ${t.textMuted}`}>days</span></span>
-          </div>
-        </div>
-
-        {/* WEEKLY BAR CHART FOCUS */}
-        <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
-          <div className={`flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4 border-b pb-4 ${t.borderAccent}`}>
+        {/* Header with Rank Badge */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2 sm:mb-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button onClick={() => setHabitRoute("hub")} className={`p-2 sm:p-3 tap-effect rounded-xl ${t.cardInner} ${t.textMain}`}>
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
             <div>
-              <h3 className={`font-black text-sm sm:text-lg flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>Weekly Performance Trend</h3>
-              <p className={`text-[10px] sm:text-xs mt-0.5 ${t.textMuted}`}>Daily completion ratios & target clearance</p>
-            </div>
-            <div className={`flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
-              <button onClick={() => setWeekOffset((prev) => prev + 1)} className={`p-2 tap-effect rounded-xl flex items-center gap-1 text-[9px] sm:text-xs font-black ${t.btnWarning} ${t.fontHeading}`}><ChevronLeft size={16} /> PAST</button>
-              <div className="text-center min-w-[110px] sm:min-w-[130px]">
-                <p className={`text-[9px] sm:text-xs font-black tracking-wider ${t.textMain} ${t.fontHeading}`}>{weekStart} <br /><span className={t.textMuted}>to</span><br /> {weekEnd}</p>
-              </div>
-              <button onClick={() => setWeekOffset((prev) => Math.max(0, prev - 1))} disabled={weekOffset === 0} className={`p-2 tap-effect rounded-xl flex items-center gap-1 text-[9px] sm:text-xs font-black ${weekOffset === 0 ? "opacity-30 cursor-not-allowed" : ""} ${t.btnWarning} ${t.fontHeading}`}>NEXT <ChevronRight size={16} /></button>
+              <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                <BarChart2 className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} /> Advanced Analytics Hub
+              </h2>
+              <p className={`text-[10px] sm:text-xs ${t.textMuted} font-medium`}>
+                Deep Intelligence • Consistency Heatmaps • Rank Mastery
+              </p>
             </div>
           </div>
 
-          <div className="flex justify-between items-end h-52 sm:h-68 mb-4 gap-2 sm:gap-4 px-1 sm:px-6">
-            {weeklyData.map((day: any, i: any) => {
-              let barColor = t.cardInner.split(' ')[0] + " opacity-50";
-              if (day.perfect) barColor = "bg-green-500 shadow-[0_0_18px_rgba(34,197,94,0.7)]";
-              else if (day.failed) barColor = "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]";
-              else if (day.percent > 0) barColor = "bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]";
-
-              return (
-                <div key={i} className="flex flex-col items-center w-full group relative h-full justify-end">
-                  <div className={`opacity-0 group-hover:opacity-100 absolute bottom-[calc(100%+12px)] p-2.5 rounded-xl border pointer-events-none transition-all z-20 whitespace-nowrap shadow-2xl text-[9px] sm:text-xs ${t.cardInner} ${t.textMain} ${t.borderAccent}`}>
-                    <span className="block font-black text-center mb-1 border-b border-current opacity-60 pb-1">{day.date}</span>
-                    <span className="font-bold">Score: {day.percent}%</span><br />
-                    <span className="text-[9px] opacity-80">Wins: {day.xCount} / {day.total} tasks</span>
-                  </div>
-                  <span className={`text-[9px] sm:text-xs mb-2 font-black ${t.textMuted}`}>{day.percent}%</span>
-                  <div className={`w-full max-w-[32px] sm:max-w-[48px] rounded-t-2xl relative flex justify-end flex-col overflow-hidden h-[80%] border-b-2 ${t.borderAccent} ${t.cardInner}`}>
-                    <div className={`w-full rounded-t-2xl transition-all duration-700 ease-out ${barColor}`} style={{ height: `${day.percent}%`, minHeight: day.percent > 0 ? "6px" : "0" }}></div>
-                  </div>
-                  <span className={`text-[8px] sm:text-xs mt-2.5 sm:mt-3 font-black uppercase tracking-widest ${day.date === todayStr ? t.badge + " px-2 py-0.5 rounded-full" : t.textMuted}`}>{day.label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className={`mt-5 sm:mt-7 flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] sm:text-xs font-black border-t pt-4 ${t.textMuted} border-current/20`}>
-            <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div> Perfect (100%)</span>
-            <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_8px_rgba(250,204,21,0.6)]"></div> Partial (&ge;50%)</span>
-            <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div> Failed</span>
-            <span className="flex items-center gap-1.5"><div className={`w-3 h-3 rounded-full border ${t.cardInner}`}></div> Rest</span>
-          </div>
+          <button
+            onClick={() => setIsRankRoadmapOpen(true)}
+            className={`self-start sm:self-auto px-3.5 py-2 rounded-2xl border flex items-center gap-2 tap-effect shadow-lg ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <span className="text-xl">{rankData.currentRank.badge}</span>
+            <div className="text-left">
+              <span className={`text-xs font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
+                Tier {rankData.currentRank.tier}: {rankData.currentRank.name}
+              </span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                Lv {rankData.level} • {profile.xp || 0} XP
+              </span>
+            </div>
+            <Crown size={14} className="text-amber-400 ml-1" />
+          </button>
         </div>
+
+        {/* 4-TAB NAVIGATION BAR */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md">
+          <button
+            onClick={() => setAnalyticsTab("heatmap")}
+            className={`py-2.5 px-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all tap-effect flex items-center justify-center gap-1.5 ${
+              analyticsTab === "heatmap"
+                ? `${t.btnPrimary} shadow-lg shadow-current/20 scale-[1.02]`
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <CalendarIcon size={14} /> Heatmap & Streaks
+          </button>
+
+          <button
+            onClick={() => setAnalyticsTab("focus")}
+            className={`py-2.5 px-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all tap-effect flex items-center justify-center gap-1.5 ${
+              analyticsTab === "focus"
+                ? `${t.btnPrimary} shadow-lg shadow-current/20 scale-[1.02]`
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Zap size={14} /> Deep Work Intel
+          </button>
+
+          <button
+            onClick={() => setAnalyticsTab("habits")}
+            className={`py-2.5 px-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all tap-effect flex items-center justify-center gap-1.5 ${
+              analyticsTab === "habits"
+                ? `${t.btnPrimary} shadow-lg shadow-current/20 scale-[1.02]`
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Target size={14} /> Habit Matrix
+          </button>
+
+          <button
+            onClick={() => setAnalyticsTab("economy")}
+            className={`py-2.5 px-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all tap-effect flex items-center justify-center gap-1.5 ${
+              analyticsTab === "economy"
+                ? `${t.btnPrimary} shadow-lg shadow-current/20 scale-[1.02]`
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <TrendingUp size={14} /> XP & Economy
+          </button>
+        </div>
+
+        {/* TAB 1: 🗓️ HEATMAP & CONSISTENCY */}
+        {analyticsTab === "heatmap" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* 4 STREAK & CONSISTENCY KPI TILES */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className={`p-4 sm:p-5 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-orange-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-orange-500"><Flame size={75} /></div>
+                <span className="text-orange-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[9px] sm:text-xs">
+                  <Flame size={14} className="animate-pulse" /> Perfect Streak
+                </span>
+                <span className={`text-2xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {streaks.perfect} <span className={`text-xs sm:text-sm font-normal ${t.textMuted}`}>days</span>
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-blue-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-blue-500"><Target size={75} /></div>
+                <span className="text-blue-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[9px] sm:text-xs">
+                  <Target size={14} /> Deep Study
+                </span>
+                <span className={`text-2xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {streaks.study} <span className={`text-xs sm:text-sm font-normal ${t.textMuted}`}>days</span>
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-yellow-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-yellow-500"><Shield size={75} /></div>
+                <span className="text-yellow-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[9px] sm:text-xs">
+                  <Shield size={14} /> Trigger Free
+                </span>
+                <span className={`text-2xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {streaks.trigger} <span className={`text-xs sm:text-sm font-normal ${t.textMuted}`}>days</span>
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-emerald-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-emerald-500"><CheckCircle2 size={75} /></div>
+                <span className="text-emerald-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[9px] sm:text-xs">
+                  <CheckCircle2 size={14} /> 60d Win Rate
+                </span>
+                <span className={`text-2xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {consistencyRate}%
+                </span>
+              </div>
+            </div>
+
+            {/* 60-DAY CONTRIBUTION HEATMAP GRID */}
+            <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b pb-3 border-current/20">
+                <div>
+                  <h3 className={`font-black text-sm sm:text-base flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                    <CalendarIcon size={16} className={t.textAccent} /> 60-Day Habit Execution Heatmap
+                  </h3>
+                  <p className={`text-[10px] sm:text-xs ${t.textMuted}`}>
+                    Interactive grid • Tap/hover any cell to view daily victory details
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                  <span>{totalPerfectDays} Perfect Days</span> • <span>{totalTrackedDays} Tracked</span>
+                </div>
+              </div>
+
+              {/* Heatmap Cell Grid */}
+              <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-1.5 sm:gap-2 p-2 rounded-2xl bg-black/30 border border-white/5">
+                {heatmapDays.map((day, idx) => {
+                  let cellBg = "bg-white/5 border border-white/10 hover:border-white/30";
+                  if (day.isPerfect) {
+                    cellBg = "bg-emerald-500 text-black border border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)] font-black";
+                  } else if (day.score >= 50) {
+                    cellBg = "bg-amber-400 text-black border border-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.6)] font-bold";
+                  } else if (day.isFailed) {
+                    cellBg = "bg-rose-600 text-white border border-rose-500 shadow-[0_0_8px_rgba(225,29,72,0.6)] font-bold";
+                  } else if (day.hasShield) {
+                    cellBg = "bg-sky-500 text-black border border-sky-300 shadow-[0_0_8px_rgba(14,165,233,0.7)] font-bold";
+                  }
+
+                  return (
+                    <div
+                      key={day.date}
+                      onMouseEnter={() => setHoveredHeatmapDay(day)}
+                      onClick={() => setHoveredHeatmapDay(day)}
+                      className={`h-9 sm:h-11 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 tap-effect group relative ${cellBg} ${
+                        day.isToday ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-black scale-105" : "hover:scale-110 hover:z-10"
+                      }`}
+                    >
+                      <span className="text-[9px] sm:text-[10px] font-mono leading-none">
+                        {day.dayNum}
+                      </span>
+                      <span className="text-[7px] sm:text-[8px] opacity-80 uppercase leading-none mt-0.5">
+                        {day.monthName}
+                      </span>
+                      {day.hasShield && (
+                        <span className="absolute -top-1 -right-1 text-[9px]">🛡️</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Interactive Tooltip Card for Selected / Hovered Day */}
+              {hoveredHeatmapDay && (
+                <div className={`mt-4 p-3.5 sm:p-4 rounded-2xl border shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 ${t.cardInner} ${t.borderAccent}`}>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-black text-amber-300 font-mono">
+                        📅 {hoveredHeatmapDay.date} ({hoveredHeatmapDay.dayName})
+                      </span>
+                      {hoveredHeatmapDay.isToday && (
+                        <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-black">
+                          TODAY
+                        </span>
+                      )}
+                      {hoveredHeatmapDay.hasShield && (
+                        <span className="text-[8px] font-bold uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/40">
+                          🛡️ SHIELD PROTECTED
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      Score: <strong className={hoveredHeatmapDay.score === 100 ? "text-emerald-400" : hoveredHeatmapDay.score >= 50 ? "text-amber-300" : "text-rose-400"}>{hoveredHeatmapDay.score}%</strong> • Wins: <strong>{hoveredHeatmapDay.xCount} / {hoveredHeatmapDay.total}</strong> Tasks
+                    </p>
+                    {hoveredHeatmapDay.note && (
+                      <p className="text-[11px] text-slate-400 italic line-clamp-1">
+                        "{hoveredHeatmapDay.note}"
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSelectedDate(hoveredHeatmapDay.date);
+                      setHabitRoute("tracker");
+                    }}
+                    className={`self-start sm:self-auto py-2 px-3 text-[10px] sm:text-xs rounded-xl font-black uppercase tracking-wider tap-effect ${t.btnPrimary}`}
+                  >
+                    Open Day Details ➔
+                  </button>
+                </div>
+              )}
+
+              {/* Legend */}
+              <div className={`mt-5 flex flex-wrap justify-center gap-3 sm:gap-5 text-[10px] font-black border-t pt-3.5 ${t.textMuted} border-current/20`}>
+                <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-emerald-500 rounded-md shadow-[0_0_6px_rgba(16,185,129,0.8)]"></div> 100% Perfect</span>
+                <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-amber-400 rounded-md shadow-[0_0_6px_rgba(251,191,36,0.8)]"></div> &ge;50% Win</span>
+                <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-rose-600 rounded-md shadow-[0_0_6px_rgba(225,29,72,0.8)]"></div> Missed / Drop</span>
+                <span className="flex items-center gap-1.5"><div className="w-3 h-3 bg-sky-500 rounded-md"></div> 🛡️ Shield Used</span>
+                <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-md bg-white/10 border border-white/10"></div> Untracked</span>
+              </div>
+            </div>
+
+            {/* WEEKLY PERFORMANCE TREND BAR CHART */}
+            <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
+              <div className={`flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4 border-b pb-4 ${t.borderAccent}`}>
+                <div>
+                  <h3 className={`font-black text-sm sm:text-lg flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                    Weekly Target Clearance
+                  </h3>
+                  <p className={`text-[10px] sm:text-xs mt-0.5 ${t.textMuted}`}>7-day precision breakdown</p>
+                </div>
+                <div className={`flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                  <button onClick={() => setWeekOffset((prev) => prev + 1)} className={`p-2 tap-effect rounded-xl flex items-center gap-1 text-[9px] sm:text-xs font-black ${t.btnWarning} ${t.fontHeading}`}>
+                    <ChevronLeft size={16} /> PAST
+                  </button>
+                  <div className="text-center min-w-[110px] sm:min-w-[130px]">
+                    <p className={`text-[9px] sm:text-xs font-black tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                      {weekStart} <br /><span className={t.textMuted}>to</span><br /> {weekEnd}
+                    </p>
+                  </div>
+                  <button onClick={() => setWeekOffset((prev) => Math.max(0, prev - 1))} disabled={weekOffset === 0} className={`p-2 tap-effect rounded-xl flex items-center gap-1 text-[9px] sm:text-xs font-black ${weekOffset === 0 ? "opacity-30 cursor-not-allowed" : ""} ${t.btnWarning} ${t.fontHeading}`}>
+                    NEXT <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-end h-52 sm:h-64 mb-4 gap-2 sm:gap-4 px-1 sm:px-6">
+                {weeklyData.map((day: any, i: any) => {
+                  let barColor = t.cardInner.split(' ')[0] + " opacity-50";
+                  if (day.perfect) barColor = "bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.8)]";
+                  else if (day.failed) barColor = "bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.6)]";
+                  else if (day.percent > 0) barColor = "bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]";
+
+                  return (
+                    <div key={i} className="flex flex-col items-center w-full group relative h-full justify-end">
+                      <div className={`opacity-0 group-hover:opacity-100 absolute bottom-[calc(100%+12px)] p-2.5 rounded-xl border pointer-events-none transition-all z-20 whitespace-nowrap shadow-2xl text-[9px] sm:text-xs ${t.cardInner} ${t.textMain} ${t.borderAccent}`}>
+                        <span className="block font-black text-center mb-1 border-b border-current opacity-60 pb-1">{day.date}</span>
+                        <span className="font-bold">Score: {day.percent}%</span><br />
+                        <span className="text-[9px] opacity-80">Wins: {day.xCount} / {day.total} tasks</span>
+                      </div>
+                      <span className={`text-[9px] sm:text-xs mb-2 font-black ${t.textMuted}`}>{day.percent}%</span>
+                      <div className={`w-full max-w-[32px] sm:max-w-[48px] rounded-t-2xl relative flex justify-end flex-col overflow-hidden h-[80%] border-b-2 ${t.borderAccent} ${t.cardInner}`}>
+                        <div className={`w-full rounded-t-2xl transition-all duration-700 ease-out ${barColor}`} style={{ height: `${day.percent}%`, minHeight: day.percent > 0 ? "6px" : "0" }}></div>
+                      </div>
+                      <span className={`text-[8px] sm:text-xs mt-2.5 sm:mt-3 font-black uppercase tracking-widest ${day.date === todayStr ? t.badge + " px-2 py-0.5 rounded-full" : t.textMuted}`}>{day.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: ⏱️ DEEP WORK INTELLIGENCE */}
+        {analyticsTab === "focus" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* FOCUS STAT CARDS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+              <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-cyan-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-cyan-500"><Clock size={90} /></div>
+                <span className="text-cyan-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[10px] sm:text-xs">
+                  <Clock size={15} /> Total Deep Work
+                </span>
+                <span className={`text-3xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {focusHours}h {focusRemainingMins}m
+                </span>
+                <span className={`block text-[10px] mt-1 ${t.textMuted} font-bold`}>
+                  {totalFocusMinutes} Total Minutes Logged
+                </span>
+              </div>
+
+              <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-purple-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-purple-500"><Zap size={90} /></div>
+                <span className="text-purple-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[10px] sm:text-xs">
+                  <Zap size={15} /> Focus Sessions
+                </span>
+                <span className={`text-3xl sm:text-4xl font-black tracking-tight ${t.textMain}`}>
+                  {estimatedSessions} <span className={`text-xs sm:text-sm font-normal ${t.textMuted}`}>completed</span>
+                </span>
+                <span className={`block text-[10px] mt-1 ${t.textMuted} font-bold`}>
+                  Pomodoro & Deep Flow Cycles
+                </span>
+              </div>
+
+              <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border border-amber-500/40 hover-lift`}>
+                <div className="absolute -right-3 -bottom-3 opacity-10 text-amber-500"><Award size={90} /></div>
+                <span className="text-amber-400 font-black flex items-center gap-1.5 mb-1 uppercase tracking-wider text-[10px] sm:text-xs">
+                  <Award size={15} /> Focus Stars Yield
+                </span>
+                <span className={`text-3xl sm:text-4xl font-black tracking-tight ${t.textWarning}`}>
+                  +{estimatedSessions * 1} ⭐
+                </span>
+                <span className={`block text-[10px] mt-1 ${t.textMuted} font-bold`}>
+                  +{estimatedSessions * 50} XP Earned
+                </span>
+              </div>
+            </div>
+
+            {/* SECOND BRAIN SYNC & LAUNCH CTA */}
+            <div className={`p-6 sm:p-8 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent} flex flex-col sm:flex-row items-center justify-between gap-5`}>
+              <div className="space-y-1.5 text-center sm:text-left">
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${t.badge} inline-block`}>
+                  DEEP FLOW PROTOCOL
+                </span>
+                <h3 className={`text-lg sm:text-xl font-black ${t.textMain} ${t.fontHeading}`}>
+                  Ready for your next high-intensity session?
+                </h3>
+                <p className={`text-xs ${t.textMuted} max-w-md`}>
+                  Launch Focus Chamber with Pomodoro (25m), Deep Flow (50m), or Custom Timer. Auto-awards stars & XP upon completion.
+                </p>
+              </div>
+
+              <button
+                onClick={() => startFocusSession()}
+                className={`py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider tap-effect shadow-xl flex items-center gap-2 flex-shrink-0 ${t.btnPrimary}`}
+              >
+                <Zap size={16} className="animate-pulse" /> Launch Focus Chamber
+              </button>
+            </div>
+
+            {/* STAGING & ACTIVE TOPIC STUDY TARGETS */}
+            <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent} space-y-4`}>
+              <h3 className={`font-black text-sm sm:text-base flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                <Layers size={16} className={t.textAccent} /> Active Knowledge Targets & Chapters
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {brain.stagingTopics.slice(0, 4).map((topic: any, idx: number) => (
+                  <div key={topic.id} className={`p-4 rounded-2xl border flex items-center justify-between ${t.cardInner} ${t.borderAccent}`}>
+                    <div className="min-w-0 pr-2">
+                      <span className="text-[9px] font-mono text-cyan-400 uppercase font-bold block">
+                        {topic.category}
+                      </span>
+                      <h4 className={`text-xs font-black truncate ${t.textMain}`}>
+                        {topic.title}
+                      </h4>
+                    </div>
+                    <button
+                      onClick={() => startFocusSession(topic.title, undefined, topic.id)}
+                      className={`p-2 rounded-xl text-[10px] font-black uppercase tap-effect flex-shrink-0 ${t.btnWarning}`}
+                    >
+                      Focus
+                    </button>
+                  </div>
+                ))}
+                {brain.stagingTopics.length === 0 && (
+                  <div className="col-span-2 text-center py-6 text-xs text-slate-400">
+                    No active staging chapters. Add chapters in Second Brain to track deep focus!
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: 🎯 HABIT MATRIX */}
+        {analyticsTab === "habits" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* MVP HABIT & FOCUS NEEDED HIGHLIGHT CARDS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              {mvpHabit && (
+                <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border-2 border-emerald-500/50 hover-lift`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <Crown size={14} /> 👑 MVP Habit of the Arena
+                    </span>
+                    <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">
+                      {mvpHabit.winRate}% WIN
+                    </span>
+                  </div>
+                  <h3 className={`text-base sm:text-xl font-black ${t.textMain} ${t.fontHeading}`}>
+                    {mvpHabit.title}
+                  </h3>
+                  <p className={`text-xs ${t.textMuted} mt-1`}>
+                    {mvpHabit.desc} • Cleared {mvpHabit.wins} out of {mvpHabit.total} tracked days.
+                  </p>
+                </div>
+              )}
+
+              {lowestHabit && (
+                <div className={`p-5 sm:p-6 rounded-3xl relative overflow-hidden shadow-xl ${t.cardInner} border-2 border-rose-500/50 hover-lift`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                      <AlertTriangle size={14} /> ⚠️ Growth Target Needed
+                    </span>
+                    <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono">
+                      {lowestHabit.winRate}% WIN
+                    </span>
+                  </div>
+                  <h3 className={`text-base sm:text-xl font-black ${t.textMain} ${t.fontHeading}`}>
+                    {lowestHabit.title}
+                  </h3>
+                  <p className={`text-xs ${t.textMuted} mt-1`}>
+                    {lowestHabit.desc} • Needs extra focus to prevent streak drop-offs.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* FULL TASK RANKING TABLE WITH METERS */}
+            <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
+              <h3 className={`font-black text-sm sm:text-base mb-4 flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                <Target size={16} className={t.textAccent} /> Complete Habit Win-Rate Matrix
+              </h3>
+
+              <div className="space-y-3">
+                {habitStats.map((h: any, idx: number) => (
+                  <div key={h.id} className={`p-4 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 w-5">
+                          #{idx + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <h4 className={`text-xs sm:text-sm font-black truncate ${t.textMain}`}>
+                            {h.title}
+                          </h4>
+                          <p className={`text-[10px] ${t.textMuted} truncate`}>
+                            {h.desc}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <span className={`text-xs sm:text-sm font-black font-mono ${
+                          h.winRate >= 80 ? "text-emerald-400" : h.winRate >= 50 ? "text-amber-300" : "text-rose-400"
+                        }`}>
+                          {h.winRate}%
+                        </span>
+                        <span className="block text-[9px] text-slate-400">
+                          {h.wins}/{h.total} days
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-full h-2 rounded-full overflow-hidden bg-black/50 border border-white/10">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${
+                          h.winRate >= 80 ? "bg-emerald-500" : h.winRate >= 50 ? "bg-amber-400" : "bg-rose-500"
+                        }`}
+                        style={{ width: `${Math.max(4, h.winRate)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: 📈 XP & ECONOMY VELOCITY */}
+        {analyticsTab === "economy" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* CURRENT RPG RANK PRESTIGE SPOTLIGHT */}
+            <div className={`p-6 sm:p-8 rounded-3xl shadow-2xl border-2 ${t.borderAccent} relative overflow-hidden`} style={{ backgroundColor: "#0b1120" }}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/60 border-2 border-white/20 flex items-center justify-center text-4xl sm:text-5xl shadow-inner">
+                    {rankData.currentRank.badge}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      TIER {rankData.currentRank.tier} OF 15
+                    </span>
+                    <h3 className={`text-xl sm:text-2xl font-black mt-1 ${rankData.currentRank.color} ${t.fontHeading}`}>
+                      {rankData.currentRank.name}
+                    </h3>
+                    <p className="text-xs text-slate-300 italic mt-0.5">
+                      "{rankData.currentRank.lore}"
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsRankRoadmapOpen(true)}
+                  className={`py-3 px-5 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg tap-effect flex items-center gap-2 flex-shrink-0 ${t.btnPrimary}`}
+                >
+                  <Crown size={15} /> View Full Roadmap
+                </button>
+              </div>
+
+              {/* Progress to Next Rank */}
+              {rankData.nextRank && (
+                <div className="mt-5 pt-4 border-t border-white/10">
+                  <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5">
+                    <span className="text-slate-300">
+                      Next Rank Target: {rankData.nextRank.badge} {rankData.nextRank.name}
+                    </span>
+                    <span className="text-amber-300 font-mono">
+                      {rankData.xpNeededForNext} XP Needed ({rankData.progressToNext}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-3 rounded-full overflow-hidden p-0.5 bg-black/60 border border-white/15">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-700"
+                      style={{ width: `${Math.max(5, rankData.progressToNext)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ECONOMY ASSET METRICS */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className={`p-4 sm:p-5 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Total Lifetime XP</span>
+                <span className="text-2xl sm:text-3xl font-black text-cyan-300 font-mono">
+                  {profile.xp || 0}
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Stars Wallet</span>
+                <span className="text-2xl sm:text-3xl font-black text-amber-300 font-mono">
+                  {profile.stars || 0} ⭐
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Streak Shields</span>
+                <span className="text-2xl sm:text-3xl font-black text-sky-300 font-mono">
+                  {profile.streakShields || 0}/2 🛡️
+                </span>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Perks Stored</span>
+                <span className="text-2xl sm:text-3xl font-black text-emerald-300 font-mono">
+                  {(profile.inventory || []).length}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -3925,6 +4800,11 @@ One short, electrifying sentence of raw motivation.`;
     showMessage(`⚡ Granted +${amount} XP! Total XP: ${newXp}`);
   };
 
+  const devSetRankXp = (targetXp: number, rankName: string) => {
+    updateProfileFirebase({ xp: targetXp });
+    showMessage(`👑 Promoted to ${rankName}! Total XP: ${targetXp}`);
+  };
+
   const devGrantShields = (count: number) => {
     updateProfileFirebase({ streakShields: count });
     showMessage(`🛡️ Streak Shields set to: ${count}/2`);
@@ -5029,6 +5909,189 @@ One short, electrifying sentence of raw motivation.`;
       )}
 
       {/* ========================================== */}
+      {/* 👑 15-TIER RPG RANK PROGRESSION & ROADMAP MODAL */}
+      {/* ========================================== */}
+      {isRankRoadmapOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full max-w-3xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400/50 bg-[#090e1a] text-white relative max-h-[92vh] overflow-y-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-300 shadow-sm text-2xl">
+                  👑
+                </div>
+                <div>
+                  <h3 className="font-black text-base sm:text-xl uppercase tracking-wider text-white">
+                    15-Tier RPG Rank Progression
+                  </h3>
+                  <p className="text-xs font-medium text-slate-300">
+                    Prestige Milestones • Discipline Lore • Tier Perks
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsRankRoadmapOpen(false)}
+                className="p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white transition-all tap-effect"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Current Rank Showcase Card */}
+            <div
+              className={`p-6 sm:p-7 rounded-3xl border-2 ${rankData.currentRank.borderColor} relative overflow-hidden shadow-2xl`}
+              style={{
+                background: `linear-gradient(135deg, #0b1329 0%, #030712 100%)`,
+                boxShadow: `0 0 35px ${rankData.currentRank.bgGlow}`
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/70 border-2 border-white/20 flex items-center justify-center text-4xl sm:text-5xl shadow-inner">
+                    {rankData.currentRank.badge}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        TIER {rankData.currentRank.tier} / 15
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-slate-400">
+                        Level {rankData.level}
+                      </span>
+                    </div>
+                    <h2 className={`text-xl sm:text-2xl font-black mt-1 ${rankData.currentRank.color}`}>
+                      {rankData.currentRank.name}
+                    </h2>
+                    <p className="text-xs text-slate-300 italic mt-1 max-w-lg">
+                      "{rankData.currentRank.lore}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="sm:text-right bg-black/40 p-3 rounded-2xl border border-white/10 sm:min-w-[140px]">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Lifetime XP</span>
+                  <span className="text-lg sm:text-xl font-black text-amber-300 font-mono">
+                    {profile.xp || 0} XP
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                    {profile.stars || 0} Stars ⭐
+                  </span>
+                </div>
+              </div>
+
+              {/* Active Perk */}
+              <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-center gap-2">
+                <span className="text-amber-400 font-black flex items-center gap-1">
+                  <Zap size={14} /> ACTIVE PERK:
+                </span>
+                <span className="text-slate-200">{rankData.currentRank.perk}</span>
+              </div>
+
+              {/* Progress to Next Rank */}
+              {rankData.nextRank ? (
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5">
+                    <span className="text-slate-300">
+                      Next Target: {rankData.nextRank.badge} {rankData.nextRank.name} (Lv {rankData.nextRank.minLevel})
+                    </span>
+                    <span className="text-amber-300 font-mono">
+                      {rankData.xpNeededForNext} XP Left ({rankData.progressToNext}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-3 rounded-full overflow-hidden p-0.5 bg-black/70 border border-white/20">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-700 shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                      style={{ width: `${Math.max(5, rankData.progressToNext)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 pt-3 border-t border-white/10 text-center text-xs text-amber-300 font-black">
+                  🌌 MAXIMUM RANK ATTAINED — SUPREME APEX ETERNAL
+                </div>
+              )}
+            </div>
+
+            {/* Complete 15-Rank Visual Roadmap List */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-black text-sm sm:text-base uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                  <Compass size={16} className="text-amber-400" /> Complete 15-Tier Prestige Progression
+                </h4>
+                <span className="text-[10px] font-mono text-slate-400">
+                  Tier {rankData.currentRank.tier} of 15 Unlocked
+                </span>
+              </div>
+
+              <div className="space-y-2.5 max-h-[48vh] overflow-y-auto pr-1">
+                {RPG_RANKS.map((r) => {
+                  const isUnlocked = (profile.xp || 0) >= r.minXp || rankData.level >= r.minLevel;
+                  const isCurrent = rankData.currentRank.id === r.id;
+
+                  let itemBg = "bg-white/5 border-white/10 opacity-70";
+                  if (isCurrent) {
+                    itemBg = `bg-gradient-to-r from-amber-500/20 to-black border-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.3)] ring-1 ring-amber-400/50`;
+                  } else if (isUnlocked) {
+                    itemBg = "bg-emerald-500/10 border-emerald-500/40 text-slate-200";
+                  }
+
+                  return (
+                    <div
+                      key={r.id}
+                      className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${itemBg} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
+                    >
+                      <div className="flex items-start sm:items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-black/60 border border-white/20 flex items-center justify-center text-2xl flex-shrink-0">
+                          {r.badge}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-xs sm:text-sm font-black ${r.color}`}>
+                              Tier {r.tier}: {r.name}
+                            </span>
+                            {isCurrent && (
+                              <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-black animate-pulse">
+                                CURRENT RANK 🔥
+                              </span>
+                            )}
+                            {isUnlocked && !isCurrent && (
+                              <span className="text-[8px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                UNLOCKED ✅
+                              </span>
+                            )}
+                            {!isUnlocked && (
+                              <span className="text-[8px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                                LOCKED 🔒
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-300 italic mt-0.5 line-clamp-1 sm:line-clamp-none">
+                            "{r.lore}"
+                          </p>
+                          <p className="text-[10px] text-amber-300/90 font-medium mt-0.5">
+                            Perk: {r.perk}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="sm:text-right flex-shrink-0 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-[10px] font-mono text-cyan-300 block font-bold">
+                          Requires Lv {r.minLevel}
+                        </span>
+                        <span className="text-[9px] font-mono text-slate-400 block">
+                          {r.minXp.toLocaleString()} XP
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
       {/* 2. THE TWO-BOX REFLECTION & 9 PM – 12 AM CLEANUP SYSTEM */}
       {/* ========================================== */}
       {isTwoBoxModalOpen && (
@@ -5622,16 +6685,17 @@ One short, electrifying sentence of raw motivation.`;
                   </div>
                 </div>
 
-                {/* 2. STARS & ECONOMY */}
+                {/* 2. STARS, XP & 15-TIER RPG RANKS */}
                 <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Star size={12} /> 2. Wallet & Economy
+                      <Star size={12} /> 2. RPG Ranks, XP & Economy
                     </span>
                     <span className="text-[9px] font-black text-yellow-400 font-mono">
                       {profile.stars || 0} ⭐ | {profile.xp || 0} XP
                     </span>
                   </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => devAddStars(100)}
@@ -5646,16 +6710,52 @@ One short, electrifying sentence of raw motivation.`;
                       +1,000 Stars ⭐
                     </button>
                     <button
-                      onClick={() => devAddXp(500)}
+                      onClick={() => devAddXp(1000)}
                       className="py-1.5 px-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 text-blue-300 text-[10px] font-black uppercase tap-effect"
                     >
-                      +500 XP ⚡
+                      +1,000 XP ⚡
                     </button>
                     <button
-                      onClick={() => updateProfileFirebase({ stars: 0 })}
-                      className="py-1.5 px-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-red-300 text-[10px] font-black uppercase tap-effect"
+                      onClick={() => devAddXp(5000)}
+                      className="py-1.5 px-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
                     >
-                      Reset Stars (0)
+                      +5,000 XP ⚡
+                    </button>
+                  </div>
+
+                  {/* Quick Rank Jump Shortcuts */}
+                  <div className="pt-2 border-t border-white/10 space-y-1.5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                      ⚡ Quick Rank Tier Test:
+                    </span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => devSetRankXp(1800, "Tier 5: Disciplined Centurion")}
+                        className="py-1 px-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 text-[8px] font-black uppercase tap-effect"
+                      >
+                        🏹 Rank 5
+                      </button>
+                      <button
+                        onClick={() => devSetRankXp(12500, "Tier 10: Void Walker")}
+                        className="py-1 px-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 text-[8px] font-black uppercase tap-effect"
+                      >
+                        🌌 Rank 10
+                      </button>
+                      <button
+                        onClick={() => devSetRankXp(55000, "Tier 15: Apex Eternal")}
+                        className="py-1 px-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-300 text-[8px] font-black uppercase tap-effect"
+                      >
+                        👑 Rank 15
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-1">
+                    <button
+                      onClick={() => setIsRankRoadmapOpen(true)}
+                      className="w-full py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[10px] font-black uppercase tap-effect flex items-center justify-center gap-1.5"
+                    >
+                      <Crown size={12} /> Open Rank Roadmap Modal
                     </button>
                   </div>
                 </div>
