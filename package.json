@@ -8,6 +8,7 @@
     "starter"
   ],
   "main": "src/index.tsx",
+  "homepage": "https://coaderx39.github.io/the-test-subject/",
   "dependencies": {
     "firebase": "12.17.1",
     "loader-utils": "3.2.1",
