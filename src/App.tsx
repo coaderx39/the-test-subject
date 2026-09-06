@@ -21,7 +21,8 @@ import {
   BrainCircuit, Circle, Send, Skull, Trophy, FolderOpen, MoveRight,
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
   ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle,
-  Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer
+  Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer, Layers, CheckSquare,
+  ListTodo, Inbox
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -312,9 +313,52 @@ const extractJsonFromAiResponse = <T,>(rawText: string, fallback: T): T => {
 };
 
 const SHOP_ITEMS = [
-  { id: "s_streak_shield", name: "Streak Freeze Shield", desc: "Automatically protects your active streaks from breaking if you miss a day. (Max 2 stored)", cost: 50, expiryHours: 720, icon: "🛡️" },
-  { id: "s_webseries", name: "The Binge Pass", desc: "Watch one complete Web Series (No guilt).", cost: 25, expiryHours: 120, icon: "🍿" }
+  {
+    id: "s_streak_shield",
+    name: "Streak Freeze Shield",
+    desc: "Automatically protects your active streaks from breaking if you miss a day. (Max 2 stored)",
+    cost: 50,
+    expiryHours: 720,
+    icon: "🛡️",
+    isLocked: true
+  },
+  {
+    id: "s_webseries",
+    name: "The Binge Pass",
+    desc: "Watch one complete Web Series (No guilt).",
+    cost: 25,
+    expiryHours: 120,
+    icon: "🍿"
+  }
 ];
+
+const ensureShopItems = (items?: any[]): any[] => {
+  const currentList = Array.isArray(items) && items.length > 0 ? [...items] : [...SHOP_ITEMS];
+  const shieldIndex = currentList.findIndex((it: any) => it.id === "s_streak_shield");
+  if (shieldIndex === -1) {
+    currentList.unshift({
+      id: "s_streak_shield",
+      name: "Streak Freeze Shield",
+      desc: "Automatically protects your active streaks from breaking if you miss a day. (Max 2 stored)",
+      cost: 50,
+      expiryHours: 720,
+      icon: "🛡️",
+      isLocked: true
+    });
+  } else {
+    currentList[shieldIndex] = {
+      ...currentList[shieldIndex],
+      id: "s_streak_shield",
+      name: "Streak Freeze Shield",
+      desc: "Automatically protects your active streaks from breaking if you miss a day. (Max 2 stored)",
+      cost: 50,
+      expiryHours: 720,
+      icon: "🛡️",
+      isLocked: true
+    };
+  }
+  return currentList;
+};
 
 const DEFAULT_TASKS = [
   { id: "t1", title: "Mind Control", desc: "5 Min Meditation", isLocked: false },
@@ -499,16 +543,19 @@ const RemovableTask = ({ task, t, onDelete }: any) => {
 };
 
 const RemovableShopItem = ({ item, t, onDelete }: any) => {
+  const isLocked = item.isLocked || item.id === "s_streak_shield";
   const [showConfirm, setShowConfirm] = useState(false);
-  const longPressEvent = useLongPress(() => { setShowConfirm(true); }, 800);
+  const longPressEvent = useLongPress(() => {
+    if (!isLocked) setShowConfirm(true);
+  }, 800);
 
   return (
-    <div {...(showConfirm ? {} : longPressEvent)} className={`flex items-center justify-between p-3 sm:p-4 ${t.cardInner} relative overflow-hidden group mb-2 transition-all`}>
+    <div {...(showConfirm || isLocked ? {} : longPressEvent)} className={`flex items-center justify-between p-3 sm:p-4 ${t.cardInner} relative overflow-hidden group mb-2 transition-all`}>
       {showConfirm ? (
         <div className="w-full flex items-center justify-between gap-3 animate-in fade-in zoom-in duration-200">
           <span className={`text-[10px] sm:text-sm font-black uppercase tracking-widest ${t.textWarning} ${t.fontHeading}`}>Delete this reward?</span>
           <div className="flex gap-2">
-            <button onClick={() => onDelete(item.id)} className={`px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white transition-all active:scale-95 ${t.fontHeading}`}>YES</button>
+            <button onClick={() => !isLocked && onDelete(item.id)} className={`px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white transition-all active:scale-95 ${t.fontHeading}`}>YES</button>
             <button onClick={() => setShowConfirm(false)} className={`px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all active:scale-95 ${t.btnWarning} ${t.fontHeading}`}>NO</button>
           </div>
         </div>
@@ -517,11 +564,17 @@ const RemovableShopItem = ({ item, t, onDelete }: any) => {
           <div className="flex items-center gap-3">
             <span className={`text-xl sm:text-2xl p-1.5 rounded-lg ${t.card}`}>{item.icon}</span>
             <div>
-              <h3 className={`text-[10px] sm:text-sm font-bold flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>{item.name}</h3>
+              <h3 className={`text-[10px] sm:text-sm font-bold flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}>
+                {item.name} {isLocked && <Lock className="w-3 h-3 text-red-500" />}
+              </h3>
               <p className={`text-[8px] sm:text-[10px] mt-0.5 sm:mt-1 ${t.textMuted} ${t.fontHeading}`}>{item.cost}⭐ • Exp: {item.expiryHours}h</p>
             </div>
           </div>
-          <span className={`text-[8px] sm:text-[10px] font-bold px-2 py-1 uppercase tracking-widest ${t.textMuted} opacity-50 group-hover:opacity-100 transition-opacity ${t.fontHeading}`}>Hold to Delete</span>
+          {isLocked ? (
+            <span className={`text-[8px] sm:text-[10px] font-bold px-2 py-1 uppercase bg-red-500/20 text-red-500 border border-red-500/50 ${t.fontHeading}`}>Locked Core</span>
+          ) : (
+            <span className={`text-[8px] sm:text-[10px] font-bold px-2 py-1 uppercase tracking-widest ${t.textMuted} opacity-50 group-hover:opacity-100 transition-opacity ${t.fontHeading}`}>Hold to Delete</span>
+          )}
         </>
       )}
     </div>
@@ -581,7 +634,7 @@ export default function App() {
       dp: local.dp || oldV4.profilePic || "",
       activeTheme: local.activeTheme || oldV4.activeTheme || "brutalist",
       customTasks: Array.isArray(local.customTasks) && local.customTasks.length > 0 ? local.customTasks : DEFAULT_TASKS,
-      customShopItems: Array.isArray(local.customShopItems) && local.customShopItems.length > 0 ? local.customShopItems : SHOP_ITEMS
+      customShopItems: ensureShopItems(local.customShopItems)
     };
   });
 
@@ -670,8 +723,9 @@ export default function App() {
   // ================= FOCUS ENGINE STATE =================
   const [focusState, setFocusState] = useState<{
     isOpen: boolean;
-    mode: "pomodoro" | "deepflow" | "stopwatch";
+    mode: "pomodoro" | "deepflow" | "timer" | "stopwatch";
     durationMinutes: number;
+    customTimerMinutes: number;
     secondsLeft: number;
     isRunning: boolean;
     isBreak: boolean;
@@ -683,6 +737,7 @@ export default function App() {
     isOpen: false,
     mode: "pomodoro",
     durationMinutes: 25,
+    customTimerMinutes: 10,
     secondsLeft: 25 * 60,
     isRunning: false,
     isBreak: false,
@@ -692,12 +747,13 @@ export default function App() {
     totalFocusedSeconds: 0,
   });
 
-  // ================= NIGHTLY KARMA AUDIT STATE =================
-  const [isKarmaAuditOpen, setIsKarmaAuditOpen] = useState(false);
-  const [karmaBestEffort, setKarmaBestEffort] = useState("");
-  const [karmaDistraction, setKarmaDistraction] = useState("");
-  const [karmaRating, setKarmaRating] = useState(5);
-  const [isSubmittingKarma, setIsSubmittingKarma] = useState(false);
+  // ================= TWO-BOX REFLECTION & 9-10 PM CLEANUP STATE =================
+  const [isTwoBoxModalOpen, setIsTwoBoxModalOpen] = useState(false);
+  const [box1Input, setBox1Input] = useState("");
+  const [box2Input, setBox2Input] = useState("");
+  const [twoBoxRating, setTwoBoxRating] = useState(5);
+  const [twoBoxActiveTab, setTwoBoxActiveTab] = useState<"boxes" | "cleanup" | "trophy">("boxes");
+  const [devForceCleanupHour, setDevForceCleanupHour] = useState<boolean | null>(null);
 
   // ================= WEEKLY AI PERFORMANCE REVIEW STATE =================
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
@@ -773,7 +829,7 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (!data.customTasks || data.customTasks.length === 0) data.customTasks = DEFAULT_TASKS;
-        if (!data.customShopItems || data.customShopItems.length === 0) data.customShopItems = SHOP_ITEMS;
+        data.customShopItems = ensureShopItems(data.customShopItems);
         setProfile((prev: any) => {
           const merged = { ...prev, ...data };
           try {
@@ -2070,7 +2126,7 @@ CORE MANNERISMS & ESSENCE:
           </div>
         </div>
 
-        {/* HIGH-VELOCITY ACTION ROW: FOCUS CHAMBER & NIGHTLY KARMA AUDIT */}
+        {/* HIGH-VELOCITY ACTION ROW: FOCUS CHAMBER & TWO-BOX REFLECTION */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
           <button
             onClick={() => startFocusSession()}
@@ -2085,26 +2141,28 @@ CORE MANNERISMS & ESSENCE:
                   <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Focus Chamber</h3>
                   <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+15⭐</span>
                 </div>
-                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Pomodoro, Deep Flow & Stopwatch timer.</p>
+                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Pomodoro, Deep Flow, Timer & Stopwatch.</p>
               </div>
             </div>
             <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
           </button>
 
           <button
-            onClick={() => setIsKarmaAuditOpen(true)}
+            onClick={() => setIsTwoBoxModalOpen(true)}
             className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border flex items-center justify-between ${t.cardInner} hover:${t.borderAccent}`}
           >
             <div className="flex items-center gap-3.5 relative z-10">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
-                <Moon className={`w-6 h-6 text-amber-300`} />
+                <Layers className={`w-6 h-6 ${t.textAccent}`} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Karma Audit</h3>
-                  <span className="text-[8px] px-2 py-0.5 rounded-full uppercase font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">+10⭐</span>
+                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Two-Box System</h3>
+                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse' : t.badge}`}>
+                    {isCleanupHourActive() ? "🧹 9-10 PM LIVE" : "+10⭐"}
+                  </span>
                 </div>
-                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>2-min reflection & Krishna's blessing.</p>
+                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Box 1 Failures • Box 2 Achievements • 9-10 PM Cleanup.</p>
               </div>
             </div>
             <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
@@ -2399,7 +2457,7 @@ CORE MANNERISMS & ESSENCE:
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-        {(profile.customShopItems || SHOP_ITEMS).map((item: any) => (
+        {ensureShopItems(profile.customShopItems).map((item: any) => (
           <div key={item.id} className={`p-5 sm:p-6 rounded-3xl flex flex-col justify-between transition-all shadow-xl border tap-effect hover-lift ${t.cardInner} hover:${t.borderAccent}`}>
             <div className="flex items-start gap-4 mb-4">
               <span className={`text-3xl sm:text-4xl p-3 rounded-2xl shadow-md border ${t.card} ${t.borderAccent}`}>{item.icon}</span>
@@ -3261,14 +3319,15 @@ CORE MANNERISMS & ESSENCE:
                 <input type="text" value={newShopDesc} onChange={(e)=>setNewShopDesc(e.target.value)} placeholder="Description" className={`w-full p-3 text-xs sm:text-sm rounded-xl outline-none transition-colors mb-3.5 ${t.input} ${t.fontHeading}`} />
                 <button onClick={() => {
                   if (!newShopName.trim() || !newShopDesc.trim() || !newShopCost || !newShopExpiry || !newShopIcon.trim()) { showMessage("Fill all fields!"); return; }
-                  updateProfileFirebase({ customShopItems: [...(profile.customShopItems || SHOP_ITEMS), { id: `s_${Date.now()}`, name: newShopName.trim(), desc: newShopDesc.trim(), cost: parseInt(newShopCost, 10), expiryHours: parseInt(newShopExpiry, 10), icon: newShopIcon.trim() }] });
+                  updateProfileFirebase({ customShopItems: [...ensureShopItems(profile.customShopItems), { id: `s_${Date.now()}`, name: newShopName.trim(), desc: newShopDesc.trim(), cost: parseInt(newShopCost, 10), expiryHours: parseInt(newShopExpiry, 10), icon: newShopIcon.trim() }] });
                   setNewShopName(""); setNewShopDesc(""); setNewShopCost(""); setNewShopExpiry(""); setNewShopIcon(""); showMessage("Reward Added!");
                 }} className={`w-full py-3 text-xs sm:text-sm rounded-2xl tap-effect flex justify-center items-center gap-2 ${t.btnPrimary} ${t.fontHeading}`}><Plus size={18}/> ADD REWARD</button>
              </div>
              <div className="space-y-2.5">
-               {(profile.customShopItems || SHOP_ITEMS).map((item: any) => (
+               {ensureShopItems(profile.customShopItems).map((item: any) => (
                  <RemovableShopItem key={item.id} item={item} t={t} onDelete={(id: any) => {
-                    updateProfileFirebase({ customShopItems: (profile.customShopItems || SHOP_ITEMS).filter((s: any) => s.id !== id) });
+                    if (id === "s_streak_shield") { showMessage("Streak Freeze Shield is a locked core item!"); return; }
+                    updateProfileFirebase({ customShopItems: ensureShopItems(profile.customShopItems).filter((s: any) => s.id !== id && !s.isLocked) });
                  }} />
                ))}
              </div>
@@ -3446,6 +3505,38 @@ CORE MANNERISMS & ESSENCE:
             playFocusCompletionChime();
             const finishedMinutes = prev.durationMinutes;
 
+            if (prev.mode === "timer") {
+              const starsEarned = 15;
+              const xpEarned = 50;
+              const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
+              updateProfileFirebase({
+                stars: (profile.stars || 0) + starsEarned,
+                xp: (profile.xp || 0) + xpEarned,
+                totalFocusMinutes: newTotalMins,
+              });
+
+              if (prev.topicId) {
+                const updatedTopics = (brain.studyTopics || []).map((tp: any) =>
+                  tp.id === prev.topicId
+                    ? { ...tp, focusMinutes: (tp.focusMinutes || 0) + finishedMinutes }
+                    : tp
+                );
+                updateBrainFirebase({ studyTopics: updatedTopics });
+              }
+
+              showMessage(`🎉 Custom Timer Complete! +${starsEarned} Stars & +${xpEarned} XP Earned! ⚡`);
+
+              const resetMins = prev.customTimerMinutes || prev.durationMinutes || 10;
+              return {
+                ...prev,
+                isBreak: false,
+                durationMinutes: resetMins,
+                secondsLeft: resetMins * 60,
+                isRunning: false,
+                totalFocusedSeconds: prev.totalFocusedSeconds + 1,
+              };
+            }
+
             if (!prev.isBreak) {
               const starsEarned = 15;
               const xpEarned = 50;
@@ -3505,12 +3596,14 @@ CORE MANNERISMS & ESSENCE:
   // ==========================================
   // FOCUS ENGINE HELPERS
   // ==========================================
-  const startFocusSession = (title?: string, taskId?: string, topicId?: string, defaultMode: "pomodoro" | "deepflow" | "stopwatch" = "pomodoro") => {
-    const mins = defaultMode === "deepflow" ? 50 : defaultMode === "pomodoro" ? 25 : 0;
+  const startFocusSession = (title?: string, taskId?: string, topicId?: string, defaultMode: "pomodoro" | "deepflow" | "timer" | "stopwatch" = "pomodoro") => {
+    const customMins = focusState.customTimerMinutes || 10;
+    const mins = defaultMode === "deepflow" ? 50 : defaultMode === "pomodoro" ? 25 : defaultMode === "timer" ? customMins : 0;
     setFocusState({
       isOpen: true,
       mode: defaultMode,
       durationMinutes: mins,
+      customTimerMinutes: customMins,
       secondsLeft: mins * 60,
       isRunning: true,
       isBreak: false,
@@ -3521,13 +3614,27 @@ CORE MANNERISMS & ESSENCE:
     });
   };
 
-  const switchFocusMode = (mode: "pomodoro" | "deepflow" | "stopwatch") => {
-    const mins = mode === "deepflow" ? 50 : mode === "pomodoro" ? 25 : 0;
+  const switchFocusMode = (mode: "pomodoro" | "deepflow" | "timer" | "stopwatch") => {
+    const customMins = focusState.customTimerMinutes || 10;
+    const mins = mode === "deepflow" ? 50 : mode === "pomodoro" ? 25 : mode === "timer" ? customMins : 0;
     setFocusState((prev) => ({
       ...prev,
       mode,
       durationMinutes: mins,
       secondsLeft: mins * 60,
+      isRunning: false,
+      isBreak: false,
+      totalFocusedSeconds: 0,
+    }));
+  };
+
+  const setCustomTimerDuration = (mins: number) => {
+    const validMins = Math.max(1, Math.min(180, mins));
+    setFocusState((prev) => ({
+      ...prev,
+      customTimerMinutes: validMins,
+      durationMinutes: validMins,
+      secondsLeft: validMins * 60,
       isRunning: false,
       isBreak: false,
     }));
@@ -3542,7 +3649,7 @@ CORE MANNERISMS & ESSENCE:
   };
 
   // ==========================================
-  // GITA & KARMA AUDIT HELPERS
+  // GITA & TWO-BOX REFLECTION HELPERS
   // ==========================================
   const discussGitaShloka = (shloka: GitaShloka) => {
     const textPrompt = `प्रणाम सखा! आज के श्लोक (${shloka.chapter}, ${shloka.verse}) "${shloka.sanskrit}" ("${shloka.hindi}") का मेरे आज के दैनिक जीवन और कर्म में क्या व्यावहारिक अर्थ है? कृपया मुझे सरल भाषा में समझाएं।`;
@@ -3550,64 +3657,157 @@ CORE MANNERISMS & ESSENCE:
     sendKrishnaMessage(textPrompt);
   };
 
-  const submitKarmaAudit = async () => {
-    if (!karmaBestEffort.trim() && !karmaDistraction.trim()) {
-      showMessage("कृपया कम से कम एक अनुभव या चिंतन लिखें। 🌸");
-      return;
-    }
-    setIsSubmittingKarma(true);
-    const dateKey = todayStr;
-    const existingDay = trackerData[dateKey] || { tasks: {}, reasonForO: "", summary: "" };
+  const getSelectedTwoBox = () => {
+    const dayRecord = trackerData[selectedDate] || {};
+    const tb = dayRecord.twoBox || {};
+    return {
+      failures: Array.isArray(tb.failures) ? tb.failures : [],
+      achievements: Array.isArray(tb.achievements) ? tb.achievements : [],
+      cleanedFailures: Array.isArray(tb.cleanedFailures) ? tb.cleanedFailures : [],
+      cleanupCompleted: !!tb.cleanupCompleted,
+      rating: typeof tb.rating === "number" ? tb.rating : 5
+    };
+  };
 
-    const karmaEntry = `\n\n[🌙 Nightly Karma Audit - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}]\n⭐ श्रेष्ठ प्रयास: ${karmaBestEffort || 'N/A'}\n⚠️ विचलन / सुधार: ${karmaDistraction || 'N/A'}\n✨ संतुष्टि: ${'⭐'.repeat(karmaRating)}`;
+  const isCleanupHourActive = () => {
+    if (devForceCleanupHour !== null) return devForceCleanupHour;
+    if (devNightOverride !== null) return devNightOverride;
+    const hr = new Date().getHours();
+    return hr === 21; // 21:00 to 21:59 (9:00 PM to 10:00 PM)
+  };
 
-    const updatedSummary = (existingDay.summary || "") + karmaEntry;
-    updateTrackerFirebase(dateKey, { ...existingDay, summary: updatedSummary, karmaAudited: true });
+  const addBox1Failure = (text: string) => {
+    if (!text.trim()) return;
+    const current = getSelectedTwoBox();
+    const updated = {
+      ...current,
+      failures: [...current.failures, text.trim()]
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+    setBox1Input("");
+    showMessage("🛑 Logged in Box 1: Radical honesty acknowledged.");
+  };
 
-    updateProfileFirebase({ stars: (profile.stars || 0) + 10 });
+  const removeBox1Failure = (index: number) => {
+    const current = getSelectedTwoBox();
+    const updated = {
+      ...current,
+      failures: current.failures.filter((_: any, i: number) => i !== index)
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+  };
 
-    if (profile.geminiKey) {
-      try {
-        const blessingPrompt = `The seeker completed their Nightly Karma Audit:
-Best Effort: ${karmaBestEffort}
-Mind Drift & Tomorrow's Goal: ${karmaDistraction}
-Rating: ${karmaRating}/5 stars.
+  const addBox2Achievement = (text: string) => {
+    if (!text.trim()) return;
+    const current = getSelectedTwoBox();
+    const updated = {
+      ...current,
+      achievements: [...current.achievements, text.trim()]
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+    setBox2Input("");
+    showMessage("🏆 Logged in Box 2: Victory registered! Keep crushing it.");
+  };
 
-Give a concise, 2-line warm Shri Krishna blessing and guidance in Hindi/Hinglish to inspire peace before sleep and energize tomorrow's duty.`;
-        const response = await callGeminiApi(
-          profile.geminiKey,
-          [{ role: "user", parts: [{ text: blessingPrompt }] }],
-          "You are Shri Krishna speaking with unconditional warmth, divine encouragement, and spiritual wisdom.",
-          false
-        );
+  const removeBox2Achievement = (index: number) => {
+    const current = getSelectedTwoBox();
+    const updated = {
+      ...current,
+      achievements: current.achievements.filter((_: any, i: number) => i !== index)
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+  };
 
-        const newMsg: KrishnaMessage = {
-          id: `k_msg_${Date.now()}_k`,
-          role: "model",
-          text: `🌙 **रात्रि आत्म-निरीक्षण पर सखा का संदेश:**\n\n${response}`,
-          timestamp: new Date().toISOString(),
-        };
-        const activeConv = krishnaState.conversations.find((c) => c.id === krishnaState.activeConversationId) || krishnaState.conversations[0];
-        if (activeConv) {
-          const updatedConv = {
-            ...activeConv,
-            messages: [...activeConv.messages, newMsg],
-            lastUpdated: new Date().toISOString(),
-          };
-          updateKrishnaFirebase({
-            conversations: krishnaState.conversations.map((c) => (c.id === updatedConv.id ? updatedConv : c)),
-          });
-        }
-      } catch (err) {
-        console.warn("Karma blessing failed:", err);
+  const cleanBadHabit = (index: number) => {
+    const current = getSelectedTwoBox();
+    const itemToClean = current.failures[index];
+    if (!itemToClean) return;
+    const updated = {
+      ...current,
+      failures: current.failures.filter((_: any, i: number) => i !== index),
+      cleanedFailures: [...current.cleanedFailures, itemToClean]
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+    updateProfileFirebase({
+      stars: (profile.stars || 0) + 2,
+      xp: (profile.xp || 0) + 10
+    });
+    showMessage(`🧹 Habit Cleaned: "${itemToClean}" pattern weakened! (+2⭐, +10 XP)`);
+  };
+
+  const convertBadHabitToWin = (index: number) => {
+    const current = getSelectedTwoBox();
+    const itemToConvert = current.failures[index];
+    if (!itemToConvert) return;
+    const victoryText = `Conquered: ${itemToConvert}`;
+    const updated = {
+      ...current,
+      failures: current.failures.filter((_: any, i: number) => i !== index),
+      achievements: [...current.achievements, victoryText],
+      cleanedFailures: [...current.cleanedFailures, itemToConvert]
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
+    updateProfileFirebase({
+      stars: (profile.stars || 0) + 5,
+      xp: (profile.xp || 0) + 20
+    });
+    showMessage(`✨ Transformed: Slippage converted into an Achievement! (+5⭐, +20 XP)`);
+  };
+
+  const completeDailyCleanup = () => {
+    const current = getSelectedTwoBox();
+    const updated = {
+      ...current,
+      cleanupCompleted: true,
+      rating: twoBoxRating
+    };
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+    const cleanupNote = `\n\n[📦 The Two-Box System - 9-10 PM Habit Cleanup]\n🛑 Box 1 (Failures Logged): ${current.failures.length}\n🏆 Box 2 (Achievements Stored): ${current.achievements.length}\n🧹 Cleaned & Conquered: ${current.cleanedFailures.length}\n✨ Daily Status: Habit Cleanup Protocol Executed.`;
+    const updatedSummary = (dayRecord.summary || "") + cleanupNote;
+    updateTrackerFirebase(selectedDate, { ...dayRecord, summary: updatedSummary, twoBox: updated, twoBoxAudited: true });
+    updateProfileFirebase({
+      stars: (profile.stars || 0) + 10,
+      xp: (profile.xp || 0) + 30
+    });
+    showMessage("🎉 9-10 PM Daily Habit Cleanup Complete! +10⭐ & +30 XP! 🧹✨");
+  };
+
+  const getMonthlyTwoBoxStats = () => {
+    const currentYearMonth = selectedDate.substring(0, 7); // e.g. "2026-09"
+    let totalWins = 0;
+    let totalFailures = 0;
+    let totalCleaned = 0;
+    const allMonthlyAchievements: { date: string; text: string }[] = [];
+
+    Object.keys(trackerData).forEach((dStr) => {
+      if (dStr.startsWith(currentYearMonth)) {
+        const tb = trackerData[dStr]?.twoBox || {};
+        const wins = Array.isArray(tb.achievements) ? tb.achievements : [];
+        const fails = Array.isArray(tb.failures) ? tb.failures : [];
+        const cleans = Array.isArray(tb.cleanedFailures) ? tb.cleanedFailures : [];
+
+        totalWins += wins.length;
+        totalFailures += fails.length;
+        totalCleaned += cleans.length;
+
+        wins.forEach((w: string) => {
+          allMonthlyAchievements.push({ date: dStr, text: w });
+        });
       }
-    }
+    });
 
-    setIsSubmittingKarma(false);
-    setIsKarmaAuditOpen(false);
-    setKarmaBestEffort("");
-    setKarmaDistraction("");
-    showMessage("🌸 आत्म-निरीक्षण सुरक्षित! +10 Stars Earned! शुभ रात्रि।");
+    return {
+      totalWins,
+      totalFailures,
+      totalCleaned,
+      allMonthlyAchievements: allMonthlyAchievements.reverse(),
+    };
   };
 
   // ==========================================
@@ -4108,7 +4308,7 @@ One short, electrifying sentence of raw motivation.`;
                 </div>
               </div>
 
-              {/* Action Buttons: Discuss with Krishna & Nightly Karma Audit */}
+              {/* Action Buttons: Discuss with Krishna & Two-Box Reflection */}
               <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
                 <button
                   onClick={() => discussGitaShloka(dailyShloka)}
@@ -4119,11 +4319,11 @@ One short, electrifying sentence of raw motivation.`;
                 </button>
 
                 <button
-                  onClick={() => setIsKarmaAuditOpen(true)}
+                  onClick={() => setIsTwoBoxModalOpen(true)}
                   className="py-2.5 px-3.5 rounded-xl bg-[#091630] border border-amber-400/40 text-amber-200 text-xs font-black uppercase tracking-wider hover:bg-[#0f244f] active:scale-95 transition-all flex items-center justify-center gap-1.5 tap-effect"
                 >
-                  <span>🌙</span>
-                  <span className="hidden sm:inline">आत्म-निरीक्षण</span>
+                  <span>📦</span>
+                  <span className="hidden sm:inline">Two-Box Audit</span>
                 </button>
               </div>
             </div>
@@ -4502,7 +4702,7 @@ One short, electrifying sentence of raw motivation.`;
               </div>
 
               {/* Mode Switcher Buttons */}
-              <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/10 mb-5">
                 <button
                   onClick={() => switchFocusMode("pomodoro")}
                   className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
@@ -4524,6 +4724,16 @@ One short, electrifying sentence of raw motivation.`;
                   Deep Flow (50m)
                 </button>
                 <button
+                  onClick={() => switchFocusMode("timer")}
+                  className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                    focusState.mode === "timer"
+                      ? `${t.btnPrimary} shadow-md`
+                      : `${t.textMuted} hover:${t.textMain}`
+                  }`}
+                >
+                  ⏱️ Timer ({focusState.customTimerMinutes || 10}m)
+                </button>
+                <button
                   onClick={() => switchFocusMode("stopwatch")}
                   className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
                     focusState.mode === "stopwatch"
@@ -4534,6 +4744,49 @@ One short, electrifying sentence of raw motivation.`;
                   Stopwatch
                 </button>
               </div>
+
+              {/* Custom Timer Selector (when in Timer Mode) */}
+              {focusState.mode === "timer" && (
+                <div className={`p-3 rounded-2xl border mb-5 ${t.cardInner} ${t.borderAccent} animate-in fade-in duration-200`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] font-black uppercase tracking-wider ${t.textAccent}`}>
+                      Set Timer: {focusState.customTimerMinutes || 10} Minutes
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setCustomTimerDuration(Math.max(1, (focusState.customTimerMinutes || 10) - 5))}
+                        disabled={focusState.isRunning}
+                        className={`px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tap-effect disabled:opacity-40 ${t.btnWarning}`}
+                      >
+                        -5m
+                      </button>
+                      <button
+                        onClick={() => setCustomTimerDuration(Math.min(180, (focusState.customTimerMinutes || 10) + 5))}
+                        disabled={focusState.isRunning}
+                        className={`px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tap-effect disabled:opacity-40 ${t.btnWarning}`}
+                      >
+                        +5m
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1">
+                    {[5, 10, 15, 25, 45, 60].map((presetMins) => (
+                      <button
+                        key={presetMins}
+                        onClick={() => setCustomTimerDuration(presetMins)}
+                        disabled={focusState.isRunning}
+                        className={`py-1 rounded-lg text-[10px] font-bold tap-effect transition-all disabled:opacity-40 ${
+                          (focusState.customTimerMinutes || 10) === presetMins
+                            ? `${t.btnPrimary} shadow-sm font-black`
+                            : "bg-black/40 text-white/70 hover:text-white border border-white/10"
+                        }`}
+                      >
+                        {presetMins}m
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Focus Target Label */}
               <div className={`p-3.5 rounded-2xl border text-center mb-6 ${t.cardInner} ${t.borderAccent}`}>
@@ -4623,7 +4876,13 @@ One short, electrifying sentence of raw motivation.`;
                 <button
                   onClick={() => {
                     const mins =
-                      focusState.mode === "deepflow" ? 50 : focusState.mode === "pomodoro" ? 25 : 0;
+                      focusState.mode === "deepflow"
+                        ? 50
+                        : focusState.mode === "pomodoro"
+                        ? 25
+                        : focusState.mode === "timer"
+                        ? (focusState.customTimerMinutes || 10)
+                        : 0;
                     setFocusState((prev) => ({
                       ...prev,
                       isRunning: false,
@@ -4659,104 +4918,431 @@ One short, electrifying sentence of raw motivation.`;
       )}
 
       {/* ========================================== */}
-      {/* 2. NIGHTLY KARMA AUDIT MODAL */}
+      {/* 2. THE TWO-BOX REFLECTION & 9-10 PM CLEANUP SYSTEM */}
       {/* ========================================== */}
-      {isKarmaAuditOpen && (
+      {isTwoBoxModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
-          <div className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#0c1c38]/98 via-[#08152b]/98 to-[#040a17]/98 border-2 border-amber-400/50 text-amber-100 shadow-[0_15px_50px_rgba(0,0,0,0.8),inset_0_0_40px_rgba(251,191,36,0.1)] relative max-h-[90vh] overflow-y-auto">
+          <div className={`w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative max-h-[90vh] overflow-y-auto`}>
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-amber-400/30 mb-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
               <div className="flex items-center gap-2.5">
-                <span className="text-2xl">🌙</span>
+                <div className={`p-2 rounded-xl border ${t.cardInner} ${t.borderAccent}`}>
+                  <Layers className={`w-5 h-5 ${t.textAccent}`} />
+                </div>
                 <div>
-                  <h3 className="font-black text-sm sm:text-base uppercase tracking-wider text-amber-300">
-                    रात्रि आत्म-निरीक्षण (Karma Audit)
+                  <h3 className={`font-black text-sm sm:text-base uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                    The Two-Box System
                   </h3>
-                  <p className="text-[10px] text-amber-200/60 font-medium">
-                    2-Minute Honest Reflection & Blessing
+                  <p className={`text-[10px] font-medium ${t.textMuted}`}>
+                    Radical Honesty & Daily 9:00 PM – 10:00 PM Habit Cleanup
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setIsKarmaAuditOpen(false)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300 hover:text-white transition-all tap-effect"
+                onClick={() => setIsTwoBoxModalOpen(false)}
+                className={`p-2 rounded-xl transition-all tap-effect ${t.cardInner} ${t.textMuted} hover:${t.textMain}`}
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Questions Form */}
-            <div className="space-y-4 mb-6">
-              {/* Question 1 */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                  <span>🌸</span> 1. आज का सर्वश्रेष्ठ प्रयास / विजय क्या रही?
-                </label>
-                <textarea
-                  value={karmaBestEffort}
-                  onChange={(e) => setKarmaBestEffort(e.target.value)}
-                  placeholder="जैसे: आज 3 घंटे बिना भटके पढ़ाई पूरी की और मन को संयमित रखा..."
-                  className="w-full p-3.5 text-xs sm:text-sm rounded-2xl bg-[#060e1f] border border-amber-400/40 text-amber-100 placeholder:text-amber-300/30 focus:border-amber-400 outline-none transition-all resize-none"
-                  rows={3}
-                />
-              </div>
-
-              {/* Question 2 */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                  <span>⚠️</span> 2. कहाँ मन भटका और कल क्या सुधार करना है?
-                </label>
-                <textarea
-                  value={karmaDistraction}
-                  onChange={(e) => setKarmaDistraction(e.target.value)}
-                  placeholder="जैसे: दोपहर में 30 मिनट फोन पर व्यर्थ गए। कल सुबह 9 बजे से ही काम शुरू करूंगा..."
-                  className="w-full p-3.5 text-xs sm:text-sm rounded-2xl bg-[#060e1f] border border-amber-400/40 text-amber-100 placeholder:text-amber-300/30 focus:border-amber-400 outline-none transition-all resize-none"
-                  rows={3}
-                />
-              </div>
-
-              {/* Star Rating for Today's Karma */}
-              <div className="p-3.5 rounded-2xl bg-[#060e1f] border border-amber-400/30 flex items-center justify-between">
-                <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300">
-                  आज के प्रयास से संतुष्टि:
-                </span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((starVal) => (
-                    <button
-                      key={starVal}
-                      type="button"
-                      onClick={() => setKarmaRating(starVal)}
-                      className={`text-lg sm:text-xl transition-transform hover:scale-125 tap-effect ${
-                        karmaRating >= starVal ? "text-yellow-400" : "text-slate-600"
-                      }`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Action */}
-            <div className="space-y-3">
+            {/* Navigation Tabs */}
+            <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10 mb-5">
               <button
-                onClick={submitKarmaAudit}
-                disabled={isSubmittingKarma}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(251,191,36,0.4)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 tap-effect"
+                onClick={() => setTwoBoxActiveTab("boxes")}
+                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                  twoBoxActiveTab === "boxes"
+                    ? `${t.btnPrimary} shadow-md`
+                    : `${t.textMuted} hover:${t.textMain}`
+                }`}
               >
-                {isSubmittingKarma ? (
-                  <>
-                    <RefreshCw size={16} className="animate-spin stroke-[3]" />
-                    <span>सखा को अर्पित किया जा रहा है...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={16} className="stroke-[3]" />
-                    <span>आत्म-निरीक्षण सुरक्षित करें (+10 ⭐)</span>
-                  </>
+                📦 Two Boxes
+              </button>
+              <button
+                onClick={() => setTwoBoxActiveTab("cleanup")}
+                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
+                  twoBoxActiveTab === "cleanup"
+                    ? `${t.btnPrimary} shadow-md`
+                    : `${t.textMuted} hover:${t.textMain}`
+                }`}
+              >
+                <span>🧹 9-10 PM Cleanup</span>
+                {isCleanupHourActive() && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 )}
               </button>
+              <button
+                onClick={() => setTwoBoxActiveTab("trophy")}
+                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                  twoBoxActiveTab === "trophy"
+                    ? `${t.btnPrimary} shadow-md`
+                    : `${t.textMuted} hover:${t.textMain}`
+                }`}
+              >
+                🏆 Trophy Wall
+              </button>
             </div>
+
+            {(() => {
+              const twoBoxData = getSelectedTwoBox();
+
+              if (twoBoxActiveTab === "boxes") {
+                return (
+                  <div className="space-y-5 animate-in fade-in duration-200">
+                    {/* Top Info Tile */}
+                    <div className={`p-3 rounded-2xl border flex items-center justify-between ${t.cardInner} ${t.borderAccent}`}>
+                      <span className={`text-[10px] font-black uppercase tracking-wider ${t.textAccent}`}>
+                        Active Date: {selectedDate}
+                      </span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-white/10 text-white/70'}`}>
+                        {isCleanupHourActive() ? "🧹 Cleanup Hour is LIVE" : "Next Cleanup: 9:00 PM"}
+                      </span>
+                    </div>
+
+                    {/* The 2 Boxes Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Box 1: Failure Box */}
+                      <div className="p-4 rounded-2xl border border-red-500/30 bg-red-950/10 flex flex-col justify-between space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                              <span>🛑</span> Box 1: Failure Box
+                            </span>
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40">
+                              {twoBoxData.failures.length} Logged
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-red-300/70 mb-3">
+                            Document mistakes, distractions, missed habits, and bad triggers.
+                          </p>
+
+                          {/* Add Failure Input */}
+                          <div className="flex gap-2 mb-3">
+                            <input
+                              type="text"
+                              value={box1Input}
+                              onChange={(e) => setBox1Input(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") addBox1Failure(box1Input);
+                              }}
+                              placeholder="e.g. Scrolled reels for 45m..."
+                              className="flex-1 p-2.5 text-xs rounded-xl bg-black/50 border border-red-500/30 text-red-100 placeholder:text-red-400/30 focus:border-red-400 outline-none"
+                            />
+                            <button
+                              onClick={() => addBox1Failure(box1Input)}
+                              className="px-3 py-2 text-xs font-black uppercase rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500 hover:text-white tap-effect"
+                            >
+                              + Add
+                            </button>
+                          </div>
+
+                          {/* Failures List */}
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {twoBoxData.failures.length === 0 ? (
+                              <div className="p-4 text-center border border-dashed border-red-500/20 rounded-xl">
+                                <p className="text-[10px] text-red-300/50 italic">
+                                  No failures logged today. Practice radical honesty.
+                                </p>
+                              </div>
+                            ) : (
+                              twoBoxData.failures.map((f: string, i: number) => (
+                                <div
+                                  key={i}
+                                  className="p-2.5 rounded-xl border border-red-500/30 bg-red-950/30 flex items-center justify-between gap-2 text-xs"
+                                >
+                                  <span className="text-red-200 break-words flex-1 flex items-start gap-1.5">
+                                    <span className="text-red-400 mt-0.5">•</span> {f}
+                                  </span>
+                                  <button
+                                    onClick={() => removeBox1Failure(i)}
+                                    className="text-red-400/60 hover:text-red-300 p-1 tap-effect"
+                                    title="Delete entry"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-red-500/20 text-[9px] text-red-300/60 flex items-center gap-1">
+                          <span>💡 Clean these bad habits during 9-10 PM cleanup!</span>
+                        </div>
+                      </div>
+
+                      {/* Box 2: Achievement Box */}
+                      <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/10 flex flex-col justify-between space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                              <span>🏆</span> Box 2: Achievement Box
+                            </span>
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                              {twoBoxData.achievements.length} Wins
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-emerald-300/70 mb-3">
+                            Document victories, habits completed, personal bests, and focus wins.
+                          </p>
+
+                          {/* Add Achievement Input */}
+                          <div className="flex gap-2 mb-3">
+                            <input
+                              type="text"
+                              value={box2Input}
+                              onChange={(e) => setBox2Input(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") addBox2Achievement(box2Input);
+                              }}
+                              placeholder="e.g. Completed 2 hours focus..."
+                              className="flex-1 p-2.5 text-xs rounded-xl bg-black/50 border border-emerald-500/30 text-emerald-100 placeholder:text-emerald-400/30 focus:border-emerald-400 outline-none"
+                            />
+                            <button
+                              onClick={() => addBox2Achievement(box2Input)}
+                              className={`px-3 py-2 text-xs font-black uppercase rounded-xl ${t.btnPrimary} tap-effect`}
+                            >
+                              + Win
+                            </button>
+                          </div>
+
+                          {/* Achievements List */}
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {twoBoxData.achievements.length === 0 ? (
+                              <div className="p-4 text-center border border-dashed border-emerald-500/20 rounded-xl">
+                                <p className="text-[10px] text-emerald-300/50 italic">
+                                  No wins logged yet today. Register your first victory!
+                                </p>
+                              </div>
+                            ) : (
+                              twoBoxData.achievements.map((a: string, i: number) => (
+                                <div
+                                  key={i}
+                                  className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex items-center justify-between gap-2 text-xs"
+                                >
+                                  <span className="text-emerald-200 break-words flex-1 flex items-start gap-1.5">
+                                    <span className="text-emerald-400 mt-0.5">⭐</span> {a}
+                                  </span>
+                                  <button
+                                    onClick={() => removeBox2Achievement(i)}
+                                    className="text-emerald-400/60 hover:text-emerald-300 p-1 tap-effect"
+                                    title="Delete entry"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-emerald-500/20 text-[9px] text-emerald-300/60 flex items-center gap-1">
+                          <span>✨ Stored for your monthly victory momentum!</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Day Willpower & Satisfaction Rating */}
+                    <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${t.cardInner} ${t.borderAccent}`}>
+                      <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider ${t.textAccent}`}>
+                        Day Discipline Rating:
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((starVal) => (
+                          <button
+                            key={starVal}
+                            type="button"
+                            onClick={() => setTwoBoxRating(starVal)}
+                            className={`text-lg sm:text-xl transition-transform hover:scale-125 tap-effect ${
+                              twoBoxRating >= starVal ? "text-yellow-400" : "text-slate-600"
+                            }`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Quick CTA to Cleanup Tab */}
+                    <button
+                      onClick={() => setTwoBoxActiveTab("cleanup")}
+                      className={`w-full py-3 rounded-2xl border tap-effect text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 ${t.btnWarning}`}
+                    >
+                      <Sparkles size={15} /> Open 9:00 PM – 10:00 PM Habit Cleanup Window
+                    </button>
+                  </div>
+                );
+              }
+
+              if (twoBoxActiveTab === "cleanup") {
+                return (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    {/* Live Indicator Banner */}
+                    <div className={`p-4 rounded-2xl border ${isCleanupHourActive() ? 'border-emerald-400/60 bg-emerald-950/40 glow-gold-pulse' : 'border-amber-400/40 bg-amber-950/20'}`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`text-xs font-black uppercase tracking-wider flex items-center gap-2 ${isCleanupHourActive() ? 'text-emerald-300' : 'text-amber-300'}`}>
+                          <span>🧹</span> 9:00 PM – 10:00 PM Habit Cleanup Protocol
+                        </span>
+                        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase ${isCleanupHourActive() ? 'bg-emerald-400 text-black' : 'bg-amber-400/20 text-amber-300 border border-amber-400/40'}`}>
+                          {isCleanupHourActive() ? "Window Live Now" : "Scheduled (9-10 PM)"}
+                        </span>
+                      </div>
+                      <p className={`text-[10px] sm:text-xs leading-relaxed ${isCleanupHourActive() ? 'text-emerald-200/90' : 'text-amber-200/80'}`}>
+                        Review your daily failures from Box 1. Cleanse bad patterns, transform mistakes into wisdom, and systematically reduce bad habits over time.
+                      </p>
+                    </div>
+
+                    {/* Bad Habits to Clean */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-black uppercase tracking-wider ${t.textMain}`}>
+                          Active Bad Habits to Review ({twoBoxData.failures.length}):
+                        </span>
+                      </div>
+
+                      {twoBoxData.failures.length === 0 ? (
+                        <div className={`p-6 text-center rounded-2xl border border-dashed border-emerald-500/30 ${t.cardInner}`}>
+                          <span className="text-3xl block mb-2">🎉</span>
+                          <p className={`text-xs font-bold text-emerald-400`}>All bad habits cleaned or none logged today!</p>
+                          <p className={`text-[10px] mt-1 ${t.textMuted}`}>Box 1 is empty and Box 2 is primed with your victories.</p>
+                        </div>
+                      ) : (
+                        twoBoxData.failures.map((failItem: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`p-3.5 rounded-2xl border border-white/10 ${t.cardInner} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <span className="text-red-400 font-black text-sm mt-0.5">•</span>
+                              <span className={`text-xs font-medium ${t.textMain}`}>{failItem}</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                onClick={() => cleanBadHabit(idx)}
+                                className="px-3 py-1.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500 hover:text-white text-[10px] font-black uppercase tap-effect flex items-center gap-1"
+                                title="Strike through & eliminate this habit"
+                              >
+                                <span>🧹 Clean (+2⭐)</span>
+                              </button>
+                              <button
+                                onClick={() => convertBadHabitToWin(idx)}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tap-effect flex items-center gap-1 ${t.btnPrimary}`}
+                                title="Convert this slippage into a victory in Box 2"
+                              >
+                                <span>⚡ Convert to Win (+5⭐)</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Cleaned Habits History Today */}
+                    {twoBoxData.cleanedFailures.length > 0 && (
+                      <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 space-y-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 size={13} /> Conquered & Cleaned Today ({twoBoxData.cleanedFailures.length}):
+                        </span>
+                        <div className="space-y-1">
+                          {twoBoxData.cleanedFailures.map((cItem: string, cIdx: number) => (
+                            <div key={cIdx} className="text-[11px] text-emerald-200/80 flex items-center gap-2 line-through opacity-80">
+                              <span>✓</span> {cItem}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Finalize Daily Cleanup Button */}
+                    <button
+                      onClick={completeDailyCleanup}
+                      className={`w-full py-3.5 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider shadow-xl tap-effect flex items-center justify-center gap-2 ${t.btnPrimary}`}
+                    >
+                      <Sparkles size={16} /> Complete Daily Cleanup & Lock In (+10⭐, +30 XP)
+                    </button>
+                  </div>
+                );
+              }
+
+              if (twoBoxActiveTab === "trophy") {
+                const monthlyStats = getMonthlyTwoBoxStats();
+                return (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    {/* Monthly Highlight Grid */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                        <span className="text-2xl block mb-1">🏆</span>
+                        <span className={`text-xl sm:text-2xl font-black block ${t.textAccent}`}>
+                          {monthlyStats.totalWins}
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                          Box 2 Wins
+                        </span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                        <span className="text-2xl block mb-1">🧹</span>
+                        <span className={`text-xl sm:text-2xl font-black block text-emerald-400`}>
+                          {monthlyStats.totalCleaned}
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                          Habits Cleaned
+                        </span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                        <span className="text-2xl block mb-1">⚡</span>
+                        <span className={`text-xl sm:text-2xl font-black block text-yellow-400`}>
+                          {monthlyStats.totalWins + monthlyStats.totalCleaned > 0
+                            ? Math.round(
+                                (monthlyStats.totalWins /
+                                  (monthlyStats.totalWins + monthlyStats.totalFailures || 1)) *
+                                  100
+                              )
+                            : 100}
+                          %
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                          Victory Ratio
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Monthly Motivation Stream */}
+                    <div className="space-y-2">
+                      <span className={`text-xs font-black uppercase tracking-wider ${t.textMain}`}>
+                        This Month's Victory Wall ({monthlyStats.allMonthlyAchievements.length} Achievements):
+                      </span>
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {monthlyStats.allMonthlyAchievements.length === 0 ? (
+                          <div className={`p-8 text-center rounded-2xl border border-dashed ${t.cardInner}`}>
+                            <span className="text-3xl block mb-2 opacity-60">📜</span>
+                            <p className={`text-xs font-semibold ${t.textMuted}`}>No achievements recorded this month yet.</p>
+                            <p className={`text-[10px] mt-1 ${t.textMuted}`}>Log your wins in Box 2 to build your monthly momentum!</p>
+                          </div>
+                        ) : (
+                          monthlyStats.allMonthlyAchievements.map((item, mIdx) => (
+                            <div
+                              key={mIdx}
+                              className={`p-3 rounded-xl border border-emerald-500/20 bg-emerald-950/10 flex items-center justify-between gap-2`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-emerald-400">⭐</span>
+                                <span className="text-xs text-emerald-100 font-medium">{item.text}</span>
+                              </div>
+                              <span className="text-[9px] font-mono text-emerald-400/60 font-bold">
+                                {item.date}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         </div>
       )}
@@ -5074,6 +5660,61 @@ One short, electrifying sentence of raw motivation.`;
                       className="py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tap-effect"
                     >
                       ⏩ Fast-Forward (3s)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 7. TWO-BOX SYSTEM & 9-10 PM CLEANUP TESTING */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <Layers size={12} /> 7. Two-Box & Cleanup Hour
+                    </span>
+                    <span className={`text-[9px] font-bold ${isCleanupHourActive() ? "text-emerald-400" : "text-slate-400"}`}>
+                      {isCleanupHourActive() ? "🧹 LIVE (9-10 PM Active)" : "⏳ Inactive"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => { setDevForceCleanupHour(true); showMessage("🧹 Force 9-10 PM Cleanup LIVE"); }}
+                      className="py-1.5 px-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Force ON
+                    </button>
+                    <button
+                      onClick={() => { setDevForceCleanupHour(false); showMessage("⏳ Force Cleanup OFF"); }}
+                      className="py-1.5 px-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Force OFF
+                    </button>
+                    <button
+                      onClick={() => { setDevForceCleanupHour(null); showMessage("🕒 Auto 9-10 PM Window"); }}
+                      className="py-1.5 px-1 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Auto Clock
+                    </button>
+                  </div>
+                  <div className="pt-1 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setIsTwoBoxModalOpen(true);
+                        setTwoBoxActiveTab("boxes");
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 text-[10px] font-black uppercase tap-effect"
+                    >
+                      📦 Open Two-Box
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Inject sample failure and win for easy testing
+                        addBox1Failure("Sample bad habit / distraction for testing cleanup");
+                        addBox2Achievement("Sample victory / deep work session logged");
+                        setIsTwoBoxModalOpen(true);
+                        setTwoBoxActiveTab("cleanup");
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[10px] font-black uppercase tap-effect"
+                    >
+                      🧪 Test Cleanup
                     </button>
                   </div>
                 </div>
