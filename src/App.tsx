@@ -2139,7 +2139,7 @@ CORE MANNERISMS & ESSENCE:
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Focus Chamber</h3>
-                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+15⭐</span>
+                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+1⭐</span>
                 </div>
                 <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Pomodoro, Deep Flow, Timer & Stopwatch.</p>
               </div>
@@ -2159,10 +2159,10 @@ CORE MANNERISMS & ESSENCE:
                 <div className="flex items-center gap-2">
                   <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Two-Box System</h3>
                   <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse' : t.badge}`}>
-                    {isCleanupHourActive() ? "🧹 9-10 PM LIVE" : "+10⭐"}
+                    {isCleanupHourActive() ? "🧹 9PM-12AM LIVE" : "DISCIPLINE"}
                   </span>
                 </div>
-                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Box 1 Failures • Box 2 Achievements • 9-10 PM Cleanup.</p>
+                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Box 1 Failures • Box 2 Achievements • 9 PM - 12 AM Cleanup.</p>
               </div>
             </div>
             <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
@@ -3506,7 +3506,7 @@ CORE MANNERISMS & ESSENCE:
             const finishedMinutes = prev.durationMinutes;
 
             if (prev.mode === "timer") {
-              const starsEarned = 15;
+              const starsEarned = 1;
               const xpEarned = 50;
               const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
               updateProfileFirebase({
@@ -3524,7 +3524,7 @@ CORE MANNERISMS & ESSENCE:
                 updateBrainFirebase({ studyTopics: updatedTopics });
               }
 
-              showMessage(`🎉 Custom Timer Complete! +${starsEarned} Stars & +${xpEarned} XP Earned! ⚡`);
+              showMessage(`🎉 Custom Timer Complete! +${starsEarned} Star ⭐ & +${xpEarned} XP Earned! ⚡`);
 
               const resetMins = prev.customTimerMinutes || prev.durationMinutes || 10;
               return {
@@ -3538,7 +3538,7 @@ CORE MANNERISMS & ESSENCE:
             }
 
             if (!prev.isBreak) {
-              const starsEarned = 15;
+              const starsEarned = 1;
               const xpEarned = 50;
               const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
               updateProfileFirebase({
@@ -3556,7 +3556,7 @@ CORE MANNERISMS & ESSENCE:
                 updateBrainFirebase({ studyTopics: updatedTopics });
               }
 
-              showMessage(`🎉 Focus Session Complete! +${starsEarned} Stars & +${xpEarned} XP Earned! ⚡`);
+              showMessage(`🎉 Focus Session Complete! +${starsEarned} Star ⭐ & +${xpEarned} XP Earned! ⚡`);
 
               const breakMins = prev.mode === "deepflow" ? 10 : 5;
               return {
@@ -3673,7 +3673,7 @@ CORE MANNERISMS & ESSENCE:
     if (devForceCleanupHour !== null) return devForceCleanupHour;
     if (devNightOverride !== null) return devNightOverride;
     const hr = new Date().getHours();
-    return hr === 21; // 21:00 to 21:59 (9:00 PM to 10:00 PM)
+    return hr >= 21 && hr <= 23; // 21:00 to 23:59 (9:00 PM to 12:00 AM Midnight)
   };
 
   const addBox1Failure = (text: string) => {
@@ -3734,10 +3734,9 @@ CORE MANNERISMS & ESSENCE:
     const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
     updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
     updateProfileFirebase({
-      stars: (profile.stars || 0) + 2,
       xp: (profile.xp || 0) + 10
     });
-    showMessage(`🧹 Habit Cleaned: "${itemToClean}" pattern weakened! (+2⭐, +10 XP)`);
+    showMessage(`🧹 Habit Cleaned: "${itemToClean}" pattern eliminated! (+10 XP)`);
   };
 
   const convertBadHabitToWin = (index: number) => {
@@ -3754,10 +3753,9 @@ CORE MANNERISMS & ESSENCE:
     const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
     updateTrackerFirebase(selectedDate, { ...dayRecord, twoBox: updated });
     updateProfileFirebase({
-      stars: (profile.stars || 0) + 5,
       xp: (profile.xp || 0) + 20
     });
-    showMessage(`✨ Transformed: Slippage converted into an Achievement! (+5⭐, +20 XP)`);
+    showMessage(`✨ Transformed: Slippage converted into an Achievement! (+20 XP)`);
   };
 
   const completeDailyCleanup = () => {
@@ -3768,14 +3766,13 @@ CORE MANNERISMS & ESSENCE:
       rating: twoBoxRating
     };
     const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
-    const cleanupNote = `\n\n[📦 The Two-Box System - 9-10 PM Habit Cleanup]\n🛑 Box 1 (Failures Logged): ${current.failures.length}\n🏆 Box 2 (Achievements Stored): ${current.achievements.length}\n🧹 Cleaned & Conquered: ${current.cleanedFailures.length}\n✨ Daily Status: Habit Cleanup Protocol Executed.`;
+    const cleanupNote = `\n\n[📦 The Two-Box System - 9 PM to 12 AM Habit Cleanup]\n🛑 Box 1 (Failures Logged): ${current.failures.length}\n🏆 Box 2 (Achievements Stored): ${current.achievements.length}\n🧹 Cleaned & Conquered: ${current.cleanedFailures.length}\n✨ Daily Status: Habit Cleanup Protocol Executed.`;
     const updatedSummary = (dayRecord.summary || "") + cleanupNote;
     updateTrackerFirebase(selectedDate, { ...dayRecord, summary: updatedSummary, twoBox: updated, twoBoxAudited: true });
     updateProfileFirebase({
-      stars: (profile.stars || 0) + 10,
       xp: (profile.xp || 0) + 30
     });
-    showMessage("🎉 9-10 PM Daily Habit Cleanup Complete! +10⭐ & +30 XP! 🧹✨");
+    showMessage("🎉 Daily Habit Cleanup Complete! Locked in for tonight (+30 XP)! 🧹✨");
   };
 
   const getMonthlyTwoBoxStats = () => {
@@ -4910,7 +4907,7 @@ One short, electrifying sentence of raw motivation.`;
               {/* Completion Reward Pill */}
               <div className={`p-2.5 rounded-xl border text-center ${t.cardInner} border-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider ${t.textMuted}`}>
                 <Zap size={13} className={t.textAccent} />
-                <span>Rewards: +15 Stars ⭐ & +50 XP on completion</span>
+                <span>Rewards: +1 Star ⭐ & +50 XP on completion</span>
               </div>
             </div>
           </div>
@@ -4918,7 +4915,7 @@ One short, electrifying sentence of raw motivation.`;
       )}
 
       {/* ========================================== */}
-      {/* 2. THE TWO-BOX REFLECTION & 9-10 PM CLEANUP SYSTEM */}
+      {/* 2. THE TWO-BOX REFLECTION & 9 PM – 12 AM CLEANUP SYSTEM */}
       {/* ========================================== */}
       {isTwoBoxModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
@@ -4934,7 +4931,7 @@ One short, electrifying sentence of raw motivation.`;
                     The Two-Box System
                   </h3>
                   <p className="text-xs font-medium text-slate-300">
-                    Radical Honesty & Daily 9:00 PM – 10:00 PM Habit Cleanup
+                    Radical Honesty & Daily 9:00 PM – 12:00 AM Habit Cleanup
                   </p>
                 </div>
               </div>
@@ -4966,7 +4963,7 @@ One short, electrifying sentence of raw motivation.`;
                     : "text-slate-300 hover:text-white"
                 }`}
               >
-                <span>🧹 9-10 PM Cleanup</span>
+                <span>🧹 9 PM – 12 AM Cleanup</span>
                 {isCleanupHourActive() && (
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                 )}
@@ -4995,7 +4992,7 @@ One short, electrifying sentence of raw motivation.`;
                         Active Date: {selectedDate}
                       </span>
                       <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 animate-pulse' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
-                        {isCleanupHourActive() ? "🟢 9-10 PM Cleanup Hour is LIVE" : "⏳ Next Cleanup: 9:00 PM"}
+                        {isCleanupHourActive() ? "🟢 9 PM – 12 AM Cleanup is LIVE" : "⏳ Next Cleanup: 9:00 PM"}
                       </span>
                     </div>
 
@@ -5067,7 +5064,7 @@ One short, electrifying sentence of raw motivation.`;
                         </div>
 
                         <div className="pt-2.5 border-t border-rose-500/30 text-[11px] text-rose-200 font-bold flex items-center gap-1.5">
-                          <span>💡 Clean these bad habits during 9-10 PM cleanup!</span>
+                          <span>💡 Clean these bad habits during 9 PM – 12 AM cleanup!</span>
                         </div>
                       </div>
 
@@ -5168,7 +5165,7 @@ One short, electrifying sentence of raw motivation.`;
                       onClick={() => setTwoBoxActiveTab("cleanup")}
                       className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg tap-effect flex items-center justify-center gap-2"
                     >
-                      <Sparkles size={16} /> Open 9:00 PM – 10:00 PM Habit Cleanup Window
+                      <Sparkles size={16} /> Open 9:00 PM – 12:00 AM Habit Cleanup Window
                     </button>
                   </div>
                 );
@@ -5181,10 +5178,10 @@ One short, electrifying sentence of raw motivation.`;
                     <div className={`p-4 sm:p-5 rounded-2xl border-2 ${isCleanupHourActive() ? 'border-emerald-400 bg-gradient-to-r from-[#06291a] to-[#083522] shadow-[0_0_30px_rgba(52,211,153,0.3)]' : 'border-amber-400/60 bg-gradient-to-r from-[#291e06] to-[#382a08]'}`}>
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 ${isCleanupHourActive() ? 'text-emerald-300' : 'text-amber-300'}`}>
-                          <span>🧹</span> 9:00 PM – 10:00 PM Habit Cleanup Protocol
+                          <span>🧹</span> 9:00 PM – 12:00 AM Habit Cleanup Protocol
                         </span>
                         <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase ${isCleanupHourActive() ? 'bg-emerald-400 text-black shadow-md' : 'bg-amber-400/20 text-amber-200 border border-amber-400/50'}`}>
-                          {isCleanupHourActive() ? "🟢 Window Live Now" : "⏳ Scheduled (9-10 PM)"}
+                          {isCleanupHourActive() ? "🟢 Window Live Now (9 PM - 12 AM)" : "⏳ Scheduled (9 PM - 12 AM)"}
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
@@ -5222,14 +5219,14 @@ One short, electrifying sentence of raw motivation.`;
                                 className="px-3.5 py-2 rounded-xl bg-rose-500/30 hover:bg-rose-500 text-rose-100 hover:text-white border border-rose-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
                                 title="Strike through & eliminate this habit"
                               >
-                                <span>🧹 Clean (+2⭐)</span>
+                                <span>🧹 Clean (+10 XP)</span>
                               </button>
                               <button
                                 onClick={() => convertBadHabitToWin(idx)}
                                 className="px-3.5 py-2 rounded-xl bg-emerald-500/30 hover:bg-emerald-500 text-emerald-100 hover:text-black border border-emerald-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
                                 title="Convert this slippage into a victory in Box 2"
                               >
-                                <span>⚡ Convert to Win (+5⭐)</span>
+                                <span>⚡ Convert to Win (+20 XP)</span>
                               </button>
                             </div>
                           </div>
@@ -5258,7 +5255,7 @@ One short, electrifying sentence of raw motivation.`;
                       onClick={completeDailyCleanup}
                       className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:from-emerald-300 hover:to-teal-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(52,211,153,0.4)] tap-effect flex items-center justify-center gap-2"
                     >
-                      <Sparkles size={18} /> Complete Daily Cleanup & Lock In (+10⭐, +30 XP)
+                      <Sparkles size={18} /> Complete Daily Cleanup & Lock In (+30 XP)
                     </button>
                   </div>
                 );
@@ -5664,19 +5661,19 @@ One short, electrifying sentence of raw motivation.`;
                   </div>
                 </div>
 
-                {/* 7. TWO-BOX SYSTEM & 9-10 PM CLEANUP TESTING */}
+                {/* 7. TWO-BOX SYSTEM & 9 PM – 12 AM CLEANUP TESTING */}
                 <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Layers size={12} /> 7. Two-Box & Cleanup Hour
+                      <Layers size={12} /> 7. Two-Box & Cleanup Window
                     </span>
                     <span className={`text-[9px] font-bold ${isCleanupHourActive() ? "text-emerald-400" : "text-slate-400"}`}>
-                      {isCleanupHourActive() ? "🧹 LIVE (9-10 PM Active)" : "⏳ Inactive"}
+                      {isCleanupHourActive() ? "🧹 LIVE (9 PM - 12 AM Active)" : "⏳ Inactive"}
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <button
-                      onClick={() => { setDevForceCleanupHour(true); showMessage("🧹 Force 9-10 PM Cleanup LIVE"); }}
+                      onClick={() => { setDevForceCleanupHour(true); showMessage("🧹 Force 9 PM - 12 AM Cleanup LIVE"); }}
                       className="py-1.5 px-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[9px] font-black uppercase tap-effect"
                     >
                       Force ON
@@ -5688,7 +5685,7 @@ One short, electrifying sentence of raw motivation.`;
                       Force OFF
                     </button>
                     <button
-                      onClick={() => { setDevForceCleanupHour(null); showMessage("🕒 Auto 9-10 PM Window"); }}
+                      onClick={() => { setDevForceCleanupHour(null); showMessage("🕒 Auto 9 PM - 12 AM Window"); }}
                       className="py-1.5 px-1 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-300 text-[9px] font-black uppercase tap-effect"
                     >
                       Auto Clock
