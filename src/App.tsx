@@ -944,8 +944,6 @@ export default function App() {
   const [toast, setToast] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const testMode = false; 
-
   // ================= HABIT STATE =================
   const [habitRoute, setHabitRoute] = useState("hub");
   const [settingsRoute, setSettingsRoute] = useState("menu");
@@ -1065,9 +1063,8 @@ export default function App() {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [isNightShiftOpen, setIsNightShiftOpen] = useState(false);
   const [newCustomMission, setNewCustomMission] = useState("");
-  const [devNightOverride, setDevNightOverride] = useState<boolean | null>(null);
   const [isRealNightTime, setIsRealNightTime] = useState(new Date().getHours() >= 21 || new Date().getHours() < 4);
-  const isNightTime = devNightOverride !== null ? devNightOverride : isRealNightTime;
+  const isNightTime = isRealNightTime;
 
   // ================= FOCUS ENGINE STATE =================
   const [focusState, setFocusState] = useState<{
@@ -1102,15 +1099,11 @@ export default function App() {
   const [box2Input, setBox2Input] = useState("");
   const [twoBoxRating, setTwoBoxRating] = useState(5);
   const [twoBoxActiveTab, setTwoBoxActiveTab] = useState<"boxes" | "cleanup" | "trophy">("boxes");
-  const [devForceCleanupHour, setDevForceCleanupHour] = useState<boolean | null>(null);
 
   // ================= WEEKLY AI PERFORMANCE REVIEW STATE =================
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
   const [weeklyReviewText, setWeeklyReviewText] = useState("");
   const [isGeneratingWeeklyReview, setIsGeneratingWeeklyReview] = useState(false);
-
-  // ================= DEVELOPER TESTING HUB STATE =================
-  const [isDevHubOpen, setIsDevHubOpen] = useState(false);
 
   // ================= RPG RANK PROGRESSION & ROADMAP STATE =================
   const [isRankRoadmapOpen, setIsRankRoadmapOpen] = useState(false);
@@ -1286,8 +1279,72 @@ export default function App() {
   };
 
   // ==========================================
-  // SCHEDULED EVENTS & NOTIFICATION SYSTEM
+  // SMART PROACTIVE NOTIFICATION & SCHEDULE ENGINE
   // ==========================================
+  const NOTIFICATION_STORAGE_KEY = "apex_notifications_dispatched_v1";
+
+  const getDispatchedNotifications = (): Record<string, number> => {
+    try {
+      const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const markNotificationDispatched = (key: string) => {
+    try {
+      const map = getDispatchedNotifications();
+      map[key] = Date.now();
+      // Keep only records within 7 days to maintain lightweight localStorage
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const cleaned: Record<string, number> = {};
+      Object.entries(map).forEach(([k, timestamp]) => {
+        if (timestamp > cutoff) cleaned[k] = timestamp;
+      });
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(cleaned));
+    } catch (e) {
+      console.warn("Storage write error for notification tracking:", e);
+    }
+  };
+
+  const isNotificationDispatched = (key: string): boolean => {
+    const map = getDispatchedNotifications();
+    return !!map[key];
+  };
+
+  const sendSmartPushNotification = (
+    key: string,
+    title: string,
+    body: string,
+    options?: { showToast?: boolean; tag?: string }
+  ) => {
+    if (isNotificationDispatched(key)) return false;
+
+    // 1. Browser Web Notification API
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification(title, {
+          body,
+          icon: "./favicon.png",
+          badge: "./favicon.png",
+          tag: options?.tag || key,
+        });
+      } catch (e) {
+        console.warn("Web Notification dispatch issue:", e);
+      }
+    }
+
+    // 2. In-App Interactive Toast if enabled
+    if (options?.showToast !== false) {
+      showMessage(`${title}: ${body}`);
+    }
+
+    // 3. Mark dispatched in local storage
+    markNotificationDispatched(key);
+    return true;
+  };
+
   const requestNotificationPermission = async () => {
     if (typeof window === "undefined" || !("Notification" in window)) {
       showMessage("❌ Browser Notifications not supported on this device/browser.");
@@ -1297,10 +1354,10 @@ export default function App() {
       const perm = await Notification.requestPermission();
       setNotificationStatus(perm);
       if (perm === "granted") {
-        showMessage("🔔 Notifications Enabled! You will receive class & meeting alerts.");
+        showMessage("🔔 Notifications Enabled! You will receive daily progress & class alerts.");
         try {
-          new Notification("🔔 Schedule Notifications Active", {
-            body: "You will now get alerts for your scheduled classes, meetings, and deadlines!",
+          new Notification("🔔 Daily Smart Notifications Active", {
+            body: "You'll now receive timely habit reminders, class alerts, and midnight danger warnings!",
             icon: "./favicon.png",
           });
         } catch (e) {
@@ -1314,6 +1371,144 @@ export default function App() {
     } catch (err) {
       console.error("Notification permission error:", err);
       return false;
+    }
+  };
+
+  const testAllSmartNotifications = async () => {
+    const permGranted = await requestNotificationPermission();
+    if (!permGranted && notificationStatus !== "granted") {
+      showMessage("Please enable notification permissions to receive alerts.");
+      return;
+    }
+
+    const userName = profile?.name ? profile.name.trim().split(" ")[0] : "Prateek";
+    const taskList = profile?.customTasks || DEFAULT_TASKS;
+    const todayRecord = trackerData[todayStr]?.tasks || {};
+    const completedTasksCount = Object.values(todayRecord).filter((v: any) => v === "X").length;
+    const totalTasksCount = taskList.length;
+
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification("🚨 11:30 PM Incomplete Task Warning", {
+          body: `It's 11:30 PM, ${userName}, and you still haven't completed all your tasks (${completedTasksCount}/${totalTasksCount} done)! Lock in before midnight.`,
+          icon: "./favicon.png",
+        });
+
+        setTimeout(() => {
+          new Notification("🧠 Spaced Repetition Revision Reminder", {
+            body: `${userName}, you still haven't completed your scheduled revision today! Don't let your retention drop.`,
+            icon: "./favicon.png",
+          });
+        }, 1500);
+
+        setTimeout(() => {
+          new Notification("⚡ Daily Habit Accountability Check", {
+            body: `${userName}, your task list is at ${completedTasksCount}/${totalTasksCount}. Keep pushing for 100%!`,
+            icon: "./favicon.png",
+          });
+        }, 3000);
+      } catch (err) {
+        console.warn("Test notifications failed:", err);
+      }
+    }
+    showMessage("🔔 Dispatched test notification suite (11:30 PM danger, Revision alert, Task check)!");
+  };
+
+  const checkAndDispatchSmartNotifications = () => {
+    const userName = profile?.name ? profile.name.trim().split(" ")[0] : "Prateek";
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    // 1. Habit Progress Metrics
+    const taskList = profile?.customTasks || DEFAULT_TASKS;
+    const todayRecord = trackerData[todayStr]?.tasks || {};
+    const completedTasksCount = Object.values(todayRecord).filter((v: any) => v === "X").length;
+    const totalTasksCount = taskList.length;
+    const remainingTasksCount = Math.max(0, totalTasksCount - completedTasksCount);
+    const isHabitsComplete = completedTasksCount >= totalTasksCount && totalTasksCount > 0;
+
+    // 2. Second Brain Pending Revisions
+    const pendingRevisions: { title: string; category: string }[] = [];
+    (brain.studyTopics || []).forEach((topic: any) => {
+      (topic.schedule || []).forEach((rev: any) => {
+        if (rev.targetDate <= todayStr && !rev.completed) {
+          pendingRevisions.push({ title: topic.title, category: topic.category });
+        }
+      });
+    });
+
+    // 3. Pending Custom Missions
+    const pendingMissions = (brain.customMissions || []).filter(
+      (m: any) => m.targetDate <= todayStr && !m.completed
+    );
+
+    // 4. Scheduled Classes & Events Today
+    const todayClasses: ScheduledEvent[] = (brain.scheduledEvents || []).filter(
+      (ev: ScheduledEvent) => ev.date === todayStr && !ev.completed
+    );
+
+    // RULE 1: Scheduled Classes & Meetings on Target Date
+    todayClasses.forEach((ev) => {
+      const classKey = `${todayStr}_scheduled_event_${ev.id}`;
+      sendSmartPushNotification(
+        classKey,
+        `🔔 Today's ${ev.category.toUpperCase()}: ${ev.title}`,
+        `${userName}, today is your "${ev.title}"${ev.time ? ` at ${ev.time}` : ""}. Don't forget it!`
+      );
+    });
+
+    // RULE 2: Morning Protocol Kickoff (8:00 AM – 11:59 AM)
+    if (currentHour >= 8 && currentHour < 12) {
+      const morningKey = `${todayStr}_morning_kickoff`;
+      const missionCount = totalTasksCount + pendingRevisions.length + todayClasses.length;
+      sendSmartPushNotification(
+        morningKey,
+        "☀️ Morning Protocol Ready",
+        `Good morning ${userName}! You have ${missionCount} goals locked for today (${totalTasksCount} habits, ${pendingRevisions.length} revisions). Start strong!`
+      );
+    }
+
+    // RULE 3: Afternoon Habit Progress Check (2:00 PM – 5:59 PM)
+    if (currentHour >= 14 && currentHour < 18 && !isHabitsComplete) {
+      const afternoonKey = `${todayStr}_afternoon_progress_check`;
+      sendSmartPushNotification(
+        afternoonKey,
+        "⚡ Daily Task Progress Check",
+        `${userName}, you have completed ${completedTasksCount}/${totalTasksCount} daily tasks so far. ${remainingTasksCount} left — keep your momentum alive!`
+      );
+    }
+
+    // RULE 4: Evening Revision Reminder (6:00 PM – 8:59 PM)
+    if (currentHour >= 18 && currentHour < 21 && pendingRevisions.length > 0) {
+      const revisionKey = `${todayStr}_evening_revision_check`;
+      const firstTopic = pendingRevisions[0]?.title || "your study topic";
+      sendSmartPushNotification(
+        revisionKey,
+        "🧠 Pending Revision Reminder",
+        `${userName}, you still haven't completed your "${firstTopic}" revision (${pendingRevisions.length} total pending)! Review it now to lock in retention.`
+      );
+    }
+
+    // RULE 5: 9 PM – 12 AM Two-Box Cleanup Window Active
+    if (currentHour >= 21 && currentHour <= 23) {
+      const cleanupKey = `${todayStr}_two_box_cleanup_window`;
+      sendSmartPushNotification(
+        cleanupKey,
+        "🧹 9 PM Cleanup Hour Active",
+        `${userName}, the Two-Box Reflection window is active! Review your Box 1 distractions and Box 2 achievements before sleep.`
+      );
+    }
+
+    // RULE 6: Late Night 11:30 PM Incomplete Tasks Alert
+    const isLateNight = (currentHour === 23 && currentMinutes >= 30) || (currentHour === 23 && currentMinutes >= 15);
+    if (isLateNight && (!isHabitsComplete || pendingMissions.length > 0 || pendingRevisions.length > 0)) {
+      const lateNightKey = `${todayStr}_late_night_1130_danger`;
+      sendSmartPushNotification(
+        lateNightKey,
+        "🚨 It's 11:30 PM & Tasks are Incomplete!",
+        `It's 11:30 PM, ${userName}, and you still haven't completed all your tasks (${remainingTasksCount} habits & ${pendingRevisions.length} revisions left)! Lock in before midnight to protect your streak!`
+      );
     }
   };
 
@@ -1379,38 +1574,28 @@ export default function App() {
     updateBrainFirebase({ scheduledEvents: updated });
   };
 
-  // Notification Trigger Effect for Today's Scheduled Events
+  // Smart Proactive Notification Engine Runner (60-sec interval & visibility change)
   useEffect(() => {
-    if (!brain.scheduledEvents || brain.scheduledEvents.length === 0) return;
+    checkAndDispatchSmartNotifications();
 
-    const todaysUnnotified = brain.scheduledEvents.filter(
-      (ev: ScheduledEvent) => ev.date === todayStr && !ev.completed && !ev.notified
-    );
+    const interval = setInterval(() => {
+      checkAndDispatchSmartNotifications();
+      setIsRealNightTime(new Date().getHours() >= 21 || new Date().getHours() < 4);
+    }, 60000);
 
-    if (todaysUnnotified.length > 0) {
-      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        todaysUnnotified.forEach((ev: ScheduledEvent) => {
-          try {
-            new Notification(`🔔 Today's ${ev.category.toUpperCase()}: ${ev.title}`, {
-              body: `Today is your "${ev.title}"${ev.time ? ` at ${ev.time}` : ""}. Don't forget it!`,
-              icon: "./favicon.png",
-              badge: "./favicon.png",
-            });
-          } catch (e) {
-            console.error("Error firing notification:", e);
-          }
-        });
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkAndDispatchSmartNotifications();
+        setIsRealNightTime(new Date().getHours() >= 21 || new Date().getHours() < 4);
       }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-      const updatedEvents = brain.scheduledEvents.map((ev: ScheduledEvent) => {
-        if (ev.date === todayStr && !ev.completed) {
-          return { ...ev, notified: true };
-        }
-        return ev;
-      });
-      updateBrainFirebase({ scheduledEvents: updatedEvents });
-    }
-  }, [brain.scheduledEvents, todayStr]);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [brain.scheduledEvents, brain.studyTopics, brain.customMissions, trackerData, profile, todayStr]);
 
   // ==========================================
   // DUAL SAVE WRAPPERS
@@ -4546,12 +4731,12 @@ CORE MANNERISMS & ESSENCE:
               <h2 className={`text-sm sm:text-lg font-black relative z-10 text-sky-300 ${t.fontHeading}`}>Class & Meeting Dispatcher</h2>
               <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-sky-200/70">Future dates, auto-tasks & notifications</p>
             </button>
-            <button onClick={() => setIsDevHubOpen(true)} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/40 hover:border-amber-400`}>
-              <Sliders className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-amber-400" />
-              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-amber-300 ${t.fontHeading}`}>Developer & QA Hub</h2>
-              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-amber-200/70">XP, rank jumps & tests</p>
+            <button onClick={testAllSmartNotifications} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/40 hover:border-amber-400`}>
+              <Bell className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-amber-400" />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-amber-300 ${t.fontHeading}`}>Test Smart Notifications</h2>
+              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-amber-200/70">11:30 PM alert & daily check suite</p>
             </button>
-            <button onClick={devFactoryResetApp} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-rose-950/40 hover:bg-rose-900/50 border-rose-500/50 hover:border-rose-400`}>
+            <button onClick={handleFactoryResetApp} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-rose-950/40 hover:bg-rose-900/50 border-rose-500/50 hover:border-rose-400`}>
               <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-rose-400" />
               <h2 className={`text-sm sm:text-lg font-black relative z-10 text-rose-300 ${t.fontHeading}`}>Factory Reset (0)</h2>
               <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-rose-200/70">Wipe all data & restart fresh</p>
@@ -4962,8 +5147,6 @@ CORE MANNERISMS & ESSENCE:
   };
 
   const isCleanupHourActive = () => {
-    if (devForceCleanupHour !== null) return devForceCleanupHour;
-    if (devNightOverride !== null) return devNightOverride;
     const hr = new Date().getHours();
     return hr >= 21 && hr <= 23; // 21:00 to 23:59 (9:00 PM to 12:00 AM Midnight)
   };
@@ -5171,122 +5354,9 @@ One short, electrifying sentence of raw motivation.`;
   };
 
   // ==========================================
-  // DEVELOPER TESTING HUB CONTROLS
+  // FACTORY RESET APP (DANGER ZONE)
   // ==========================================
-  const devTimeTravel = (offsetDays: number) => {
-    const targetDate = addDays(todayStr, offsetDays);
-    setTodayStr(targetDate);
-    setSelectedDate(targetDate);
-    const [y, m] = targetDate.split("-");
-    setCalYear(parseInt(y));
-    setCalMonth(parseInt(m) - 1);
-    showMessage(`📅 Time-traveled to: ${targetDate} (${offsetDays > 0 ? `+${offsetDays}d` : `${offsetDays}d`})`);
-  };
-
-  const devSetExactDate = (dateStr: string) => {
-    if (!dateStr) return;
-    setTodayStr(dateStr);
-    setSelectedDate(dateStr);
-    const [y, m] = dateStr.split("-");
-    setCalYear(parseInt(y));
-    setCalMonth(parseInt(m) - 1);
-    showMessage(`📅 Date set to: ${dateStr}`);
-  };
-
-  const devResetToRealToday = () => {
-    const real = getRealTodayStr();
-    setTodayStr(real);
-    setSelectedDate(real);
-    const [y, m] = real.split("-");
-    setCalYear(parseInt(y));
-    setCalMonth(parseInt(m) - 1);
-    showMessage(`🔄 Reset to Real Today: ${real}`);
-  };
-
-  const devAddStars = (amount: number) => {
-    const newStars = Math.max(0, (profile.stars || 0) + amount);
-    updateProfileFirebase({ stars: newStars });
-    showMessage(`⭐ Granted ${amount > 0 ? `+${amount}` : amount} Stars! Total: ${newStars}`);
-  };
-
-  const devAddXp = (amount: number) => {
-    const newXp = Math.max(0, (profile.xp || 0) + amount);
-    updateProfileFirebase({ xp: newXp });
-    showMessage(`⚡ Granted +${amount} XP! Total XP: ${newXp}`);
-  };
-
-  const devSetRankXp = (targetXp: number, rankName: string) => {
-    updateProfileFirebase({ xp: targetXp });
-    showMessage(`👑 Promoted to ${rankName}! Total XP: ${targetXp}`);
-  };
-
-  const devGrantShields = (count: number) => {
-    updateProfileFirebase({ streakShields: count });
-    showMessage(`🛡️ Streak Shields set to: ${count}/2`);
-  };
-
-  const devSimulateMissedDay = () => {
-    const yesterday = addDays(todayStr, -1);
-    const existing = trackerData[yesterday] || {};
-    const taskList = profile.customTasks || DEFAULT_TASKS;
-    const failedTasks: Record<string, string> = {};
-    taskList.forEach((t: any, idx: number) => {
-      failedTasks[t.id] = idx === 0 ? "O" : "X";
-    });
-    updateTrackerFirebase(yesterday, {
-      ...existing,
-      tasks: failedTasks,
-      shieldProtected: false,
-      shieldChecked: false,
-      reasonForO: "Dev simulated missed habit day",
-    });
-    showMessage(`⚠️ Simulated missed day for ${yesterday}. Test streak protection now!`);
-  };
-
-  const devCompleteAllTodayHabits = () => {
-    const taskList = profile.customTasks || DEFAULT_TASKS;
-    const completedTasks: Record<string, string> = {};
-    taskList.forEach((t: any) => {
-      completedTasks[t.id] = "X";
-    });
-    const existing = trackerData[todayStr] || {};
-    updateTrackerFirebase(todayStr, {
-      ...existing,
-      tasks: completedTasks,
-      taskSnapshot: taskList,
-    });
-    showMessage(`✅ Marked all ${taskList.length} habits for ${todayStr} as 100% completed!`);
-  };
-
-  const devSimulate30DayStreak = () => {
-    const taskList = profile.customTasks || DEFAULT_TASKS;
-    const completedTasks: Record<string, string> = {};
-    taskList.forEach((t: any) => {
-      completedTasks[t.id] = "X";
-    });
-
-    const mockData: Record<string, any> = { ...trackerData };
-    for (let i = 0; i < 30; i++) {
-      const dateKey = addDays(todayStr, -i);
-      mockData[dateKey] = {
-        tasks: { ...completedTasks },
-        taskSnapshot: taskList,
-        summary: `30-Day Streak Simulation Day ${30 - i}`,
-      };
-      if (user && db) {
-        setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateKey), mockData[dateKey]);
-      }
-    }
-    setTrackerData(mockData);
-    try {
-      localStorage.setItem("apex_tracker_v5", JSON.stringify(mockData));
-    } catch (e) {
-      console.warn("Storage write error:", e);
-    }
-    showMessage("🔥 Injected 30-Day Perfect Streak across past 30 days!");
-  };
-
-  const devFactoryResetApp = async () => {
+  const handleFactoryResetApp = async () => {
     const confirmed = window.confirm(
       "⚠️ DANGER: FACTORY RESET ENTIRE APP?\n\nThis will completely wipe all habits, Second Brain tasks, Krishna chat logs, XP, stars, streak shields, and reflections from both local storage and cloud database. The app will restart completely fresh from 0 as a brand-new installation.\n\nAre you sure you want to proceed?"
     );
@@ -5369,8 +5439,6 @@ One short, electrifying sentence of raw motivation.`;
       const [y, m] = realToday.split("-");
       setCalYear(parseInt(y));
       setCalMonth(parseInt(m) - 1);
-      setDevNightOverride(null);
-      setDevForceCleanupHour(null);
       setFocusState({
         isOpen: false,
         mode: "pomodoro",
@@ -5386,7 +5454,6 @@ One short, electrifying sentence of raw motivation.`;
       });
       setChatMessages([{ role: "ai", text: "I am your Habit Tracker Coach. What's on your mind today?" }]);
       setChatInput("");
-      setIsDevHubOpen(false);
 
       showMessage("✨ App completely reset to factory default! Fresh install state active.");
 
@@ -5969,6 +6036,15 @@ One short, electrifying sentence of raw motivation.`;
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={testAllSmartNotifications}
+                className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase flex items-center gap-1.5 tap-effect transition-all"
+                title="Test 11:30 PM & daily notification alerts"
+              >
+                <Bell size={13} />
+                <span className="hidden sm:inline">Test</span> Alerts
+              </button>
+
               {/* Notification Status & Permission Trigger */}
               {notificationStatus === "granted" ? (
                 <div className="px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
@@ -6313,29 +6389,8 @@ One short, electrifying sentence of raw motivation.`;
   // ==========================================
   return (
     <div className={`min-h-screen ${t.appBg} ${t.fontHeading} transition-colors duration-500 relative`}>
-      {testMode && (
-        <div className={`fixed top-0 left-0 w-full z-50 p-2 flex flex-wrap justify-center items-center gap-2 sm:gap-4 shadow-lg ${t.devBar} ${t.fontHeading} text-[9px] sm:text-xs`}>
-          <span className="font-black tracking-widest hidden sm:inline">DEV Mode:</span>
-          <button onClick={() => { const d = new Date(todayStr); d.setDate(d.getDate() - 1); setTodayStr(formatDate(d)); }} className="px-2 sm:px-3 py-1 sm:py-1.5 bg-black/20 hover:bg-black/40 border border-current active:scale-95 transition-all rounded">- DAY</button>
-          
-          {/* Custom Date Picker for Devs */}
-          <input 
-            type="date" 
-            value={todayStr} 
-            onChange={(e) => { if(e.target.value) setTodayStr(e.target.value); }} 
-            className="px-1 sm:px-2 py-1 sm:py-1.5 bg-black/30 border border-current rounded text-inherit outline-none"
-          />
-
-          <button onClick={() => { const d = new Date(todayStr); d.setDate(d.getDate() + 1); setTodayStr(formatDate(d)); }} className="px-2 sm:px-3 py-1 sm:py-1.5 bg-black/20 hover:bg-black/40 border border-current active:scale-95 transition-all rounded">+ DAY</button>
-          <button onClick={() => setTodayStr(getRealTodayStr())} className="px-2 sm:px-3 py-1 sm:py-1.5 bg-black/20 hover:bg-black/40 border border-current active:scale-95 transition-all rounded">TODAY</button>
-          
-          {/* Star Boost for testing shop */}
-          <button onClick={() => updateProfileFirebase({ stars: profile.stars + 50 })} className="px-2 py-1 bg-yellow-500 text-black hover:bg-yellow-400 border border-black active:scale-95 transition-all rounded font-bold">+50 ⭐</button>
-        </div>
-      )}
-
       {/* TOP BAR SWITCH */}
-      <div className={`fixed ${testMode ? 'top-10 sm:top-12' : 'top-0'} left-0 w-full z-40 p-3 sm:p-4 bg-inherit/80 backdrop-blur-xl border-b ${t.borderAccent} opacity-95 flex justify-center items-center`}>
+      <div className={`fixed top-0 left-0 w-full z-40 p-3 sm:p-4 bg-inherit/80 backdrop-blur-xl border-b ${t.borderAccent} opacity-95 flex justify-center items-center`}>
         <div className={`flex w-full max-w-md sm:max-w-lg rounded-3xl p-1.5 border-2 shadow-2xl shadow-black/20 ${t.cardInner} ${t.borderAccent}`}>
           <button onClick={() => setAppMode("habit")} className={`flex-1 py-2 sm:py-2.5 text-[9px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-2xl transition-all duration-300 tap-effect ${appMode === 'habit' ? t.btnPrimary : t.textMuted + ' hover:' + t.textMain}`}>HABIT OS</button>
           <button onClick={() => setAppMode("brain")} className={`flex-1 py-2 sm:py-2.5 text-[9px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-2xl transition-all duration-300 tap-effect ${appMode === 'brain' ? t.btnPrimary : t.textMuted + ' hover:' + t.textMain}`}>SECOND BRAIN</button>
@@ -6343,7 +6398,7 @@ One short, electrifying sentence of raw motivation.`;
         </div>
       </div>
 
-      <div className={`p-4 md:p-8 relative pt-24 sm:pt-28 pb-28 sm:pb-24 ${testMode ? 'mt-8 sm:mt-12' : ''}`}>
+      <div className="p-4 md:p-8 relative pt-24 sm:pt-28 pb-28 sm:pb-24">
         {toast && (
           <div className={`fixed top-28 sm:top-32 left-1/2 transform -translate-x-1/2 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-2xl shadow-black/40 z-[100] animate-bounce flex items-center gap-3 text-[10px] sm:text-sm uppercase tracking-widest ${t.badge} ${t.fontHeading} ${t.cardBorder}`}>
             <Check size={18} className={`sm:size-5 ${t.textAccent ? t.textAccent : 'text-current'}`} /> {toast}
@@ -7437,432 +7492,6 @@ One short, electrifying sentence of raw motivation.`;
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ========================================== */}
-      {/* 4. FLOATING DEV BUTTON & TESTING DRAWER */}
-      {/* ========================================== */}
-      {/* Floating Trigger Button in Bottom Left */}
-      <button
-        onClick={() => setIsDevHubOpen(true)}
-        className="fixed bottom-4 left-4 z-50 px-3.5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest shadow-[0_0_25px_rgba(245,158,11,0.6)] flex items-center gap-1.5 active:scale-95 transition-all border-2 border-amber-300 tap-effect"
-        title="Open Developer QA Hub"
-      >
-        <Sliders size={14} className="stroke-[3]" />
-        <span>🛠️ DEV</span>
-      </button>
-
-      {/* Slide-out Dev Hub Drawer */}
-      {isDevHubOpen && (
-        <div className="fixed inset-0 z-[120] flex justify-start items-stretch bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-sm sm:max-w-md h-full bg-[#070d1a] border-r-2 border-amber-400/40 shadow-2xl p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-left duration-300">
-            {/* Header */}
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-amber-400/30 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300">
-                    <Sliders size={18} />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm uppercase tracking-wider text-amber-300">
-                      Developer Testing Hub
-                    </h3>
-                    <p className="text-[10px] text-amber-200/60 font-medium">QA & Feature Sandbox</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsDevHubOpen(false)}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300 hover:text-white transition-all tap-effect"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Scrollable Dev Control Sections */}
-              <div className="space-y-4 max-h-[calc(100vh-160px)] overflow-y-auto pr-1">
-                {/* 1. DATE TIME-TRAVEL */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <CalendarIcon size={12} /> 1. Date Time-Travel
-                    </span>
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-black/60 text-amber-200 border border-amber-400/20">
-                      {todayStr}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => devTimeTravel(-1)}
-                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
-                    >
-                      ⏪ -1 Day (Yesterday)
-                    </button>
-                    <button
-                      onClick={() => devTimeTravel(1)}
-                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
-                    >
-                      ⏩ +1 Day (Tomorrow)
-                    </button>
-                    <button
-                      onClick={() => devTimeTravel(7)}
-                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
-                    >
-                      ⏩ +7 Days (Next Week)
-                    </button>
-                    <button
-                      onClick={devResetToRealToday}
-                      className="py-1.5 px-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      🔄 Real Today
-                    </button>
-                  </div>
-                  <div className="pt-1 flex items-center gap-2">
-                    <span className="text-[9px] uppercase font-bold text-slate-400">Pick Date:</span>
-                    <input
-                      type="date"
-                      value={todayStr}
-                      onChange={(e) => devSetExactDate(e.target.value)}
-                      className="flex-1 px-2 py-1 rounded-lg bg-black/60 border border-amber-400/30 text-amber-200 text-[11px] outline-none font-mono"
-                    />
-                  </div>
-                </div>
-
-                {/* 2. STARS, XP & 15-TIER RPG RANKS */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Star size={12} /> 2. RPG Ranks, XP & Economy
-                    </span>
-                    <span className="text-[9px] font-black text-yellow-400 font-mono">
-                      {profile.stars || 0} ⭐ | {profile.xp || 0} XP
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => devAddStars(100)}
-                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      +100 Stars ⭐
-                    </button>
-                    <button
-                      onClick={() => devAddStars(1000)}
-                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      +1,000 Stars ⭐
-                    </button>
-                    <button
-                      onClick={() => devAddXp(1000)}
-                      className="py-1.5 px-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 text-blue-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      +1,000 XP ⚡
-                    </button>
-                    <button
-                      onClick={() => devAddXp(5000)}
-                      className="py-1.5 px-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      +5,000 XP ⚡
-                    </button>
-                  </div>
-
-                  {/* Quick Rank Jump Shortcuts */}
-                  <div className="pt-2 border-t border-white/10 space-y-1.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                      ⚡ Quick Rank Tier Test:
-                    </span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <button
-                        onClick={() => devSetRankXp(1800, "Tier 5: Disciplined Centurion")}
-                        className="py-1 px-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 text-[8px] font-black uppercase tap-effect"
-                      >
-                        🏹 Rank 5
-                      </button>
-                      <button
-                        onClick={() => devSetRankXp(12500, "Tier 10: Void Walker")}
-                        className="py-1 px-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 text-[8px] font-black uppercase tap-effect"
-                      >
-                        🌌 Rank 10
-                      </button>
-                      <button
-                        onClick={() => devSetRankXp(55000, "Tier 15: Apex Eternal")}
-                        className="py-1 px-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-300 text-[8px] font-black uppercase tap-effect"
-                      >
-                        👑 Rank 15
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-1">
-                    <button
-                      onClick={() => setIsRankRoadmapOpen(true)}
-                      className="w-full py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[10px] font-black uppercase tap-effect flex items-center justify-center gap-1.5"
-                    >
-                      <Crown size={12} /> Open Rank Roadmap Modal
-                    </button>
-                  </div>
-                </div>
-
-                {/* 3. STREAK FREEZE SHIELDS */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Shield size={12} /> 3. Streak Freeze Shields
-                    </span>
-                    <span className="text-[9px] font-black text-amber-200 font-mono">
-                      {profile.streakShields || 0}/2 🛡️
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => devGrantShields(2)}
-                      className="py-1.5 px-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      Set 2/2 🛡️
-                    </button>
-                    <button
-                      onClick={() => devGrantShields(1)}
-                      className="py-1.5 px-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      Set 1/2 🛡️
-                    </button>
-                    <button
-                      onClick={() => devGrantShields(0)}
-                      className="py-1.5 px-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-red-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      Clear (0/2)
-                    </button>
-                  </div>
-                </div>
-
-                {/* 4. NIGHT SHIFT OVERRIDE */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Moon size={12} /> 4. Night Shift Environment
-                    </span>
-                    <span className={`text-[9px] font-bold ${isNightTime ? "text-indigo-400" : "text-amber-400"}`}>
-                      {isNightTime ? "🌙 Active (Night)" : "☀️ Inactive (Day)"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => { setDevNightOverride(true); showMessage("🌙 Force Night Shift ON"); }}
-                      className="py-1.5 px-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Force ON
-                    </button>
-                    <button
-                      onClick={() => { setDevNightOverride(false); showMessage("☀️ Force Night Shift OFF"); }}
-                      className="py-1.5 px-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Force OFF
-                    </button>
-                    <button
-                      onClick={() => { setDevNightOverride(null); showMessage("🕒 Clock Sync Restored"); }}
-                      className="py-1.5 px-1 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Auto Clock
-                    </button>
-                  </div>
-                </div>
-
-                {/* 5. HABIT SIMULATIONS & STREAKS */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                    <Flame size={12} /> 5. Streak & Habit Testing
-                  </span>
-                  <div className="space-y-2">
-                    <button
-                      onClick={devSimulateMissedDay}
-                      className="w-full py-2 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
-                    >
-                      <span>⚠️ Simulate Missed Day (Yesterday Failed)</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/30">Test Shield</span>
-                    </button>
-                    <button
-                      onClick={devCompleteAllTodayHabits}
-                      className="w-full py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
-                    >
-                      <span>✅ Complete 100% Habits for Today</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/30">Win Day</span>
-                    </button>
-                    <button
-                      onClick={devSimulate30DayStreak}
-                      className="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
-                    >
-                      <span>🔥 Inject 30-Day Perfect Streak</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/30">30d Win</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 6. FOCUS CHAMBER QUICK TEST */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                    <Timer size={12} /> 6. Focus Chamber Testing
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => startFocusSession()}
-                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      ⚡ Open Chamber
-                    </button>
-                    <button
-                      onClick={fastForwardFocusTimer}
-                      className="py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tap-effect"
-                    >
-                      ⏩ Fast-Forward (3s)
-                    </button>
-                  </div>
-                </div>
-
-                {/* 7. TWO-BOX SYSTEM & 9 PM – 12 AM CLEANUP TESTING */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                      <Layers size={12} /> 7. Two-Box & Cleanup Window
-                    </span>
-                    <span className={`text-[9px] font-bold ${isCleanupHourActive() ? "text-emerald-400" : "text-slate-400"}`}>
-                      {isCleanupHourActive() ? "🧹 LIVE (9 PM - 12 AM Active)" : "⏳ Inactive"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => { setDevForceCleanupHour(true); showMessage("🧹 Force 9 PM - 12 AM Cleanup LIVE"); }}
-                      className="py-1.5 px-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Force ON
-                    </button>
-                    <button
-                      onClick={() => { setDevForceCleanupHour(false); showMessage("⏳ Force Cleanup OFF"); }}
-                      className="py-1.5 px-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Force OFF
-                    </button>
-                    <button
-                      onClick={() => { setDevForceCleanupHour(null); showMessage("🕒 Auto 9 PM - 12 AM Window"); }}
-                      className="py-1.5 px-1 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      Auto Clock
-                    </button>
-                  </div>
-                  <div className="pt-1 flex gap-2">
-                    <button
-                      onClick={() => {
-                        setIsTwoBoxModalOpen(true);
-                        setTwoBoxActiveTab("boxes");
-                      }}
-                      className="flex-1 py-1.5 px-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 text-[10px] font-black uppercase tap-effect"
-                    >
-                      📦 Open Two-Box
-                    </button>
-                    <button
-                      onClick={() => {
-                        // Inject sample failure and win for easy testing
-                        addBox1Failure("Sample bad habit / distraction for testing cleanup");
-                        addBox2Achievement("Sample victory / deep work session logged");
-                        setIsTwoBoxModalOpen(true);
-                        setTwoBoxActiveTab("cleanup");
-                      }}
-                      className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[10px] font-black uppercase tap-effect"
-                    >
-                      🧪 Test Cleanup
-                    </button>
-                  </div>
-                </div>
-
-                {/* 8. CLASS & NOTIFICATION ENGINE TESTING */}
-                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-sky-400/30 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-300 flex items-center gap-1">
-                      <Bell size={12} /> 8. Class & Notification Engine
-                    </span>
-                    <span className="text-[9px] font-bold text-sky-300 font-mono">
-                      {(brain.scheduledEvents || []).length} Scheduled
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => {
-                        addScheduledEvent(
-                          "Economics Class",
-                          todayStr,
-                          "10:00 AM",
-                          "class",
-                          "Room 304 / Semester Review & Problem Sets"
-                        );
-                        showMessage("🎓 Injected Economics Class for TODAY!");
-                      }}
-                      className="py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 text-[9px] font-black uppercase tap-effect"
-                    >
-                      🎓 Inject Today Class
-                    </button>
-                    <button
-                      onClick={() => {
-                        addScheduledEvent(
-                          "Economics Class",
-                          "2027-02-12",
-                          "10:00 AM",
-                          "class",
-                          "Room 304 / Economics Macroeconomics Review"
-                        );
-                        showMessage("🎓 Injected Economics Class for Feb 12, 2027!");
-                      }}
-                      className="py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 text-[9px] font-black uppercase tap-effect"
-                    >
-                      📅 Inject Feb 12, 2027
-                    </button>
-                    <button
-                      onClick={requestNotificationPermission}
-                      className="py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
-                    >
-                      🔔 Test Notification API
-                    </button>
-                    <button
-                      onClick={() => setIsScheduleModalOpen(true)}
-                      className="py-1.5 px-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-[9px] font-black uppercase tap-effect"
-                    >
-                      📅 Open Scheduler
-                    </button>
-                  </div>
-                </div>
-
-                {/* 9. DANGER ZONE: FACTORY RESET APP (START FROM 0) */}
-                <div className="p-3.5 rounded-2xl bg-red-950/40 border-2 border-red-500/60 space-y-2.5 shadow-lg shadow-red-950/30">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-                      <AlertTriangle size={13} className="stroke-[2.5]" /> 9. Factory Reset
-                    </span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 border border-red-500/40 font-mono">
-                      FRESH INSTALL (0)
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-red-200/80 leading-relaxed font-medium">
-                    Wipes all local & cloud data (habits, tasks, Krishna chats, stars, XP, shields, reflections) and resets the entire app to fresh-install defaults.
-                  </p>
-                  <button
-                    onClick={devFactoryResetApp}
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-red-900/50 border border-red-400/60 tap-effect flex items-center justify-center gap-2 transition-all"
-                  >
-                    <RotateCcw size={14} className="stroke-[3]" />
-                    <span>Reset App (Factory Reset)</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Notice */}
-            <div className="pt-3 border-t border-amber-400/20 text-center">
-              <span className="text-[9px] text-amber-200/50 uppercase font-mono tracking-wider">
-                Isolated Dev QA Mode • Safe to remove anytime
-              </span>
-            </div>
-          </div>
-
-          {/* Click Backdrop to close */}
-          <div className="flex-1" onClick={() => setIsDevHubOpen(false)}></div>
         </div>
       )}
 
