@@ -20,7 +20,8 @@ import {
   ArrowLeft, Zap, Check, History, Target, Shield, Camera, Edit3, Trash2, Plus,
   BrainCircuit, Circle, Send, Skull, Trophy, FolderOpen, MoveRight,
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
-  ShieldAlert, Mic, Clock, Volume2, Pause, Play, Loader2
+  ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle,
+  Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -311,6 +312,7 @@ const extractJsonFromAiResponse = <T,>(rawText: string, fallback: T): T => {
 };
 
 const SHOP_ITEMS = [
+  { id: "s_streak_shield", name: "Streak Freeze Shield", desc: "Automatically protects your active streaks from breaking if you miss a day. (Max 2 stored)", cost: 50, expiryHours: 720, icon: "🛡️" },
   { id: "s_webseries", name: "The Binge Pass", desc: "Watch one complete Web Series (No guilt).", cost: 25, expiryHours: 120, icon: "🍿" }
 ];
 
@@ -332,6 +334,82 @@ const MORNING_QUOTES = [
   "Pain is temporary. The pain of regret lasts forever.",
   "Don't stop when you're tired. Stop when you're done.",
 ];
+
+// ==========================================
+// GITA SHLOKAS KNOWLEDGE BASE (AUTHENTIC)
+// ==========================================
+interface GitaShloka {
+  verse: string;
+  chapter: string;
+  sanskrit: string;
+  hindi: string;
+  lesson: string;
+}
+
+const GITA_SHLOKAS: GitaShloka[] = [
+  {
+    chapter: "अध्याय 2, श्लोक 47",
+    verse: "BG 2.47",
+    sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+    hindi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं। इसलिए फल की इच्छा से कर्म मत करो और न ही कर्म त्यागने में तुम्हारी आसक्ति हो।",
+    lesson: "आज केवल अपने कार्य और अनुशासन पर ध्यान दें। परिणाम की चिंता को सखा कृष्ण पर छोड़ दें।"
+  },
+  {
+    chapter: "अध्याय 6, श्लोक 5",
+    verse: "BG 6.5",
+    sanskrit: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्।\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः॥",
+    hindi: "मनुष्य को चाहिए कि वह अपने मन के द्वारा अपना उद्धार करे, अपना पतन न होने दे। क्योंकि यह मन ही मनुष्य का मित्र है और मन ही उसका सबसे बड़ा शत्रु है।",
+    lesson: "अपने मन और आवेगों पर नियंत्रण रखें; अनुशासित मन ही आपको विजय दिलाएगा।"
+  },
+  {
+    chapter: "अध्याय 2, श्लोक 14",
+    verse: "BG 2.14",
+    sanskrit: "मात्रास्पर्शास्तु कौन्तेय शीतोष्णसुखदुःखदाः।\nआगमापायिनोऽनित्यास्तांस्तितिक्षस्व भारत॥",
+    hindi: "सुख और दुःख, सर्दी और गर्मी की तरह आते-जाते रहते हैं। ये अनित्य हैं। हे अर्जुन! तुम इन्हें विचलित हुए बिना सहन करना सीखो।",
+    lesson: "क्षणिक आलस्य या कठिनाई से विचलित न हों। शांत रहकर अपने लक्ष्य की ओर निरंतर बढ़ते रहें।"
+  },
+  {
+    chapter: "अध्याय 2, श्लोक 62-63",
+    verse: "BG 2.62-63",
+    sanskrit: "ध्यायतो विषयान्पुंसः सङ्गस्तेषूपजायते।\nसङ्गात्संजायते कामः कामात्क्रोधोऽभिजायते॥",
+    hindi: "विषयों का निरंतर चिंतन करने से उनमें आसक्ति उत्पन्न होती है, आसक्ति से कामना और कामना में बाधा आने पर क्रोध उत्पन्न होता है, जिससे बुद्धि का नाश हो जाता है।",
+    lesson: "अपने ध्यान को सोशल मीडिया व व्यर्थ की वासनाओं से बचाकर ज्ञान और लक्ष्य में केंद्रित रखें।"
+  },
+  {
+    chapter: "अध्याय 3, श्लोक 30",
+    verse: "BG 3.30",
+    sanskrit: "मयि सर्वाणि कर्माणि संन्यस्याध्यात्मचेतसा।\nनिराशीर्निर्ममो भूत्वा युध्यस्व विगतज्वरः॥",
+    hindi: "अपने सभी कर्मों को मुझे समर्पित करके, ममता और आशा से रहित होकर, शोक-संताप छोड़ उत्साहपूर्वक अपना कर्तव्य करो।",
+    lesson: "समर्पण भाव से कार्य करें; जब आप कर्तव्य को ईश्वरीय सेवा मानते हैं, तो तनाव समाप्त हो जाता है।"
+  },
+  {
+    chapter: "अध्याय 4, श्लोक 38",
+    verse: "BG 4.38",
+    sanskrit: "न हि ज्ञानेन सदृशं पवित्रमिह विद्यते।\nतत्स्वयं योगसंसिद्धः कालेनात्मनि विन्दति॥",
+    hindi: "इस संसार में ज्ञान के समान पवित्र करने वाला कुछ भी नहीं है। इस ज्ञान को योग में सिद्ध हुआ मनुष्य समय आने पर स्वतः ही अपने अंतःकरण में पा लेता है।",
+    lesson: "प्रतिदिन कुछ नया सीखें और ज्ञान अर्जित करें; ज्ञान ही आपके जीवन का सबसे बड़ा कवच है।"
+  },
+  {
+    chapter: "अध्याय 6, श्लोक 35",
+    verse: "BG 6.35",
+    sanskrit: "असंशयं महाबाहो मनो दुर्निग्रहं चलम्।\nअभ्यासेन तु कौन्तेय वैराग्येण च गृह्यते॥",
+    hindi: "हे महाबाहु! इसमें कोई संशय नहीं कि मन चंचल और कठिनता से वश में आने वाला है, परंतु अभ्यास (निरंतर प्रयास) और वैराग्य से इसे वश में किया जा सकता है।",
+    lesson: "यदि ध्यान भटकता है, तो निराश न हों; बार-बार अभ्यास द्वारा अपने मन को पुनः कार्य पर लगाएं।"
+  },
+  {
+    chapter: "अध्याय 18, श्लोक 66",
+    verse: "BG 18.66",
+    sanskrit: "सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज।\nअहं त्वा सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः॥",
+    hindi: "सभी प्रकार के धर्मों और चिंताओं को छोड़कर केवल मेरी शरण में आ जाओ। मैं तुम्हें समस्त पापों और कष्टों से मुक्त कर दूंगा, शोक मत करो।",
+    lesson: "पूर्ण विश्वास रखें। जब आप सत्य और कर्तव्य के मार्ग पर चलते हैं, तो संपूर्ण सृष्टि आपका साथ देती है।"
+  }
+];
+
+const getDailyGitaShloka = (): GitaShloka => {
+  const d = new Date();
+  const dayOfYear = Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  return GITA_SHLOKAS[dayOfYear % GITA_SHLOKAS.length];
+};
 
 // ==========================================
 // KRISHNA MODE - TYPE DEFINITIONS
@@ -495,6 +573,9 @@ export default function App() {
     return {
       name: local.name || oldV4.userName || "Prateek Maurya",
       stars: typeof local.stars === "number" ? local.stars : 0,
+      streakShields: typeof local.streakShields === "number" ? local.streakShields : (typeof oldV4.streakShields === "number" ? oldV4.streakShields : 0),
+      xp: typeof local.xp === "number" ? local.xp : 0,
+      totalFocusMinutes: typeof local.totalFocusMinutes === "number" ? local.totalFocusMinutes : 0,
       geminiKey: local.geminiKey || oldV4.groqKey || "",
       inventory: Array.isArray(local.inventory) ? local.inventory : [],
       dp: local.dp || oldV4.profilePic || "",
@@ -582,7 +663,49 @@ export default function App() {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [isNightShiftOpen, setIsNightShiftOpen] = useState(false);
   const [newCustomMission, setNewCustomMission] = useState("");
-  const [isNightTime, setIsNightTime] = useState(new Date().getHours() >= 21 || new Date().getHours() < 4);
+  const [devNightOverride, setDevNightOverride] = useState<boolean | null>(null);
+  const [isRealNightTime, setIsRealNightTime] = useState(new Date().getHours() >= 21 || new Date().getHours() < 4);
+  const isNightTime = devNightOverride !== null ? devNightOverride : isRealNightTime;
+
+  // ================= FOCUS ENGINE STATE =================
+  const [focusState, setFocusState] = useState<{
+    isOpen: boolean;
+    mode: "pomodoro" | "deepflow" | "stopwatch";
+    durationMinutes: number;
+    secondsLeft: number;
+    isRunning: boolean;
+    isBreak: boolean;
+    taskId: string | null;
+    taskTitle: string | null;
+    topicId: string | null;
+    totalFocusedSeconds: number;
+  }>({
+    isOpen: false,
+    mode: "pomodoro",
+    durationMinutes: 25,
+    secondsLeft: 25 * 60,
+    isRunning: false,
+    isBreak: false,
+    taskId: null,
+    taskTitle: null,
+    topicId: null,
+    totalFocusedSeconds: 0,
+  });
+
+  // ================= NIGHTLY KARMA AUDIT STATE =================
+  const [isKarmaAuditOpen, setIsKarmaAuditOpen] = useState(false);
+  const [karmaBestEffort, setKarmaBestEffort] = useState("");
+  const [karmaDistraction, setKarmaDistraction] = useState("");
+  const [karmaRating, setKarmaRating] = useState(5);
+  const [isSubmittingKarma, setIsSubmittingKarma] = useState(false);
+
+  // ================= WEEKLY AI PERFORMANCE REVIEW STATE =================
+  const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
+  const [weeklyReviewText, setWeeklyReviewText] = useState("");
+  const [isGeneratingWeeklyReview, setIsGeneratingWeeklyReview] = useState(false);
+
+  // ================= DEVELOPER TESTING HUB STATE =================
+  const [isDevHubOpen, setIsDevHubOpen] = useState(false);
 
   // ================= KRISHNA STATE =================
   const [krishnaState, setKrishnaState] = useState<KrishnaState>(() =>
@@ -715,7 +838,7 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       const hour = new Date().getHours();
-      setIsNightTime(hour >= 21 || hour < 4);
+      setIsRealNightTime(hour >= 21 || hour < 4);
     }, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -785,6 +908,21 @@ export default function App() {
     }
     if (user && db) {
       await setDoc(doc(db, "artifacts", appId, "users", user.uid, "my_krishna", "data"), newKrishna, { merge: true });
+    }
+  };
+
+  const updateTrackerFirebase = async (dateStr: string, updatedRecord: any) => {
+    const existing = trackerData[dateStr] || {};
+    const merged = { ...existing, ...updatedRecord };
+    const newTrackerData = { ...trackerData, [dateStr]: merged };
+    setTrackerData(newTrackerData);
+    try {
+      localStorage.setItem('apex_tracker_v5', JSON.stringify(newTrackerData));
+    } catch (e) {
+      console.warn("Storage write error:", e);
+    }
+    if (user && db) {
+      await setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateStr), merged, { merge: true });
     }
   };
 
@@ -916,10 +1054,26 @@ export default function App() {
 
   const buyItem = (item: any) => {
     if (profile.stars >= item.cost) {
+      if (item.id === "s_streak_shield") {
+        const currentShields = profile.streakShields || 0;
+        if (currentShields >= 2) {
+          showMessage("Maximum Streak Shields (2/2) reached! Use one before buying more. 🛡️");
+          return;
+        }
+      }
       const now = new Date(`${todayStr}T00:00:00`);
       const newItem = { instanceId: Date.now().toString(), itemId: item.id, name: item.name, icon: item.icon, expiryTime: new Date(now.getTime() + item.expiryHours * 60 * 60 * 1000).toISOString(), status: "active" };
-      updateProfileFirebase({ stars: profile.stars - item.cost, inventory: [...(profile.inventory || []), newItem] });
-      showMessage(`Purchased: ${item.name}! Check Ongoing Plan.`);
+      if (item.id === "s_streak_shield") {
+        updateProfileFirebase({
+          stars: profile.stars - item.cost,
+          streakShields: (profile.streakShields || 0) + 1,
+          inventory: [...(profile.inventory || []), newItem]
+        });
+        showMessage(`🛡️ Streak Freeze Shield Acquired! (Shields: ${(profile.streakShields || 0) + 1}/2)`);
+      } else {
+        updateProfileFirebase({ stars: profile.stars - item.cost, inventory: [...(profile.inventory || []), newItem] });
+        showMessage(`Purchased: ${item.name}! Check Ongoing Plan.`);
+      }
     } else showMessage("Not enough stars! Grind more. ⚔️");
   };
 
@@ -946,6 +1100,32 @@ export default function App() {
     return updated;
   };
 
+  // ==========================================
+  // AUTOMATED STREAK SHIELD PROTECTION
+  // ==========================================
+  useEffect(() => {
+    const yesterdayStr = addDays(todayStr, -1);
+    const yesterdayData = trackerData[yesterdayStr];
+    const shieldsAvailable = profile.streakShields || 0;
+
+    if (shieldsAvailable > 0 && yesterdayData && !yesterdayData.shieldProtected && !yesterdayData.shieldChecked) {
+      const activeListCount = (yesterdayData.taskSnapshot || profile.customTasks || DEFAULT_TASKS).length;
+      const vals = yesterdayData.tasks ? Object.values(yesterdayData.tasks) : [];
+      const isMissed = vals.length === 0 || vals.includes("O") || vals.length < activeListCount || !vals.every(v => v === "X");
+
+      if (isMissed) {
+        const updatedYesterday = {
+          ...yesterdayData,
+          shieldProtected: true,
+          shieldChecked: true,
+        };
+        updateTrackerFirebase(yesterdayStr, updatedYesterday);
+        updateProfileFirebase({ streakShields: Math.max(0, shieldsAvailable - 1) });
+        showMessage(`🛡️ Streak Freeze Shield auto-protected your streak for ${yesterdayStr}! (1 Shield Used)`);
+      }
+    }
+  }, [todayStr, trackerData, profile.streakShields]);
+
   const getStreaks = () => {
     let study = 0, trigger = 0, perfect = 0;
     let countStudy = true, countTrigger = true, countPerfect = true;
@@ -954,7 +1134,23 @@ export default function App() {
     for (let i = 0; i < 365; i++) {
       const dStr = formatDate(d); const data = trackerData[dStr];
       if (i === 0 && (!data || !data.tasks || Object.keys(data.tasks).length === 0)) { d.setDate(d.getDate() - 1); continue; }
-      if (!data || !data.tasks) break;
+      if (!data || !data.tasks) {
+        if (data && data.shieldProtected) {
+          if (countStudy) study++;
+          if (countTrigger) trigger++;
+          if (countPerfect) perfect++;
+          d.setDate(d.getDate() - 1);
+          continue;
+        }
+        break;
+      }
+      if (data.shieldProtected) {
+        if (countStudy) study++;
+        if (countTrigger) trigger++;
+        if (countPerfect) perfect++;
+        d.setDate(d.getDate() - 1);
+        continue;
+      }
       if (countStudy && data.tasks.t2 === "X") study++; else countStudy = false;
       if (countTrigger && data.tasks.t4 === "X") trigger++; else countTrigger = false;
       const activeListCount = (data.taskSnapshot || profile.customTasks || DEFAULT_TASKS).length;
@@ -1826,12 +2022,33 @@ CORE MANNERISMS & ESSENCE:
               </div>
             </div>
 
-            {/* Star Counter Pill with Glow */}
-            <div className={`px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-2xl flex items-center gap-2 sm:gap-3 flex-shrink-0 shadow-lg border glow-gold-pulse tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}>
-              <span className="text-xl sm:text-3xl animate-float">⭐</span>
-              <div className="text-right">
-                <span className={`text-xl sm:text-3xl font-black block leading-none ${t.textWarning} ${t.fontHeading}`}>{profile.stars}</span>
-                <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest ${t.textMuted}`}>Stars Wallet</span>
+            {/* Star Counter & Streak Shield Pill */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
+              {/* Streak Shield Status Pill */}
+              <div
+                onClick={() => setHabitRoute("shop")}
+                className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl flex items-center gap-2 flex-shrink-0 shadow-lg border tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}
+                title="Streak Freeze Shields protect your streak when you miss a day! (Max 2 stored)"
+              >
+                <span className="text-lg sm:text-2xl">🛡️</span>
+                <div className="text-right">
+                  <span className={`text-base sm:text-2xl font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
+                    {profile.streakShields || 0}/2
+                  </span>
+                  <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-widest ${t.textMuted}`}>Shields</span>
+                </div>
+              </div>
+
+              {/* Star Counter Pill with Glow */}
+              <div
+                onClick={() => setHabitRoute("shop")}
+                className={`px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-2xl flex items-center gap-2 sm:gap-3 flex-shrink-0 shadow-lg border glow-gold-pulse tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}
+              >
+                <span className="text-xl sm:text-3xl animate-float">⭐</span>
+                <div className="text-right">
+                  <span className={`text-xl sm:text-3xl font-black block leading-none ${t.textWarning} ${t.fontHeading}`}>{profile.stars}</span>
+                  <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest ${t.textMuted}`}>Stars Wallet</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1851,6 +2068,47 @@ CORE MANNERISMS & ESSENCE:
               ></div>
             </div>
           </div>
+        </div>
+
+        {/* HIGH-VELOCITY ACTION ROW: FOCUS CHAMBER & NIGHTLY KARMA AUDIT */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+          <button
+            onClick={() => startFocusSession()}
+            className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border flex items-center justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className="flex items-center gap-3.5 relative z-10">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
+                <Zap className={`w-6 h-6 ${t.textAccent} animate-pulse`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Focus Chamber</h3>
+                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+15⭐</span>
+                </div>
+                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Pomodoro, Deep Flow & Stopwatch timer.</p>
+              </div>
+            </div>
+            <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
+          </button>
+
+          <button
+            onClick={() => setIsKarmaAuditOpen(true)}
+            className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border flex items-center justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className="flex items-center gap-3.5 relative z-10">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
+                <Moon className={`w-6 h-6 text-amber-300`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Karma Audit</h3>
+                  <span className="text-[8px] px-2 py-0.5 rounded-full uppercase font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">+10⭐</span>
+                </div>
+                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>2-min reflection & Krishna's blessing.</p>
+              </div>
+            </div>
+            <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
+          </button>
         </div>
 
         {/* 8 FEATURE ACTION TILES */}
@@ -2343,9 +2601,19 @@ CORE MANNERISMS & ESSENCE:
 
   const renderCoach = () => (
     <div className="flex flex-col h-[75vh] max-w-2xl mx-auto animate-in fade-in duration-300">
-      <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4">
-        <button onClick={() => setHabitRoute("hub")} className={`p-2 sm:p-3 tap-effect rounded-xl ${t.cardInner} ${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-        <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}><Bot className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} /> AI Habit Coach</h2>
+      <div className="flex items-center justify-between gap-3 sm:gap-4 mb-2 sm:mb-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button onClick={() => setHabitRoute("hub")} className={`p-2 sm:p-3 tap-effect rounded-xl ${t.cardInner} ${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+          <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}><Bot className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} /> AI Habit Coach</h2>
+        </div>
+        <button
+          onClick={generateWeeklyAiReview}
+          disabled={isGeneratingWeeklyReview}
+          className={`px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg tap-effect ${t.btnPrimary}`}
+        >
+          <Award size={15} />
+          <span>7-Day Audit</span>
+        </button>
       </div>
       <div className={`flex-1 flex flex-col overflow-hidden rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 sm:space-y-4">
@@ -2379,7 +2647,7 @@ CORE MANNERISMS & ESSENCE:
   // ==========================================
   const renderBrainDashboard = () => {
     const remainingChapters = brain.stagingTopics.length;
-    const pace = remainingChapters > 0 ? (brain.globalDeadlineDays / remainingChapters).toFixed(1) : 0;
+    const pace = remainingChapters > 0 ? brain.globalDeadlineDays / remainingChapters : 0;
 
     let paceStatus = { text: "ON TRACK", color: t.textMain };
     if (pace < 1 && remainingChapters > 0) paceStatus = { text: "DANGER", color: "text-red-500" };
@@ -2450,12 +2718,21 @@ CORE MANNERISMS & ESSENCE:
                 <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${t.badge} ${t.fontHeading}`}>{brain.stagingTopics[0].category}</span>
               </div>
               <h2 className={`text-base sm:text-xl font-black uppercase tracking-tight truncate mb-4 ${t.textMain} ${t.fontHeading}`}>{brain.stagingTopics[0].title}</h2>
-              <button
-                onClick={() => handleStartRevision(brain.stagingTopics[0].id)}
-                className={`w-full py-3 sm:py-3.5 text-xs sm:text-sm font-black tracking-widest uppercase rounded-xl tap-effect shadow-lg flex items-center justify-center gap-2 ${t.btnPrimary} ${t.fontHeading}`}
-              >
-                <CheckCircle2 size={18} /> TARGET DESTROYED (MOVE TO QUEUE)
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => startFocusSession(brain.stagingTopics[0].title, undefined, brain.stagingTopics[0].id)}
+                  className={`py-3 sm:py-3.5 px-4 text-xs sm:text-sm font-black tracking-widest uppercase rounded-xl tap-effect shadow-lg flex items-center justify-center gap-1.5 ${t.btnWarning} ${t.fontHeading}`}
+                  title="Launch Focus Chamber for this chapter"
+                >
+                  <Zap size={16} /> FOCUS
+                </button>
+                <button
+                  onClick={() => handleStartRevision(brain.stagingTopics[0].id)}
+                  className={`flex-1 py-3 sm:py-3.5 text-xs sm:text-sm font-black tracking-widest uppercase rounded-xl tap-effect shadow-lg flex items-center justify-center gap-2 ${t.btnPrimary} ${t.fontHeading}`}
+                >
+                  <CheckCircle2 size={18} /> TARGET DESTROYED (MOVE TO QUEUE)
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -2469,16 +2746,25 @@ CORE MANNERISMS & ESSENCE:
             {todaysCustomMissions.map((mission: any) => (
               <div key={mission.id} className={`flex items-center justify-between p-4 rounded-2xl shadow-md border ${t.cardInner} ${t.borderAccent} hover-lift`}>
                 <span className={`font-black uppercase tracking-wider text-xs sm:text-sm ${t.textMain} ${t.fontHeading}`}>{mission.text}</span>
-                <button
-                  onClick={() => {
-                    updateBrainFirebase({ customMissions: brain.customMissions.filter((m: any) => m.id !== mission.id) });
-                    const remaining = todaysCustomMissions.length - 1;
-                    if (remaining === 0) triggerCrossReward(3, "All Daily Missions Cleared!");
-                  }}
-                  className={`p-2 rounded-xl tap-effect transition-colors ${t.textMuted} hover:${t.textAccent} bg-white/5`}
-                >
-                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => startFocusSession(mission.text, mission.id)}
+                    className={`px-3 py-1.5 rounded-xl tap-effect text-[10px] sm:text-xs font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                    title="Focus on this mission"
+                  >
+                    <Zap size={13} /> Focus
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateBrainFirebase({ customMissions: brain.customMissions.filter((m: any) => m.id !== mission.id) });
+                      const remaining = todaysCustomMissions.length - 1;
+                      if (remaining === 0) triggerCrossReward(3, "All Daily Missions Cleared!");
+                    }}
+                    className={`p-2 rounded-xl tap-effect transition-colors ${t.textMuted} hover:${t.textAccent} bg-white/5`}
+                  >
+                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -2506,12 +2792,21 @@ CORE MANNERISMS & ESSENCE:
                       <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${t.card}`}>DAY {rev.dayOffset}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => markRevisionComplete(rev.topicId, rev.targetDate, rev.dayOffset)}
-                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center tap-effect shrink-0 shadow-md ${t.btnPrimary}`}
-                  >
-                    <Check size={22} className="stroke-[3]" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => startFocusSession(rev.title, undefined, rev.topicId)}
+                      className={`px-3 py-2 rounded-xl tap-effect text-[10px] sm:text-xs font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                      title="Focus on this revision"
+                    >
+                      <Zap size={13} /> Focus
+                    </button>
+                    <button
+                      onClick={() => markRevisionComplete(rev.topicId, rev.targetDate, rev.dayOffset)}
+                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center tap-effect shrink-0 shadow-md ${t.btnPrimary}`}
+                    >
+                      <Check size={22} className="stroke-[3]" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -3100,6 +3395,404 @@ CORE MANNERISMS & ESSENCE:
   };
 
   // ==========================================
+  // WEB AUDIO ENGINE (OFFLINE HARMONIC CHIME)
+  // ==========================================
+  const playFocusCompletionChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+
+      const playTone = (freq: number, start: number, dur: number, vol = 0.25) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gain.gain.setValueAtTime(0, ctx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      };
+
+      // 3-Stage Miraculous Harmonic Chime (528Hz -> 660Hz -> 792Hz)
+      playTone(528, 0, 1.2, 0.22);
+      playTone(660, 0.35, 1.5, 0.20);
+      playTone(792, 0.7, 2.0, 0.18);
+    } catch (e) {
+      console.warn("Web Audio chime unavailable:", e);
+    }
+  };
+
+  // ==========================================
+  // FOCUS TIMER ENGINE EFFECT
+  // ==========================================
+  useEffect(() => {
+    let interval: any = null;
+    if (focusState.isOpen && focusState.isRunning) {
+      interval = setInterval(() => {
+        setFocusState((prev) => {
+          if (prev.mode === "stopwatch") {
+            return {
+              ...prev,
+              totalFocusedSeconds: prev.totalFocusedSeconds + 1,
+            };
+          }
+
+          if (prev.secondsLeft <= 1) {
+            playFocusCompletionChime();
+            const finishedMinutes = prev.durationMinutes;
+
+            if (!prev.isBreak) {
+              const starsEarned = 15;
+              const xpEarned = 50;
+              const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
+              updateProfileFirebase({
+                stars: (profile.stars || 0) + starsEarned,
+                xp: (profile.xp || 0) + xpEarned,
+                totalFocusMinutes: newTotalMins,
+              });
+
+              if (prev.topicId) {
+                const updatedTopics = (brain.studyTopics || []).map((tp: any) =>
+                  tp.id === prev.topicId
+                    ? { ...tp, focusMinutes: (tp.focusMinutes || 0) + finishedMinutes }
+                    : tp
+                );
+                updateBrainFirebase({ studyTopics: updatedTopics });
+              }
+
+              showMessage(`🎉 Focus Session Complete! +${starsEarned} Stars & +${xpEarned} XP Earned! ⚡`);
+
+              const breakMins = prev.mode === "deepflow" ? 10 : 5;
+              return {
+                ...prev,
+                isBreak: true,
+                durationMinutes: breakMins,
+                secondsLeft: breakMins * 60,
+                isRunning: false,
+                totalFocusedSeconds: prev.totalFocusedSeconds + 1,
+              };
+            } else {
+              showMessage("☕ Break Finished! Ready for another deep work sprint?");
+              const workMins = prev.mode === "deepflow" ? 50 : 25;
+              return {
+                ...prev,
+                isBreak: false,
+                durationMinutes: workMins,
+                secondsLeft: workMins * 60,
+                isRunning: false,
+              };
+            }
+          }
+
+          return {
+            ...prev,
+            secondsLeft: prev.secondsLeft - 1,
+            totalFocusedSeconds: prev.totalFocusedSeconds + 1,
+          };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [focusState.isOpen, focusState.isRunning, focusState.mode, profile.stars, profile.xp, profile.totalFocusMinutes, brain.studyTopics]);
+
+  // ==========================================
+  // FOCUS ENGINE HELPERS
+  // ==========================================
+  const startFocusSession = (title?: string, taskId?: string, topicId?: string, defaultMode: "pomodoro" | "deepflow" | "stopwatch" = "pomodoro") => {
+    const mins = defaultMode === "deepflow" ? 50 : defaultMode === "pomodoro" ? 25 : 0;
+    setFocusState({
+      isOpen: true,
+      mode: defaultMode,
+      durationMinutes: mins,
+      secondsLeft: mins * 60,
+      isRunning: true,
+      isBreak: false,
+      taskId: taskId || null,
+      taskTitle: title || "Deep Focus Chamber",
+      topicId: topicId || null,
+      totalFocusedSeconds: 0,
+    });
+  };
+
+  const switchFocusMode = (mode: "pomodoro" | "deepflow" | "stopwatch") => {
+    const mins = mode === "deepflow" ? 50 : mode === "pomodoro" ? 25 : 0;
+    setFocusState((prev) => ({
+      ...prev,
+      mode,
+      durationMinutes: mins,
+      secondsLeft: mins * 60,
+      isRunning: false,
+      isBreak: false,
+    }));
+  };
+
+  const fastForwardFocusTimer = () => {
+    setFocusState((prev) => ({
+      ...prev,
+      secondsLeft: 3,
+    }));
+    showMessage("⏩ Fast-Forwarded Focus Timer (3 seconds left)");
+  };
+
+  // ==========================================
+  // GITA & KARMA AUDIT HELPERS
+  // ==========================================
+  const discussGitaShloka = (shloka: GitaShloka) => {
+    const textPrompt = `प्रणाम सखा! आज के श्लोक (${shloka.chapter}, ${shloka.verse}) "${shloka.sanskrit}" ("${shloka.hindi}") का मेरे आज के दैनिक जीवन और कर्म में क्या व्यावहारिक अर्थ है? कृपया मुझे सरल भाषा में समझाएं।`;
+    setKrishnaInput(textPrompt);
+    sendKrishnaMessage(textPrompt);
+  };
+
+  const submitKarmaAudit = async () => {
+    if (!karmaBestEffort.trim() && !karmaDistraction.trim()) {
+      showMessage("कृपया कम से कम एक अनुभव या चिंतन लिखें। 🌸");
+      return;
+    }
+    setIsSubmittingKarma(true);
+    const dateKey = todayStr;
+    const existingDay = trackerData[dateKey] || { tasks: {}, reasonForO: "", summary: "" };
+
+    const karmaEntry = `\n\n[🌙 Nightly Karma Audit - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}]\n⭐ श्रेष्ठ प्रयास: ${karmaBestEffort || 'N/A'}\n⚠️ विचलन / सुधार: ${karmaDistraction || 'N/A'}\n✨ संतुष्टि: ${'⭐'.repeat(karmaRating)}`;
+
+    const updatedSummary = (existingDay.summary || "") + karmaEntry;
+    updateTrackerFirebase(dateKey, { ...existingDay, summary: updatedSummary, karmaAudited: true });
+
+    updateProfileFirebase({ stars: (profile.stars || 0) + 10 });
+
+    if (profile.geminiKey) {
+      try {
+        const blessingPrompt = `The seeker completed their Nightly Karma Audit:
+Best Effort: ${karmaBestEffort}
+Mind Drift & Tomorrow's Goal: ${karmaDistraction}
+Rating: ${karmaRating}/5 stars.
+
+Give a concise, 2-line warm Shri Krishna blessing and guidance in Hindi/Hinglish to inspire peace before sleep and energize tomorrow's duty.`;
+        const response = await callGeminiApi(
+          profile.geminiKey,
+          [{ role: "user", parts: [{ text: blessingPrompt }] }],
+          "You are Shri Krishna speaking with unconditional warmth, divine encouragement, and spiritual wisdom.",
+          false
+        );
+
+        const newMsg: KrishnaMessage = {
+          id: `k_msg_${Date.now()}_k`,
+          role: "model",
+          text: `🌙 **रात्रि आत्म-निरीक्षण पर सखा का संदेश:**\n\n${response}`,
+          timestamp: new Date().toISOString(),
+        };
+        const activeConv = krishnaState.conversations.find((c) => c.id === krishnaState.activeConversationId) || krishnaState.conversations[0];
+        if (activeConv) {
+          const updatedConv = {
+            ...activeConv,
+            messages: [...activeConv.messages, newMsg],
+            lastUpdated: new Date().toISOString(),
+          };
+          updateKrishnaFirebase({
+            conversations: krishnaState.conversations.map((c) => (c.id === updatedConv.id ? updatedConv : c)),
+          });
+        }
+      } catch (err) {
+        console.warn("Karma blessing failed:", err);
+      }
+    }
+
+    setIsSubmittingKarma(false);
+    setIsKarmaAuditOpen(false);
+    setKarmaBestEffort("");
+    setKarmaDistraction("");
+    showMessage("🌸 आत्म-निरीक्षण सुरक्षित! +10 Stars Earned! शुभ रात्रि।");
+  };
+
+  // ==========================================
+  // AUTOMATED WEEKLY AI PERFORMANCE REVIEW
+  // ==========================================
+  const generateWeeklyAiReview = async () => {
+    if (!profile.geminiKey) {
+      showMessage("Please add your Gemini API Key in Settings to generate AI Performance Reviews.");
+      setHabitRoute("settings");
+      return;
+    }
+    setIsGeneratingWeeklyReview(true);
+    setIsWeeklyReviewOpen(true);
+    setWeeklyReviewText("");
+
+    try {
+      const weeklyDataPoints = getWeeklyData(0);
+      const streaksNow = getStreaks();
+      const weeklySummary = weeklyDataPoints.map((d: any) => {
+        const dayRecord = trackerData[d.date] || {};
+        return {
+          date: d.date,
+          day: d.label,
+          completionPercent: d.percent,
+          tasksCompleted: `${d.xCount}/${d.total}`,
+          shieldProtected: Boolean(dayRecord.shieldProtected),
+          notes: dayRecord.summary || dayRecord.reasonForO || "None",
+        };
+      });
+
+      const auditPayload = {
+        daysAudited: weeklySummary.length,
+        averageCompletion: Math.round(weeklySummary.reduce((acc, curr) => acc + curr.completionPercent, 0) / (weeklySummary.length || 1)),
+        currentStreaks: streaksNow,
+        streakShieldsInStock: profile.streakShields || 0,
+        totalFocusMinutes: profile.totalFocusMinutes || 0,
+        starsBalance: profile.stars || 0,
+        breakdown: weeklySummary,
+      };
+
+      const promptText = `Conduct a comprehensive, structured 7-Day Weekly Performance Audit for the user based on this data:
+${JSON.stringify(auditPayload, null, 2)}
+
+Provide an elite, brutally honest yet deeply motivational mentorship report in Hinglish/English with these EXACT markdown sections:
+
+## 🏆 1. WEEK KI SABSE BADI JEET (Top Highlights & Consistency)
+Highlight their best consistent streaks, disciplined days, and top wins this week.
+
+## ⚠️ 2. RED FLAG ZONE (Vulnerabilities & Friction)
+Point out drop-offs, missed days, or patterns where focus slipped. Explain WHY it happened based on the data.
+
+## 🎯 3. 3 ACTIONABLE MICRO-GOALS FOR NEXT WEEK
+Give exactly 3 high-leverage, razor-sharp, realistic micro-goals to dominate next week.
+
+## ⚔️ COACH'S CLOSING WAR CRY
+One short, electrifying sentence of raw motivation.`;
+
+      const aiResponse = await callGeminiApi(
+        profile.geminiKey,
+        [{ role: "user", parts: [{ text: promptText }] }],
+        "You are an elite, world-class Peak Performance & Habit Coach (like David Goggins meets Marcus Aurelius). You deliver clear, actionable, and inspiring guidance without fluff.",
+        false
+      );
+
+      setWeeklyReviewText(aiResponse);
+    } catch (err: any) {
+      console.error("Weekly review error:", err);
+      setWeeklyReviewText(`⚠️ AI Review could not be generated: ${err?.message || "Check your network and API key."}`);
+    } finally {
+      setIsGeneratingWeeklyReview(false);
+    }
+  };
+
+  // ==========================================
+  // DEVELOPER TESTING HUB CONTROLS
+  // ==========================================
+  const devTimeTravel = (offsetDays: number) => {
+    const targetDate = addDays(todayStr, offsetDays);
+    setTodayStr(targetDate);
+    setSelectedDate(targetDate);
+    const [y, m] = targetDate.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`📅 Time-traveled to: ${targetDate} (${offsetDays > 0 ? `+${offsetDays}d` : `${offsetDays}d`})`);
+  };
+
+  const devSetExactDate = (dateStr: string) => {
+    if (!dateStr) return;
+    setTodayStr(dateStr);
+    setSelectedDate(dateStr);
+    const [y, m] = dateStr.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`📅 Date set to: ${dateStr}`);
+  };
+
+  const devResetToRealToday = () => {
+    const real = getRealTodayStr();
+    setTodayStr(real);
+    setSelectedDate(real);
+    const [y, m] = real.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`🔄 Reset to Real Today: ${real}`);
+  };
+
+  const devAddStars = (amount: number) => {
+    const newStars = Math.max(0, (profile.stars || 0) + amount);
+    updateProfileFirebase({ stars: newStars });
+    showMessage(`⭐ Granted ${amount > 0 ? `+${amount}` : amount} Stars! Total: ${newStars}`);
+  };
+
+  const devAddXp = (amount: number) => {
+    const newXp = Math.max(0, (profile.xp || 0) + amount);
+    updateProfileFirebase({ xp: newXp });
+    showMessage(`⚡ Granted +${amount} XP! Total XP: ${newXp}`);
+  };
+
+  const devGrantShields = (count: number) => {
+    updateProfileFirebase({ streakShields: count });
+    showMessage(`🛡️ Streak Shields set to: ${count}/2`);
+  };
+
+  const devSimulateMissedDay = () => {
+    const yesterday = addDays(todayStr, -1);
+    const existing = trackerData[yesterday] || {};
+    const taskList = profile.customTasks || DEFAULT_TASKS;
+    const failedTasks: Record<string, string> = {};
+    taskList.forEach((t: any, idx: number) => {
+      failedTasks[t.id] = idx === 0 ? "O" : "X";
+    });
+    updateTrackerFirebase(yesterday, {
+      ...existing,
+      tasks: failedTasks,
+      shieldProtected: false,
+      shieldChecked: false,
+      reasonForO: "Dev simulated missed habit day",
+    });
+    showMessage(`⚠️ Simulated missed day for ${yesterday}. Test streak protection now!`);
+  };
+
+  const devCompleteAllTodayHabits = () => {
+    const taskList = profile.customTasks || DEFAULT_TASKS;
+    const completedTasks: Record<string, string> = {};
+    taskList.forEach((t: any) => {
+      completedTasks[t.id] = "X";
+    });
+    const existing = trackerData[todayStr] || {};
+    updateTrackerFirebase(todayStr, {
+      ...existing,
+      tasks: completedTasks,
+      taskSnapshot: taskList,
+    });
+    showMessage(`✅ Marked all ${taskList.length} habits for ${todayStr} as 100% completed!`);
+  };
+
+  const devSimulate30DayStreak = () => {
+    const taskList = profile.customTasks || DEFAULT_TASKS;
+    const completedTasks: Record<string, string> = {};
+    taskList.forEach((t: any) => {
+      completedTasks[t.id] = "X";
+    });
+
+    const mockData: Record<string, any> = { ...trackerData };
+    for (let i = 0; i < 30; i++) {
+      const dateKey = addDays(todayStr, -i);
+      mockData[dateKey] = {
+        tasks: { ...completedTasks },
+        taskSnapshot: taskList,
+        summary: `30-Day Streak Simulation Day ${30 - i}`,
+      };
+      if (user && db) {
+        setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateKey), mockData[dateKey]);
+      }
+    }
+    setTrackerData(mockData);
+    try {
+      localStorage.setItem("apex_tracker_v5", JSON.stringify(mockData));
+    } catch (e) {
+      console.warn("Storage write error:", e);
+    }
+    showMessage("🔥 Injected 30-Day Perfect Streak across past 30 days!");
+  };
+
+  // ==========================================
   // RENDER: MY KRISHNA DIVINE OS
   // ==========================================
   const renderMyKrishna = () => {
@@ -3368,6 +4061,75 @@ CORE MANNERISMS & ESSENCE:
           </div>
         )}
 
+        {/* DAILY GITA SHLOKA CARD */}
+        {(() => {
+          const dailyShloka = getDailyGitaShloka();
+          return (
+            <div className="relative overflow-hidden rounded-3xl p-5 sm:p-6 border-2 border-amber-400/50 bg-gradient-to-br from-[#122347]/95 via-[#0b1b3a]/95 to-[#061024]/98 shadow-[0_10px_35px_rgba(0,0,0,0.5),inset_0_0_30px_rgba(251,191,36,0.1)] text-amber-100 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-3 border-b border-amber-400/25 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🪶</span>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-amber-300">
+                    आज का दिव्य श्लोक • Daily Gita Shloka
+                  </span>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                  {dailyShloka.chapter} • {dailyShloka.verse}
+                </span>
+              </div>
+
+              {/* Sanskrit Verse */}
+              <div className="my-3 p-3.5 rounded-2xl bg-[#060e1f]/80 border border-amber-400/30 text-center shadow-inner">
+                <p className="font-serif text-sm sm:text-base font-bold text-amber-200 tracking-wide leading-relaxed italic">
+                  "{dailyShloka.sanskrit}"
+                </p>
+              </div>
+
+              {/* Hindi Translation */}
+              <div className="space-y-1.5 mb-3.5">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-300/80 block">
+                  🌸 सरल भावार्थ (Meaning):
+                </span>
+                <p className="text-xs sm:text-sm text-amber-100/90 font-sans leading-relaxed">
+                  {dailyShloka.hindi}
+                </p>
+              </div>
+
+              {/* Practical Life Lesson */}
+              <div className="p-3 rounded-xl bg-amber-400/10 border border-amber-400/25 mb-4 flex items-start gap-2">
+                <span className="text-base shrink-0 mt-0.5">⚡</span>
+                <div>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+                    आज का जीवन सूत्र (Practical Action):
+                  </span>
+                  <p className="text-[11px] sm:text-xs text-amber-200/90 font-sans font-medium">
+                    {dailyShloka.lesson}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons: Discuss with Krishna & Nightly Karma Audit */}
+              <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                <button
+                  onClick={() => discussGitaShloka(dailyShloka)}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black text-xs font-black uppercase tracking-wider shadow-[0_0_20px_rgba(251,191,36,0.35)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 tap-effect"
+                >
+                  <Sparkles size={14} className="stroke-[2.5]" />
+                  <span>सखा से इस श्लोक पर चर्चा करें</span>
+                </button>
+
+                <button
+                  onClick={() => setIsKarmaAuditOpen(true)}
+                  className="py-2.5 px-3.5 rounded-xl bg-[#091630] border border-amber-400/40 text-amber-200 text-xs font-black uppercase tracking-wider hover:bg-[#0f244f] active:scale-95 transition-all flex items-center justify-center gap-1.5 tap-effect"
+                >
+                  <span>🌙</span>
+                  <span className="hidden sm:inline">आत्म-निरीक्षण</span>
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* MAIN CHAT & GUIDANCE CONTAINER */}
         <div className="relative rounded-3xl border-2 border-amber-400/30 bg-[#060e1d]/90 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col min-h-[580px] max-h-[75vh]">
           {/* SCROLLABLE MESSAGE STREAM */}
@@ -3474,19 +4236,10 @@ CORE MANNERISMS & ESSENCE:
                         {msg.text}
                       </div>
 
-                      {/* Krishna response timestamp */}
-                      {!isUser && (
-                        <div className="text-right text-[8px] opacity-60 font-mono mt-2 text-amber-200/60">
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
-
-                      {/* User timestamp */}
-                      {isUser && (
-                        <div className="text-right text-[8px] opacity-60 font-mono mt-1">
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
+                      {/* Timestamp */}
+                      <div className={`text-right text-[8px] opacity-60 font-mono mt-2 ${isUser ? "text-blue-200" : "text-amber-200/60"}`}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3713,6 +4466,632 @@ CORE MANNERISMS & ESSENCE:
           {appMode === 'krishna' && renderMyKrishna()}
         </div>
       </div>
+
+      {/* ========================================== */}
+      {/* 1. FOCUS CHAMBER & DEEP WORK MODAL */}
+      {/* ========================================== */}
+      {focusState.isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className={`w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative overflow-hidden flex flex-col justify-between`}>
+            {/* Ambient Background Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-current opacity-10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16"></div>
+
+            {/* Header / Mode Picker */}
+            <div>
+              <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+                <div className="flex items-center gap-2">
+                  <div className={`p-2 rounded-xl border ${t.cardInner} ${t.borderAccent}`}>
+                    <Timer className={`w-5 h-5 ${t.textAccent} animate-pulse`} />
+                  </div>
+                  <div>
+                    <h3 className={`font-black text-sm sm:text-base uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                      Focus Chamber
+                    </h3>
+                    <span className={`text-[9px] sm:text-[10px] uppercase font-bold tracking-widest ${t.textMuted}`}>
+                      {focusState.isBreak ? "☕ Break Mode" : "⚡ Deep Work Protocol"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false }))}
+                  className={`p-2 rounded-xl transition-all tap-effect ${t.cardInner} ${t.textMuted} hover:${t.textMain}`}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Mode Switcher Buttons */}
+              <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10 mb-6">
+                <button
+                  onClick={() => switchFocusMode("pomodoro")}
+                  className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                    focusState.mode === "pomodoro"
+                      ? `${t.btnPrimary} shadow-md`
+                      : `${t.textMuted} hover:${t.textMain}`
+                  }`}
+                >
+                  Pomodoro (25m)
+                </button>
+                <button
+                  onClick={() => switchFocusMode("deepflow")}
+                  className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                    focusState.mode === "deepflow"
+                      ? `${t.btnPrimary} shadow-md`
+                      : `${t.textMuted} hover:${t.textMain}`
+                  }`}
+                >
+                  Deep Flow (50m)
+                </button>
+                <button
+                  onClick={() => switchFocusMode("stopwatch")}
+                  className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                    focusState.mode === "stopwatch"
+                      ? `${t.btnPrimary} shadow-md`
+                      : `${t.textMuted} hover:${t.textMain}`
+                  }`}
+                >
+                  Stopwatch
+                </button>
+              </div>
+
+              {/* Focus Target Label */}
+              <div className={`p-3.5 rounded-2xl border text-center mb-6 ${t.cardInner} ${t.borderAccent}`}>
+                <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest block mb-0.5 ${t.textAccent}`}>
+                  Active Mission / Chapter
+                </span>
+                <p className={`text-xs sm:text-sm font-black uppercase truncate ${t.textMain} ${t.fontHeading}`}>
+                  {focusState.taskTitle || "General High-Intensity Focus"}
+                </p>
+              </div>
+
+              {/* Countdown / Stopwatch Big Display */}
+              <div className="my-4 text-center">
+                {(() => {
+                  const mins = Math.floor(focusState.secondsLeft / 60);
+                  const secs = focusState.secondsLeft % 60;
+                  const displayTime =
+                    focusState.mode === "stopwatch"
+                      ? `${Math.floor(focusState.totalFocusedSeconds / 60)
+                          .toString()
+                          .padStart(2, "0")}:${(focusState.totalFocusedSeconds % 60)
+                          .toString()
+                          .padStart(2, "0")}`
+                      : `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+
+                  const totalDurationSecs = focusState.durationMinutes * 60 || 1;
+                  const progressPct =
+                    focusState.mode === "stopwatch"
+                      ? 100
+                      : Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            ((totalDurationSecs - focusState.secondsLeft) / totalDurationSecs) * 100
+                          )
+                        );
+
+                  return (
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="relative mb-4">
+                        <div
+                          className={`text-6xl sm:text-7xl font-black tabular-nums tracking-tighter ${
+                            focusState.isBreak ? "text-emerald-400" : t.textMain
+                          } ${t.fontHeading}`}
+                        >
+                          {displayTime}
+                        </div>
+                      </div>
+
+                      {/* Linear Progress Bar */}
+                      {focusState.mode !== "stopwatch" && (
+                        <div className="w-full h-2 rounded-full bg-black/40 border border-white/10 overflow-hidden mb-6">
+                          <div
+                            className={`h-full transition-all duration-1000 ease-linear ${
+                              focusState.isBreak ? "bg-emerald-400" : t.btnPrimary
+                            }`}
+                            style={{ width: `${progressPct}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <button
+                  onClick={() => setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning }))}
+                  className={`flex-1 py-3.5 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl tap-effect ${
+                    focusState.isRunning ? t.btnWarning : t.btnPrimary
+                  }`}
+                >
+                  {focusState.isRunning ? (
+                    <>
+                      <Pause size={18} className="stroke-[3]" /> PAUSE
+                    </>
+                  ) : (
+                    <>
+                      <Play size={18} className="stroke-[3]" /> START FOCUS
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    const mins =
+                      focusState.mode === "deepflow" ? 50 : focusState.mode === "pomodoro" ? 25 : 0;
+                    setFocusState((prev) => ({
+                      ...prev,
+                      isRunning: false,
+                      secondsLeft: mins * 60,
+                      totalFocusedSeconds: 0,
+                    }));
+                  }}
+                  className={`p-3.5 rounded-2xl border tap-effect transition-all ${t.cardInner} ${t.borderAccent} ${t.textMain}`}
+                  title="Reset Timer"
+                >
+                  <RotateCcw size={18} />
+                </button>
+
+                {/* Fast-Forward Button for Instant Testing */}
+                <button
+                  onClick={fastForwardFocusTimer}
+                  className={`px-3.5 py-3.5 rounded-2xl border tap-effect transition-all text-xs font-black uppercase flex items-center gap-1 ${t.cardInner} ${t.borderAccent} text-amber-300`}
+                  title="Fast-forward to last 3 seconds (QA testing)"
+                >
+                  <FastForward size={16} />
+                  <span className="hidden sm:inline">3s</span>
+                </button>
+              </div>
+
+              {/* Completion Reward Pill */}
+              <div className={`p-2.5 rounded-xl border text-center ${t.cardInner} border-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider ${t.textMuted}`}>
+                <Zap size={13} className={t.textAccent} />
+                <span>Rewards: +15 Stars ⭐ & +50 XP on completion</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 2. NIGHTLY KARMA AUDIT MODAL */}
+      {/* ========================================== */}
+      {isKarmaAuditOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#0c1c38]/98 via-[#08152b]/98 to-[#040a17]/98 border-2 border-amber-400/50 text-amber-100 shadow-[0_15px_50px_rgba(0,0,0,0.8),inset_0_0_40px_rgba(251,191,36,0.1)] relative max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-amber-400/30 mb-5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">🌙</span>
+                <div>
+                  <h3 className="font-black text-sm sm:text-base uppercase tracking-wider text-amber-300">
+                    रात्रि आत्म-निरीक्षण (Karma Audit)
+                  </h3>
+                  <p className="text-[10px] text-amber-200/60 font-medium">
+                    2-Minute Honest Reflection & Blessing
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsKarmaAuditOpen(false)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300 hover:text-white transition-all tap-effect"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Questions Form */}
+            <div className="space-y-4 mb-6">
+              {/* Question 1 */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <span>🌸</span> 1. आज का सर्वश्रेष्ठ प्रयास / विजय क्या रही?
+                </label>
+                <textarea
+                  value={karmaBestEffort}
+                  onChange={(e) => setKarmaBestEffort(e.target.value)}
+                  placeholder="जैसे: आज 3 घंटे बिना भटके पढ़ाई पूरी की और मन को संयमित रखा..."
+                  className="w-full p-3.5 text-xs sm:text-sm rounded-2xl bg-[#060e1f] border border-amber-400/40 text-amber-100 placeholder:text-amber-300/30 focus:border-amber-400 outline-none transition-all resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Question 2 */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <span>⚠️</span> 2. कहाँ मन भटका और कल क्या सुधार करना है?
+                </label>
+                <textarea
+                  value={karmaDistraction}
+                  onChange={(e) => setKarmaDistraction(e.target.value)}
+                  placeholder="जैसे: दोपहर में 30 मिनट फोन पर व्यर्थ गए। कल सुबह 9 बजे से ही काम शुरू करूंगा..."
+                  className="w-full p-3.5 text-xs sm:text-sm rounded-2xl bg-[#060e1f] border border-amber-400/40 text-amber-100 placeholder:text-amber-300/30 focus:border-amber-400 outline-none transition-all resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Star Rating for Today's Karma */}
+              <div className="p-3.5 rounded-2xl bg-[#060e1f] border border-amber-400/30 flex items-center justify-between">
+                <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300">
+                  आज के प्रयास से संतुष्टि:
+                </span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((starVal) => (
+                    <button
+                      key={starVal}
+                      type="button"
+                      onClick={() => setKarmaRating(starVal)}
+                      className={`text-lg sm:text-xl transition-transform hover:scale-125 tap-effect ${
+                        karmaRating >= starVal ? "text-yellow-400" : "text-slate-600"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Action */}
+            <div className="space-y-3">
+              <button
+                onClick={submitKarmaAudit}
+                disabled={isSubmittingKarma}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(251,191,36,0.4)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 tap-effect"
+              >
+                {isSubmittingKarma ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin stroke-[3]" />
+                    <span>सखा को अर्पित किया जा रहा है...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} className="stroke-[3]" />
+                    <span>आत्म-निरीक्षण सुरक्षित करें (+10 ⭐)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 3. WEEKLY AI PERFORMANCE REVIEW MODAL */}
+      {/* ========================================== */}
+      {isWeeklyReviewOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className={`w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border-2 ${t.card} ${t.borderAccent} max-h-[85vh] flex flex-col justify-between overflow-hidden relative`}>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4 flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-xl border ${t.cardInner} ${t.borderAccent}`}>
+                  <Award className={`w-5 h-5 ${t.textAccent}`} />
+                </div>
+                <div>
+                  <h3 className={`font-black text-sm sm:text-base uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                    7-Day AI Performance Audit
+                  </h3>
+                  <span className={`text-[9px] sm:text-[10px] uppercase font-bold tracking-widest ${t.textMuted}`}>
+                    Gemini Peak-Performance Report
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsWeeklyReviewOpen(false)}
+                className={`p-2 rounded-xl transition-all tap-effect ${t.cardInner} ${t.textMuted} hover:${t.textMain}`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable Report Content */}
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4 my-2">
+              {isGeneratingWeeklyReview ? (
+                <div className="py-16 text-center space-y-4">
+                  <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center border-2 animate-bounce ${t.cardInner} ${t.borderAccent}`}>
+                    <Bot className={`w-8 h-8 ${t.textAccent}`} />
+                  </div>
+                  <h4 className={`text-sm sm:text-base font-black uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                    Coach is Auditing Your Week...
+                  </h4>
+                  <p className={`text-xs max-w-md mx-auto leading-relaxed ${t.textMuted}`}>
+                    Crunching 7-day habit completions, streak defense, focus hours, and journal reflections.
+                  </p>
+                </div>
+              ) : (
+                <div className={`p-5 rounded-2xl border leading-relaxed text-xs sm:text-sm font-sans whitespace-pre-wrap ${t.cardInner} ${t.borderAccent} ${t.textMain}`}>
+                  {weeklyReviewText || "No review generated yet."}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3 flex-shrink-0">
+              <button
+                onClick={() => {
+                  if (weeklyReviewText) {
+                    navigator.clipboard.writeText(weeklyReviewText);
+                    showMessage("Weekly Review Copied! 📋");
+                  }
+                }}
+                disabled={!weeklyReviewText || isGeneratingWeeklyReview}
+                className={`px-4 py-2.5 rounded-xl border text-xs font-black uppercase tracking-wider flex items-center gap-1.5 tap-effect ${t.cardInner} ${t.borderAccent} ${t.textMain} disabled:opacity-50`}
+              >
+                <Copy size={15} /> Copy Report
+              </button>
+
+              <button
+                onClick={() => setIsWeeklyReviewOpen(false)}
+                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg tap-effect ${t.btnPrimary}`}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 4. FLOATING DEV BUTTON & TESTING DRAWER */}
+      {/* ========================================== */}
+      {/* Floating Trigger Button in Bottom Left */}
+      <button
+        onClick={() => setIsDevHubOpen(true)}
+        className="fixed bottom-4 left-4 z-50 px-3.5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest shadow-[0_0_25px_rgba(245,158,11,0.6)] flex items-center gap-1.5 active:scale-95 transition-all border-2 border-amber-300 tap-effect"
+        title="Open Developer QA Hub"
+      >
+        <Sliders size={14} className="stroke-[3]" />
+        <span>🛠️ DEV</span>
+      </button>
+
+      {/* Slide-out Dev Hub Drawer */}
+      {isDevHubOpen && (
+        <div className="fixed inset-0 z-[120] flex justify-start items-stretch bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm sm:max-w-md h-full bg-[#070d1a] border-r-2 border-amber-400/40 shadow-2xl p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-left duration-300">
+            {/* Header */}
+            <div>
+              <div className="flex items-center justify-between pb-4 border-b border-amber-400/30 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300">
+                    <Sliders size={18} />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm uppercase tracking-wider text-amber-300">
+                      Developer Testing Hub
+                    </h3>
+                    <p className="text-[10px] text-amber-200/60 font-medium">QA & Feature Sandbox</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsDevHubOpen(false)}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300 hover:text-white transition-all tap-effect"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Scrollable Dev Control Sections */}
+              <div className="space-y-4 max-h-[calc(100vh-160px)] overflow-y-auto pr-1">
+                {/* 1. DATE TIME-TRAVEL */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <CalendarIcon size={12} /> 1. Date Time-Travel
+                    </span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-black/60 text-amber-200 border border-amber-400/20">
+                      {todayStr}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => devTimeTravel(-1)}
+                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
+                    >
+                      ⏪ -1 Day (Yesterday)
+                    </button>
+                    <button
+                      onClick={() => devTimeTravel(1)}
+                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
+                    >
+                      ⏩ +1 Day (Tomorrow)
+                    </button>
+                    <button
+                      onClick={() => devTimeTravel(7)}
+                      className="py-1.5 px-2 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-200 text-[10px] font-black uppercase tap-effect"
+                    >
+                      ⏩ +7 Days (Next Week)
+                    </button>
+                    <button
+                      onClick={devResetToRealToday}
+                      className="py-1.5 px-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      🔄 Real Today
+                    </button>
+                  </div>
+                  <div className="pt-1 flex items-center gap-2">
+                    <span className="text-[9px] uppercase font-bold text-slate-400">Pick Date:</span>
+                    <input
+                      type="date"
+                      value={todayStr}
+                      onChange={(e) => devSetExactDate(e.target.value)}
+                      className="flex-1 px-2 py-1 rounded-lg bg-black/60 border border-amber-400/30 text-amber-200 text-[11px] outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. STARS & ECONOMY */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <Star size={12} /> 2. Wallet & Economy
+                    </span>
+                    <span className="text-[9px] font-black text-yellow-400 font-mono">
+                      {profile.stars || 0} ⭐ | {profile.xp || 0} XP
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => devAddStars(100)}
+                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      +100 Stars ⭐
+                    </button>
+                    <button
+                      onClick={() => devAddStars(1000)}
+                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      +1,000 Stars ⭐
+                    </button>
+                    <button
+                      onClick={() => devAddXp(500)}
+                      className="py-1.5 px-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 text-blue-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      +500 XP ⚡
+                    </button>
+                    <button
+                      onClick={() => updateProfileFirebase({ stars: 0 })}
+                      className="py-1.5 px-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-red-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      Reset Stars (0)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. STREAK FREEZE SHIELDS */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <Shield size={12} /> 3. Streak Freeze Shields
+                    </span>
+                    <span className="text-[9px] font-black text-amber-200 font-mono">
+                      {profile.streakShields || 0}/2 🛡️
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => devGrantShields(2)}
+                      className="py-1.5 px-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      Set 2/2 🛡️
+                    </button>
+                    <button
+                      onClick={() => devGrantShields(1)}
+                      className="py-1.5 px-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      Set 1/2 🛡️
+                    </button>
+                    <button
+                      onClick={() => devGrantShields(0)}
+                      className="py-1.5 px-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-red-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      Clear (0/2)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4. NIGHT SHIFT OVERRIDE */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <Moon size={12} /> 4. Night Shift Environment
+                    </span>
+                    <span className={`text-[9px] font-bold ${isNightTime ? "text-indigo-400" : "text-amber-400"}`}>
+                      {isNightTime ? "🌙 Active (Night)" : "☀️ Inactive (Day)"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => { setDevNightOverride(true); showMessage("🌙 Force Night Shift ON"); }}
+                      className="py-1.5 px-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Force ON
+                    </button>
+                    <button
+                      onClick={() => { setDevNightOverride(false); showMessage("☀️ Force Night Shift OFF"); }}
+                      className="py-1.5 px-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Force OFF
+                    </button>
+                    <button
+                      onClick={() => { setDevNightOverride(null); showMessage("🕒 Clock Sync Restored"); }}
+                      className="py-1.5 px-1 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-slate-300 text-[9px] font-black uppercase tap-effect"
+                    >
+                      Auto Clock
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5. HABIT SIMULATIONS & STREAKS */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                    <Flame size={12} /> 5. Streak & Habit Testing
+                  </span>
+                  <div className="space-y-2">
+                    <button
+                      onClick={devSimulateMissedDay}
+                      className="w-full py-2 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
+                    >
+                      <span>⚠️ Simulate Missed Day (Yesterday Failed)</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/30">Test Shield</span>
+                    </button>
+                    <button
+                      onClick={devCompleteAllTodayHabits}
+                      className="w-full py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
+                    >
+                      <span>✅ Complete 100% Habits for Today</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/30">Win Day</span>
+                    </button>
+                    <button
+                      onClick={devSimulate30DayStreak}
+                      className="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[10px] font-black uppercase tracking-wide text-left tap-effect flex items-center justify-between"
+                    >
+                      <span>🔥 Inject 30-Day Perfect Streak</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/30">30d Win</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6. FOCUS CHAMBER QUICK TEST */}
+                <div className="p-3.5 rounded-2xl bg-[#0d182e] border border-amber-400/30 space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                    <Timer size={12} /> 6. Focus Chamber Testing
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => startFocusSession()}
+                      className="py-1.5 px-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/40 text-yellow-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      ⚡ Open Chamber
+                    </button>
+                    <button
+                      onClick={fastForwardFocusTimer}
+                      className="py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tap-effect"
+                    >
+                      ⏩ Fast-Forward (3s)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Notice */}
+            <div className="pt-3 border-t border-amber-400/20 text-center">
+              <span className="text-[9px] text-amber-200/50 uppercase font-mono tracking-wider">
+                Isolated Dev QA Mode • Safe to remove anytime
+              </span>
+            </div>
+          </div>
+
+          {/* Click Backdrop to close */}
+          <div className="flex-1" onClick={() => setIsDevHubOpen(false)}></div>
+        </div>
+      )}
     </div>
   );
 }
