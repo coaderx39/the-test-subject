@@ -4921,62 +4921,62 @@ One short, electrifying sentence of raw motivation.`;
       {/* 2. THE TWO-BOX REFLECTION & 9-10 PM CLEANUP SYSTEM */}
       {/* ========================================== */}
       {isTwoBoxModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
-          <div className={`w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative max-h-[90vh] overflow-y-auto`}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400/40 bg-[#0a0f1d] text-white relative max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-xl border ${t.cardInner} ${t.borderAccent}`}>
-                  <Layers className={`w-5 h-5 ${t.textAccent}`} />
+            <div className="flex items-center justify-between pb-4 border-b border-slate-700/80 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-300 shadow-sm">
+                  <Layers className="w-6 h-6 stroke-[2.5]" />
                 </div>
                 <div>
-                  <h3 className={`font-black text-sm sm:text-base uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>
+                  <h3 className="font-black text-base sm:text-lg uppercase tracking-wider text-white">
                     The Two-Box System
                   </h3>
-                  <p className={`text-[10px] font-medium ${t.textMuted}`}>
+                  <p className="text-xs font-medium text-slate-300">
                     Radical Honesty & Daily 9:00 PM – 10:00 PM Habit Cleanup
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsTwoBoxModalOpen(false)}
-                className={`p-2 rounded-xl transition-all tap-effect ${t.cardInner} ${t.textMuted} hover:${t.textMain}`}
+                className="p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white transition-all tap-effect"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10 mb-5">
+            <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 mb-5">
               <button
                 onClick={() => setTwoBoxActiveTab("boxes")}
-                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect ${
                   twoBoxActiveTab === "boxes"
-                    ? `${t.btnPrimary} shadow-md`
-                    : `${t.textMuted} hover:${t.textMain}`
+                    ? "bg-amber-400 text-black shadow-lg"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 📦 Two Boxes
               </button>
               <button
                 onClick={() => setTwoBoxActiveTab("cleanup")}
-                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
+                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
                   twoBoxActiveTab === "cleanup"
-                    ? `${t.btnPrimary} shadow-md`
-                    : `${t.textMuted} hover:${t.textMain}`
+                    ? "bg-amber-400 text-black shadow-lg"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 <span>🧹 9-10 PM Cleanup</span>
                 {isCleanupHourActive() && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                 )}
               </button>
               <button
                 onClick={() => setTwoBoxActiveTab("trophy")}
-                className={`py-2 text-[10px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect ${
+                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect ${
                   twoBoxActiveTab === "trophy"
-                    ? `${t.btnPrimary} shadow-md`
-                    : `${t.textMuted} hover:${t.textMain}`
+                    ? "bg-amber-400 text-black shadow-lg"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 🏆 Trophy Wall
@@ -4990,34 +4990,34 @@ One short, electrifying sentence of raw motivation.`;
                 return (
                   <div className="space-y-5 animate-in fade-in duration-200">
                     {/* Top Info Tile */}
-                    <div className={`p-3 rounded-2xl border flex items-center justify-between ${t.cardInner} ${t.borderAccent}`}>
-                      <span className={`text-[10px] font-black uppercase tracking-wider ${t.textAccent}`}>
+                    <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-amber-300">
                         Active Date: {selectedDate}
                       </span>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-white/10 text-white/70'}`}>
-                        {isCleanupHourActive() ? "🧹 Cleanup Hour is LIVE" : "Next Cleanup: 9:00 PM"}
+                      <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 animate-pulse' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
+                        {isCleanupHourActive() ? "🟢 9-10 PM Cleanup Hour is LIVE" : "⏳ Next Cleanup: 9:00 PM"}
                       </span>
                     </div>
 
                     {/* The 2 Boxes Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Box 1: Failure Box */}
-                      <div className="p-4 rounded-2xl border border-red-500/30 bg-red-950/10 flex flex-col justify-between space-y-3">
+                      <div className="p-4 sm:p-5 rounded-2xl border-2 border-rose-500/50 bg-gradient-to-b from-[#220a0f] to-[#140508] shadow-lg flex flex-col justify-between space-y-3.5">
                         <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-sm font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
                               <span>🛑</span> Box 1: Failure Box
                             </span>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40">
+                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-500/50">
                               {twoBoxData.failures.length} Logged
                             </span>
                           </div>
-                          <p className="text-[10px] text-red-300/70 mb-3">
-                            Document mistakes, distractions, missed habits, and bad triggers.
+                          <p className="text-xs text-slate-200 font-medium mb-3.5">
+                            Document mistakes, distractions, missed habits & triggers.
                           </p>
 
                           {/* Add Failure Input */}
-                          <div className="flex gap-2 mb-3">
+                          <div className="flex gap-2 mb-3.5">
                             <input
                               type="text"
                               value={box1Input}
@@ -5026,21 +5026,21 @@ One short, electrifying sentence of raw motivation.`;
                                 if (e.key === "Enter") addBox1Failure(box1Input);
                               }}
                               placeholder="e.g. Scrolled reels for 45m..."
-                              className="flex-1 p-2.5 text-xs rounded-xl bg-black/50 border border-red-500/30 text-red-100 placeholder:text-red-400/30 focus:border-red-400 outline-none"
+                              className="flex-1 p-3 text-xs sm:text-sm rounded-xl bg-[#0d0406] border-2 border-rose-500/50 text-white placeholder:text-slate-400 font-semibold focus:border-rose-400 outline-none transition-all shadow-inner"
                             />
                             <button
                               onClick={() => addBox1Failure(box1Input)}
-                              className="px-3 py-2 text-xs font-black uppercase rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500 hover:text-white tap-effect"
+                              className="px-4 py-3 text-xs font-black uppercase rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-md tap-effect"
                             >
                               + Add
                             </button>
                           </div>
 
                           {/* Failures List */}
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                             {twoBoxData.failures.length === 0 ? (
-                              <div className="p-4 text-center border border-dashed border-red-500/20 rounded-xl">
-                                <p className="text-[10px] text-red-300/50 italic">
+                              <div className="p-4 text-center border-2 border-dashed border-rose-500/30 bg-rose-950/20 rounded-xl">
+                                <p className="text-xs text-slate-300 font-medium italic">
                                   No failures logged today. Practice radical honesty.
                                 </p>
                               </div>
@@ -5048,17 +5048,17 @@ One short, electrifying sentence of raw motivation.`;
                               twoBoxData.failures.map((f: string, i: number) => (
                                 <div
                                   key={i}
-                                  className="p-2.5 rounded-xl border border-red-500/30 bg-red-950/30 flex items-center justify-between gap-2 text-xs"
+                                  className="p-3 rounded-xl border border-rose-500/40 bg-[#2c0e14] flex items-center justify-between gap-2.5 shadow-sm"
                                 >
-                                  <span className="text-red-200 break-words flex-1 flex items-start gap-1.5">
-                                    <span className="text-red-400 mt-0.5">•</span> {f}
+                                  <span className="text-slate-100 font-semibold text-xs leading-relaxed break-words flex-1 flex items-start gap-2">
+                                    <span className="text-rose-400 font-black text-sm">•</span> {f}
                                   </span>
                                   <button
                                     onClick={() => removeBox1Failure(i)}
-                                    className="text-red-400/60 hover:text-red-300 p-1 tap-effect"
+                                    className="text-rose-300 hover:text-white p-1 tap-effect"
                                     title="Delete entry"
                                   >
-                                    <Trash2 size={13} />
+                                    <Trash2 size={14} />
                                   </button>
                                 </div>
                               ))
@@ -5066,28 +5066,28 @@ One short, electrifying sentence of raw motivation.`;
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-red-500/20 text-[9px] text-red-300/60 flex items-center gap-1">
+                        <div className="pt-2.5 border-t border-rose-500/30 text-[11px] text-rose-200 font-bold flex items-center gap-1.5">
                           <span>💡 Clean these bad habits during 9-10 PM cleanup!</span>
                         </div>
                       </div>
 
                       {/* Box 2: Achievement Box */}
-                      <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/10 flex flex-col justify-between space-y-3">
+                      <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-b from-[#082216] to-[#04140c] shadow-lg flex flex-col justify-between space-y-3.5">
                         <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-sm font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                               <span>🏆</span> Box 2: Achievement Box
                             </span>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/50">
                               {twoBoxData.achievements.length} Wins
                             </span>
                           </div>
-                          <p className="text-[10px] text-emerald-300/70 mb-3">
-                            Document victories, habits completed, personal bests, and focus wins.
+                          <p className="text-xs text-slate-200 font-medium mb-3.5">
+                            Document victories, completed habits, personal bests & focus wins.
                           </p>
 
                           {/* Add Achievement Input */}
-                          <div className="flex gap-2 mb-3">
+                          <div className="flex gap-2 mb-3.5">
                             <input
                               type="text"
                               value={box2Input}
@@ -5096,21 +5096,21 @@ One short, electrifying sentence of raw motivation.`;
                                 if (e.key === "Enter") addBox2Achievement(box2Input);
                               }}
                               placeholder="e.g. Completed 2 hours focus..."
-                              className="flex-1 p-2.5 text-xs rounded-xl bg-black/50 border border-emerald-500/30 text-emerald-100 placeholder:text-emerald-400/30 focus:border-emerald-400 outline-none"
+                              className="flex-1 p-3 text-xs sm:text-sm rounded-xl bg-[#041009] border-2 border-emerald-500/50 text-white placeholder:text-slate-400 font-semibold focus:border-emerald-400 outline-none transition-all shadow-inner"
                             />
                             <button
                               onClick={() => addBox2Achievement(box2Input)}
-                              className={`px-3 py-2 text-xs font-black uppercase rounded-xl ${t.btnPrimary} tap-effect`}
+                              className="px-4 py-3 text-xs font-black uppercase rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black shadow-md tap-effect"
                             >
                               + Win
                             </button>
                           </div>
 
                           {/* Achievements List */}
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                             {twoBoxData.achievements.length === 0 ? (
-                              <div className="p-4 text-center border border-dashed border-emerald-500/20 rounded-xl">
-                                <p className="text-[10px] text-emerald-300/50 italic">
+                              <div className="p-4 text-center border-2 border-dashed border-emerald-500/30 bg-emerald-950/20 rounded-xl">
+                                <p className="text-xs text-slate-300 font-medium italic">
                                   No wins logged yet today. Register your first victory!
                                 </p>
                               </div>
@@ -5118,17 +5118,17 @@ One short, electrifying sentence of raw motivation.`;
                               twoBoxData.achievements.map((a: string, i: number) => (
                                 <div
                                   key={i}
-                                  className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex items-center justify-between gap-2 text-xs"
+                                  className="p-3 rounded-xl border border-emerald-500/40 bg-[#0e3321] flex items-center justify-between gap-2.5 shadow-sm"
                                 >
-                                  <span className="text-emerald-200 break-words flex-1 flex items-start gap-1.5">
-                                    <span className="text-emerald-400 mt-0.5">⭐</span> {a}
+                                  <span className="text-slate-100 font-semibold text-xs leading-relaxed break-words flex-1 flex items-start gap-2">
+                                    <span className="text-yellow-400 font-black text-sm">⭐</span> {a}
                                   </span>
                                   <button
                                     onClick={() => removeBox2Achievement(i)}
-                                    className="text-emerald-400/60 hover:text-emerald-300 p-1 tap-effect"
+                                    className="text-emerald-300 hover:text-white p-1 tap-effect"
                                     title="Delete entry"
                                   >
-                                    <Trash2 size={13} />
+                                    <Trash2 size={14} />
                                   </button>
                                 </div>
                               ))
@@ -5136,25 +5136,25 @@ One short, electrifying sentence of raw motivation.`;
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-emerald-500/20 text-[9px] text-emerald-300/60 flex items-center gap-1">
+                        <div className="pt-2.5 border-t border-emerald-500/30 text-[11px] text-emerald-200 font-bold flex items-center gap-1.5">
                           <span>✨ Stored for your monthly victory momentum!</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Day Willpower & Satisfaction Rating */}
-                    <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${t.cardInner} ${t.borderAccent}`}>
-                      <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider ${t.textAccent}`}>
+                    <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between shadow-md">
+                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
                         Day Discipline Rating:
                       </span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         {[1, 2, 3, 4, 5].map((starVal) => (
                           <button
                             key={starVal}
                             type="button"
                             onClick={() => setTwoBoxRating(starVal)}
-                            className={`text-lg sm:text-xl transition-transform hover:scale-125 tap-effect ${
-                              twoBoxRating >= starVal ? "text-yellow-400" : "text-slate-600"
+                            className={`text-xl sm:text-2xl transition-transform hover:scale-125 tap-effect ${
+                              twoBoxRating >= starVal ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" : "text-slate-600"
                             }`}
                           >
                             ★
@@ -5166,9 +5166,9 @@ One short, electrifying sentence of raw motivation.`;
                     {/* Quick CTA to Cleanup Tab */}
                     <button
                       onClick={() => setTwoBoxActiveTab("cleanup")}
-                      className={`w-full py-3 rounded-2xl border tap-effect text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 ${t.btnWarning}`}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg tap-effect flex items-center justify-center gap-2"
                     >
-                      <Sparkles size={15} /> Open 9:00 PM – 10:00 PM Habit Cleanup Window
+                      <Sparkles size={16} /> Open 9:00 PM – 10:00 PM Habit Cleanup Window
                     </button>
                   </div>
                 );
@@ -5178,55 +5178,55 @@ One short, electrifying sentence of raw motivation.`;
                 return (
                   <div className="space-y-4 animate-in fade-in duration-200">
                     {/* Live Indicator Banner */}
-                    <div className={`p-4 rounded-2xl border ${isCleanupHourActive() ? 'border-emerald-400/60 bg-emerald-950/40 glow-gold-pulse' : 'border-amber-400/40 bg-amber-950/20'}`}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className={`text-xs font-black uppercase tracking-wider flex items-center gap-2 ${isCleanupHourActive() ? 'text-emerald-300' : 'text-amber-300'}`}>
+                    <div className={`p-4 sm:p-5 rounded-2xl border-2 ${isCleanupHourActive() ? 'border-emerald-400 bg-gradient-to-r from-[#06291a] to-[#083522] shadow-[0_0_30px_rgba(52,211,153,0.3)]' : 'border-amber-400/60 bg-gradient-to-r from-[#291e06] to-[#382a08]'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 ${isCleanupHourActive() ? 'text-emerald-300' : 'text-amber-300'}`}>
                           <span>🧹</span> 9:00 PM – 10:00 PM Habit Cleanup Protocol
                         </span>
-                        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase ${isCleanupHourActive() ? 'bg-emerald-400 text-black' : 'bg-amber-400/20 text-amber-300 border border-amber-400/40'}`}>
-                          {isCleanupHourActive() ? "Window Live Now" : "Scheduled (9-10 PM)"}
+                        <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase ${isCleanupHourActive() ? 'bg-emerald-400 text-black shadow-md' : 'bg-amber-400/20 text-amber-200 border border-amber-400/50'}`}>
+                          {isCleanupHourActive() ? "🟢 Window Live Now" : "⏳ Scheduled (9-10 PM)"}
                         </span>
                       </div>
-                      <p className={`text-[10px] sm:text-xs leading-relaxed ${isCleanupHourActive() ? 'text-emerald-200/90' : 'text-amber-200/80'}`}>
-                        Review your daily failures from Box 1. Cleanse bad patterns, transform mistakes into wisdom, and systematically reduce bad habits over time.
+                      <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
+                        Review your daily failures from Box 1. Cleanse bad patterns, transform mistakes into wisdom, and systematically eliminate bad habits over time.
                       </p>
                     </div>
 
                     {/* Bad Habits to Clean */}
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className={`text-xs font-black uppercase tracking-wider ${t.textMain}`}>
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
                           Active Bad Habits to Review ({twoBoxData.failures.length}):
                         </span>
                       </div>
 
                       {twoBoxData.failures.length === 0 ? (
-                        <div className={`p-6 text-center rounded-2xl border border-dashed border-emerald-500/30 ${t.cardInner}`}>
+                        <div className="p-7 text-center rounded-2xl border-2 border-dashed border-emerald-500/40 bg-emerald-950/20">
                           <span className="text-3xl block mb-2">🎉</span>
-                          <p className={`text-xs font-bold text-emerald-400`}>All bad habits cleaned or none logged today!</p>
-                          <p className={`text-[10px] mt-1 ${t.textMuted}`}>Box 1 is empty and Box 2 is primed with your victories.</p>
+                          <p className="text-sm font-bold text-emerald-300">All bad habits cleaned or none logged today!</p>
+                          <p className="text-xs mt-1 text-slate-300 font-medium">Box 1 is clean and Box 2 is primed with your victories.</p>
                         </div>
                       ) : (
                         twoBoxData.failures.map((failItem: string, idx: number) => (
                           <div
                             key={idx}
-                            className={`p-3.5 rounded-2xl border border-white/10 ${t.cardInner} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
+                            className="p-4 rounded-2xl border-2 border-slate-700/80 bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md"
                           >
-                            <div className="flex items-start gap-2">
-                              <span className="text-red-400 font-black text-sm mt-0.5">•</span>
-                              <span className={`text-xs font-medium ${t.textMain}`}>{failItem}</span>
+                            <div className="flex items-start gap-2.5">
+                              <span className="text-rose-400 font-black text-base mt-0.5">•</span>
+                              <span className="text-xs sm:text-sm font-bold text-white leading-relaxed">{failItem}</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <button
                                 onClick={() => cleanBadHabit(idx)}
-                                className="px-3 py-1.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500 hover:text-white text-[10px] font-black uppercase tap-effect flex items-center gap-1"
+                                className="px-3.5 py-2 rounded-xl bg-rose-500/30 hover:bg-rose-500 text-rose-100 hover:text-white border border-rose-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
                                 title="Strike through & eliminate this habit"
                               >
                                 <span>🧹 Clean (+2⭐)</span>
                               </button>
                               <button
                                 onClick={() => convertBadHabitToWin(idx)}
-                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tap-effect flex items-center gap-1 ${t.btnPrimary}`}
+                                className="px-3.5 py-2 rounded-xl bg-emerald-500/30 hover:bg-emerald-500 text-emerald-100 hover:text-black border border-emerald-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
                                 title="Convert this slippage into a victory in Box 2"
                               >
                                 <span>⚡ Convert to Win (+5⭐)</span>
@@ -5239,14 +5239,14 @@ One short, electrifying sentence of raw motivation.`;
 
                     {/* Cleaned Habits History Today */}
                     {twoBoxData.cleanedFailures.length > 0 && (
-                      <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 space-y-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                          <CheckCircle2 size={13} /> Conquered & Cleaned Today ({twoBoxData.cleanedFailures.length}):
+                      <div className="p-4 rounded-2xl border-2 border-emerald-500/50 bg-[#082216] space-y-2.5 shadow-md">
+                        <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                          <CheckCircle2 size={15} /> Conquered & Cleaned Today ({twoBoxData.cleanedFailures.length}):
                         </span>
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           {twoBoxData.cleanedFailures.map((cItem: string, cIdx: number) => (
-                            <div key={cIdx} className="text-[11px] text-emerald-200/80 flex items-center gap-2 line-through opacity-80">
-                              <span>✓</span> {cItem}
+                            <div key={cIdx} className="text-xs text-emerald-100 font-semibold flex items-center gap-2 line-through opacity-85">
+                              <span className="text-emerald-400 font-black">✓</span> {cItem}
                             </div>
                           ))}
                         </div>
@@ -5256,9 +5256,9 @@ One short, electrifying sentence of raw motivation.`;
                     {/* Finalize Daily Cleanup Button */}
                     <button
                       onClick={completeDailyCleanup}
-                      className={`w-full py-3.5 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider shadow-xl tap-effect flex items-center justify-center gap-2 ${t.btnPrimary}`}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:from-emerald-300 hover:to-teal-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(52,211,153,0.4)] tap-effect flex items-center justify-center gap-2"
                     >
-                      <Sparkles size={16} /> Complete Daily Cleanup & Lock In (+10⭐, +30 XP)
+                      <Sparkles size={18} /> Complete Daily Cleanup & Lock In (+10⭐, +30 XP)
                     </button>
                   </div>
                 );
@@ -5270,29 +5270,29 @@ One short, electrifying sentence of raw motivation.`;
                   <div className="space-y-4 animate-in fade-in duration-200">
                     {/* Monthly Highlight Grid */}
                     <div className="grid grid-cols-3 gap-3">
-                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                      <div className="p-4 rounded-2xl border-2 border-amber-400/40 bg-slate-900 text-center shadow-md">
                         <span className="text-2xl block mb-1">🏆</span>
-                        <span className={`text-xl sm:text-2xl font-black block ${t.textAccent}`}>
+                        <span className="text-2xl sm:text-3xl font-black block text-amber-300">
                           {monthlyStats.totalWins}
                         </span>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
                           Box 2 Wins
                         </span>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                      <div className="p-4 rounded-2xl border-2 border-emerald-400/40 bg-slate-900 text-center shadow-md">
                         <span className="text-2xl block mb-1">🧹</span>
-                        <span className={`text-xl sm:text-2xl font-black block text-emerald-400`}>
+                        <span className="text-2xl sm:text-3xl font-black block text-emerald-400">
                           {monthlyStats.totalCleaned}
                         </span>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
                           Habits Cleaned
                         </span>
                       </div>
 
-                      <div className={`p-4 rounded-2xl border text-center ${t.cardInner} ${t.borderAccent}`}>
+                      <div className="p-4 rounded-2xl border-2 border-cyan-400/40 bg-slate-900 text-center shadow-md">
                         <span className="text-2xl block mb-1">⚡</span>
-                        <span className={`text-xl sm:text-2xl font-black block text-yellow-400`}>
+                        <span className="text-2xl sm:text-3xl font-black block text-cyan-300">
                           {monthlyStats.totalWins + monthlyStats.totalCleaned > 0
                             ? Math.round(
                                 (monthlyStats.totalWins /
@@ -5302,35 +5302,35 @@ One short, electrifying sentence of raw motivation.`;
                             : 100}
                           %
                         </span>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
                           Victory Ratio
                         </span>
                       </div>
                     </div>
 
                     {/* Monthly Motivation Stream */}
-                    <div className="space-y-2">
-                      <span className={`text-xs font-black uppercase tracking-wider ${t.textMain}`}>
+                    <div className="space-y-2.5">
+                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
                         This Month's Victory Wall ({monthlyStats.allMonthlyAchievements.length} Achievements):
                       </span>
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                         {monthlyStats.allMonthlyAchievements.length === 0 ? (
-                          <div className={`p-8 text-center rounded-2xl border border-dashed ${t.cardInner}`}>
+                          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900">
                             <span className="text-3xl block mb-2 opacity-60">📜</span>
-                            <p className={`text-xs font-semibold ${t.textMuted}`}>No achievements recorded this month yet.</p>
-                            <p className={`text-[10px] mt-1 ${t.textMuted}`}>Log your wins in Box 2 to build your monthly momentum!</p>
+                            <p className="text-xs font-bold text-slate-200">No achievements recorded this month yet.</p>
+                            <p className="text-[11px] mt-1 text-slate-400">Log your wins in Box 2 to build your monthly momentum!</p>
                           </div>
                         ) : (
                           monthlyStats.allMonthlyAchievements.map((item, mIdx) => (
                             <div
                               key={mIdx}
-                              className={`p-3 rounded-xl border border-emerald-500/20 bg-emerald-950/10 flex items-center justify-between gap-2`}
+                              className="p-3.5 rounded-xl border-2 border-emerald-500/40 bg-[#082216] flex items-center justify-between gap-2.5 shadow-sm"
                             >
-                              <div className="flex items-center gap-2">
-                                <span className="text-emerald-400">⭐</span>
-                                <span className="text-xs text-emerald-100 font-medium">{item.text}</span>
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-yellow-400 text-base">⭐</span>
+                                <span className="text-xs sm:text-sm text-slate-100 font-bold">{item.text}</span>
                               </div>
-                              <span className="text-[9px] font-mono text-emerald-400/60 font-bold">
+                              <span className="text-xs font-mono text-emerald-300 font-black px-2 py-0.5 rounded bg-black/40 border border-emerald-500/30">
                                 {item.date}
                               </span>
                             </div>
