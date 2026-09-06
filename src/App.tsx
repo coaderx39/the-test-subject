@@ -10,6 +10,8 @@ import {
   getFirestore,
   doc,
   setDoc,
+  deleteDoc,
+  getDocs,
   collection,
   onSnapshot,
 } from "firebase/firestore";
@@ -3989,6 +3991,118 @@ One short, electrifying sentence of raw motivation.`;
     showMessage("🔥 Injected 30-Day Perfect Streak across past 30 days!");
   };
 
+  const devFactoryResetApp = async () => {
+    const confirmed = window.confirm(
+      "⚠️ DANGER: FACTORY RESET ENTIRE APP?\n\nThis will completely wipe all habits, Second Brain tasks, Krishna chat logs, XP, stars, streak shields, and reflections from both local storage and cloud database. The app will restart completely fresh from 0 as a brand-new installation.\n\nAre you sure you want to proceed?"
+    );
+    if (!confirmed) return;
+
+    try {
+      showMessage("⏳ Factory Resetting App to Fresh State...");
+
+      // 1. Initial Fresh Default Objects
+      const freshProfile = {
+        name: "Prateek Maurya",
+        stars: 0,
+        streakShields: 0,
+        xp: 0,
+        totalFocusMinutes: 0,
+        geminiKey: "",
+        inventory: [],
+        dp: "",
+        activeTheme: "brutalist",
+        customTasks: DEFAULT_TASKS,
+        customShopItems: ensureShopItems(SHOP_ITEMS),
+      };
+
+      const freshBrain = {
+        syllabusCategories: ["Raw Backlog"],
+        stagingTopics: [],
+        studyTopics: [],
+        masteredTopics: [],
+        wisdomCategories: ["Quick Thoughts"],
+        wisdomNotes: [],
+        vaultNotes: [],
+        vaultCategories: ["Others"],
+        globalDeadlineDays: 30,
+        customMissions: [],
+        lastActiveDate: getRealTodayStr(),
+      };
+
+      const freshKrishna: KrishnaState = {
+        conversations: [],
+        activeConversationId: null,
+      };
+
+      const freshTracker: Record<string, any> = {};
+
+      // 2. Wipe LocalStorage completely and re-seed clean defaults
+      localStorage.clear();
+      try {
+        localStorage.setItem("apex_profile_v5", JSON.stringify(freshProfile));
+        localStorage.setItem("apex_brain_v5", JSON.stringify(freshBrain));
+        localStorage.setItem("apex_krishna_v5", JSON.stringify(freshKrishna));
+        localStorage.setItem("apex_tracker_v5", JSON.stringify(freshTracker));
+      } catch (e) {
+        console.warn("Storage reset write error:", e);
+      }
+
+      // 3. Wipe Firestore Cloud Documents if user is connected
+      if (user && db) {
+        await setDoc(doc(db, "artifacts", appId, "users", user.uid, "rpg_profile", "data"), freshProfile);
+        await setDoc(doc(db, "artifacts", appId, "users", user.uid, "second_brain", "data"), freshBrain);
+        await setDoc(doc(db, "artifacts", appId, "users", user.uid, "my_krishna", "data"), freshKrishna);
+
+        try {
+          const trackerSnap = await getDocs(collection(db, "artifacts", appId, "users", user.uid, "tracker_data"));
+          const deletePromises = trackerSnap.docs.map((d) => deleteDoc(d.ref));
+          await Promise.all(deletePromises);
+        } catch (err) {
+          console.warn("Error wiping tracker collection in Firestore:", err);
+        }
+      }
+
+      // 4. Reset in-memory React states immediately
+      setProfile(freshProfile);
+      setBrain(freshBrain);
+      setKrishnaState(freshKrishna);
+      setTrackerData(freshTracker);
+      const realToday = getRealTodayStr();
+      setTodayStr(realToday);
+      setSelectedDate(realToday);
+      const [y, m] = realToday.split("-");
+      setCalYear(parseInt(y));
+      setCalMonth(parseInt(m) - 1);
+      setDevNightOverride(null);
+      setDevForceCleanupHour(null);
+      setFocusState({
+        isOpen: false,
+        mode: "pomodoro",
+        durationMinutes: 25,
+        customTimerMinutes: 10,
+        secondsLeft: 25 * 60,
+        isRunning: false,
+        isBreak: false,
+        taskId: null,
+        taskTitle: null,
+        topicId: null,
+        totalFocusedSeconds: 0,
+      });
+      setChatMessages([{ role: "ai", text: "I am your Habit Tracker Coach. What's on your mind today?" }]);
+      setChatInput("");
+      setIsDevHubOpen(false);
+
+      showMessage("✨ App completely reset to factory default! Fresh install state active.");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error("Factory reset failed:", error);
+      showMessage("❌ Factory reset failed. Please try again.");
+    }
+  };
+
   // ==========================================
   // RENDER: MY KRISHNA DIVINE OS
   // ==========================================
@@ -5714,6 +5828,28 @@ One short, electrifying sentence of raw motivation.`;
                       🧪 Test Cleanup
                     </button>
                   </div>
+                </div>
+
+                {/* 8. DANGER ZONE: FACTORY RESET APP (START FROM 0) */}
+                <div className="p-3.5 rounded-2xl bg-red-950/40 border-2 border-red-500/60 space-y-2.5 shadow-lg shadow-red-950/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                      <AlertTriangle size={13} className="stroke-[2.5]" /> 8. Factory Reset
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 border border-red-500/40 font-mono">
+                      FRESH INSTALL (0)
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-red-200/80 leading-relaxed font-medium">
+                    Wipes all local & cloud data (habits, tasks, Krishna chats, stars, XP, shields, reflections) and resets the entire app to fresh-install defaults.
+                  </p>
+                  <button
+                    onClick={devFactoryResetApp}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-red-900/50 border border-red-400/60 tap-effect flex items-center justify-center gap-2 transition-all"
+                  >
+                    <RotateCcw size={14} className="stroke-[3]" />
+                    <span>Reset App (Factory Reset)</span>
+                  </button>
                 </div>
               </div>
             </div>
