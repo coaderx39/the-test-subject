@@ -20,7 +20,7 @@ import {
   ArrowLeft, Zap, Check, History, Target, Shield, Camera, Edit3, Trash2, Plus,
   BrainCircuit, Circle, Send, Skull, Trophy, FolderOpen, MoveRight,
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
-  ShieldAlert, Mic, Clock, Volume2, Pause, Play, Loader2
+  ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle
 } from "lucide-react";
 
 declare const __initial_auth_token: any;
@@ -341,6 +341,7 @@ interface KrishnaMessage {
   role: 'user' | 'model';
   text: string;
   timestamp: string;
+  voiceText?: string;
 }
 
 interface KrishnaConversation {
@@ -355,6 +356,8 @@ interface KrishnaState {
   conversations: KrishnaConversation[];
   activeConversationId: string | null;
 }
+
+type KrishnaVoiceStatus = "idle" | "loading" | "playing" | "paused" | "error";
 
 // ==========================================
 // CUSTOM HOOKS
@@ -597,7 +600,16 @@ export default function App() {
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
   const [editTitleText, setEditTitleText] = useState("");
   const [isKrishnaVoiceListening, setIsKrishnaVoiceListening] = useState(false);
+  const [krishnaVoice, setKrishnaVoice] = useState<{
+    messageId: string | null;
+    status: KrishnaVoiceStatus;
+    error?: string;
+  }>({ messageId: null, status: "idle" });
+  const [krishnaVoiceScripts, setKrishnaVoiceScripts] = useState<Record<string, string>>({});
   const krishnaChatEndRef = useRef<HTMLDivElement | null>(null);
+  const krishnaVoiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const krishnaVoiceAudioUrlRef = useRef<string | null>(null);
+  const krishnaVoiceMessageRef = useRef<string | null>(null);
 
   const t = (THEMES as any)[profile.activeTheme] || THEMES.brutalist;
 
@@ -2379,7 +2391,7 @@ CORE MANNERISMS & ESSENCE:
   // ==========================================
   const renderBrainDashboard = () => {
     const remainingChapters = brain.stagingTopics.length;
-    const pace = remainingChapters > 0 ? (brain.globalDeadlineDays / remainingChapters).toFixed(1) : 0;
+    const pace = remainingChapters > 0 ? brain.globalDeadlineDays / remainingChapters : 0;
 
     let paceStatus = { text: "ON TRACK", color: t.textMain };
     if (pace < 1 && remainingChapters > 0) paceStatus = { text: "DANGER", color: "text-red-500" };
@@ -3099,6 +3111,204 @@ CORE MANNERISMS & ESSENCE:
     }
   };
 
+  // The free Edge neural voice layer first creates a longer spoken explanation
+  // and then turns it into Hindi/Hinglish audio on the API server.
+  const getKrishnaNarrationText = (text: string) =>
+    text
+      .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, ""))
+      .replace(/[*_`#>]/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+  const prepareKrishnaNarration = async (message: KrishnaMessage) => {
+    const cachedScript = message.voiceText || krishnaVoiceScripts[message.id];
+    if (cachedScript) return getKrishnaNarrationText(cachedScript);
+
+    const writtenReply = getKrishnaNarrationText(message.text);
+    if (!profile.geminiKey || writtenReply.length < 80) {
+      return writtenReply;
+    }
+
+    try {
+      const expandedReply = await callGeminiApi(
+        profile.geminiKey,
+        [{
+          role: "user",
+          parts: [{
+            text: `Create a spoken narration for this Krishna guidance:\n\n${writtenReply}`
+          }]
+        }],
+        `You are preparing the voice companion version of a written Shri Krishna guidance reply.
+Keep every important idea, instruction, shloka reference, and emotional nuance from the written answer.
+Expand it into a gentle, clear, human-sounding 2 to 4 paragraph explanation for listening.
+Use natural Hindi/Hinglish matching the reply's language. Add soft connective explanations and practical meaning,
+but do not invent new claims or change the advice. Do not use headings, bullet points, markdown, emojis,
+stage directions, or meta commentary. Write only the narration script, with comfortable sentence lengths and
+natural pauses created by punctuation.`,
+        false
+      );
+      const cleanedReply = getKrishnaNarrationText(expandedReply);
+      if (cleanedReply.length > writtenReply.length) {
+        setKrishnaVoiceScripts((current) => ({ ...current, [message.id]: cleanedReply }));
+        return cleanedReply;
+      }
+    } catch (error) {
+      console.warn("Krishna extended narration unavailable; using written reply.", error);
+    }
+
+    return writtenReply;
+  };
+
+  const releaseKrishnaVoiceAudio = () => {
+    const audio = krishnaVoiceAudioRef.current;
+    if (audio) {
+      audio.onplay = null;
+      audio.onpause = null;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    }
+    krishnaVoiceAudioRef.current = null;
+    if (krishnaVoiceAudioUrlRef.current) {
+      URL.revokeObjectURL(krishnaVoiceAudioUrlRef.current);
+      krishnaVoiceAudioUrlRef.current = null;
+    }
+  };
+
+  const stopKrishnaVoice = () => {
+    krishnaVoiceMessageRef.current = null;
+    releaseKrishnaVoiceAudio();
+    setKrishnaVoice({ messageId: null, status: "idle" });
+  };
+
+  const speakKrishnaMessage = async (message: KrishnaMessage) => {
+    krishnaVoiceMessageRef.current = message.id;
+    setKrishnaVoice({ messageId: message.id, status: "loading" });
+    const narration = await prepareKrishnaNarration(message);
+    if (krishnaVoiceMessageRef.current !== message.id) return;
+    if (!narration) return;
+
+    releaseKrishnaVoiceAudio();
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: narration }),
+      });
+
+      if (!response.ok) {
+        let message = "Free neural voice could not be generated. Try again.";
+        try {
+          const details = await response.json();
+          if (typeof details?.error === "string") message = details.error;
+        } catch {
+          // Keep the friendly fallback message when the response is not JSON.
+        }
+        throw new Error(message);
+      }
+
+      const audioUrl = URL.createObjectURL(await response.blob());
+      if (krishnaVoiceMessageRef.current !== message.id) {
+        URL.revokeObjectURL(audioUrl);
+        return;
+      }
+
+      const audio = new Audio(audioUrl);
+      audio.preload = "auto";
+      audio.volume = 0.95;
+      krishnaVoiceAudioRef.current = audio;
+      krishnaVoiceAudioUrlRef.current = audioUrl;
+
+      audio.onplay = () => {
+        if (krishnaVoiceMessageRef.current === message.id) {
+          setKrishnaVoice({ messageId: message.id, status: "playing" });
+        }
+      };
+      audio.onpause = () => {
+        if (
+          krishnaVoiceMessageRef.current === message.id &&
+          !audio.ended &&
+          audio.currentTime > 0
+        ) {
+          setKrishnaVoice({ messageId: message.id, status: "paused" });
+        }
+      };
+      audio.onended = () => {
+        if (krishnaVoiceMessageRef.current === message.id) {
+          krishnaVoiceMessageRef.current = null;
+          releaseKrishnaVoiceAudio();
+          setKrishnaVoice({ messageId: null, status: "idle" });
+        }
+      };
+      audio.onerror = () => {
+        if (krishnaVoiceMessageRef.current !== message.id) return;
+        krishnaVoiceMessageRef.current = null;
+        releaseKrishnaVoiceAudio();
+        setKrishnaVoice({
+          messageId: message.id,
+          status: "error",
+          error: "Free neural voice audio could not play. Try again.",
+        });
+      };
+
+      await audio.play();
+      if (krishnaVoiceMessageRef.current === message.id) {
+        setKrishnaVoice({ messageId: message.id, status: "playing" });
+      }
+    } catch (error) {
+      if (krishnaVoiceMessageRef.current !== message.id) return;
+      krishnaVoiceMessageRef.current = null;
+      releaseKrishnaVoiceAudio();
+      setKrishnaVoice({
+        messageId: message.id,
+        status: "error",
+        error: error instanceof Error ? error.message : "Free neural voice could not start. Try again.",
+      });
+    }
+  };
+
+  const toggleKrishnaVoice = (message: KrishnaMessage) => {
+    if (krishnaVoice.messageId !== message.id || krishnaVoice.status === "idle" || krishnaVoice.status === "error") {
+      speakKrishnaMessage(message);
+      return;
+    }
+    if (krishnaVoice.status === "loading") {
+      stopKrishnaVoice();
+      return;
+    }
+    const audio = krishnaVoiceAudioRef.current;
+    if (!audio) return;
+    if (krishnaVoice.status === "playing") {
+      audio.pause();
+      setKrishnaVoice((current) => ({ ...current, status: "paused" }));
+    } else if (krishnaVoice.status === "paused") {
+      audio.play().then(
+        () => setKrishnaVoice((current) => ({ ...current, status: "playing" })),
+        () =>
+          setKrishnaVoice({
+            messageId: message.id,
+            status: "error",
+            error: "Free neural voice could not resume. Try again.",
+          }),
+      );
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      krishnaVoiceMessageRef.current = null;
+      releaseKrishnaVoiceAudio();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (appMode !== "krishna" && krishnaVoiceMessageRef.current) {
+      stopKrishnaVoice();
+    }
+  }, [appMode]);
+
   // ==========================================
   // RENDER: MY KRISHNA DIVINE OS
   // ==========================================
@@ -3478,6 +3688,85 @@ CORE MANNERISMS & ESSENCE:
                       {!isUser && (
                         <div className="text-right text-[8px] opacity-60 font-mono mt-2 text-amber-200/60">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
+
+                      {!isUser && (
+                        <div className="krishna-voice-reply mt-4" data-testid={`voice-reply-${msg.id}`}>
+                          <div className="krishna-voice-heading">
+                            <span className="flex items-center gap-1.5">
+                              <Volume2 size={13} />
+                              <span>Voice reply</span>
+                            </span>
+                            <span className="krishna-voice-note">Free neural voice</span>
+                          </div>
+
+                          {krishnaVoice.messageId === msg.id && krishnaVoice.status === "error" ? (
+                            <div className="krishna-voice-error" role="status" data-testid={`voice-error-${msg.id}`}>
+                              <span>{krishnaVoice.error || "Voice playback could not start."}</span>
+                              <button
+                                type="button"
+                                onClick={() => speakKrishnaMessage(msg)}
+                                className="krishna-voice-retry"
+                                data-testid={`button-retry-voice-${msg.id}`}
+                              >
+                                <RotateCcw size={13} />
+                                <span>Retry</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="krishna-voice-controls">
+                              <button
+                                type="button"
+                                onClick={() => toggleKrishnaVoice(msg)}
+                                className="krishna-voice-primary"
+                                data-testid={`button-play-voice-${msg.id}`}
+                                aria-label={
+                                  krishnaVoice.messageId === msg.id && krishnaVoice.status === "playing"
+                                    ? "Pause voice reply"
+                                    : krishnaVoice.messageId === msg.id && krishnaVoice.status === "paused"
+                                      ? "Resume voice reply"
+                                      : "Play voice reply"
+                                }
+                              >
+                                {krishnaVoice.messageId === msg.id && krishnaVoice.status === "loading" ? (
+                                  <span className="krishna-voice-loading-bars" aria-hidden="true">
+                                    <i></i><i></i><i></i>
+                                  </span>
+                                ) : krishnaVoice.messageId === msg.id && krishnaVoice.status === "playing" ? (
+                                  <Pause size={14} />
+                                ) : (
+                                  <Play size={14} />
+                                )}
+                                <span>
+                                  {krishnaVoice.messageId === msg.id && krishnaVoice.status === "loading"
+                                    ? "Preparing"
+                                    : krishnaVoice.messageId === msg.id && krishnaVoice.status === "playing"
+                                      ? "Pause"
+                                      : krishnaVoice.messageId === msg.id && krishnaVoice.status === "paused"
+                                        ? "Resume"
+                                        : "Listen"}
+                                </span>
+                              </button>
+                              {krishnaVoice.messageId === msg.id &&
+                                ["loading", "playing", "paused"].includes(krishnaVoice.status) && (
+                                  <button
+                                    type="button"
+                                    onClick={stopKrishnaVoice}
+                                    className="krishna-voice-stop"
+                                    data-testid={`button-stop-voice-${msg.id}`}
+                                  >
+                                    <Square size={12} />
+                                    <span>Stop</span>
+                                  </button>
+                                )}
+                              <span className="krishna-voice-secondary-copy">
+                                {krishnaVoice.messageId === msg.id && krishnaVoice.status === "paused"
+                                  ? "Paused"
+                                  : "Written guidance remains primary"}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
 
