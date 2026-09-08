@@ -1334,6 +1334,216 @@ export default function App() {
   };
 
   // ==========================================
+  // 📱 MOBILE & BROWSER HARDWARE BACK NAVIGATION ENGINE
+  // ==========================================
+  const lastBackPressTimeRef = useRef<number>(0);
+  const isNavigatingBackRef = useRef<boolean>(false);
+
+  const currentViewRef = useRef({
+    appMode,
+    habitRoute,
+    settingsRoute,
+    brainTab,
+    isDevHubOpen,
+    isScheduleModalOpen,
+    isRankRoadmapOpen,
+    rankTransitionModal,
+    isTwoBoxModalOpen,
+    isWeeklyReviewOpen,
+    isNightShiftOpen,
+    isFocusOpen: focusState.isOpen,
+    isConvDrawerOpen,
+    activeConversationId: krishnaState.activeConversationId,
+    expandedWisdomCategory,
+    expandedVaultCategory,
+  });
+
+  useEffect(() => {
+    currentViewRef.current = {
+      appMode,
+      habitRoute,
+      settingsRoute,
+      brainTab,
+      isDevHubOpen,
+      isScheduleModalOpen,
+      isRankRoadmapOpen,
+      rankTransitionModal,
+      isTwoBoxModalOpen,
+      isWeeklyReviewOpen,
+      isNightShiftOpen,
+      isFocusOpen: focusState.isOpen,
+      isConvDrawerOpen,
+      activeConversationId: krishnaState.activeConversationId,
+      expandedWisdomCategory,
+      expandedVaultCategory,
+    };
+  });
+
+  const getNavSignature = () => {
+    const v = currentViewRef.current;
+    const parts: string[] = [];
+    if (v.appMode !== "habit") parts.push(`mode:${v.appMode}`);
+    if (v.habitRoute !== "hub") parts.push(`habit:${v.habitRoute}`);
+    if (v.settingsRoute !== "menu") parts.push(`settings:${v.settingsRoute}`);
+    if (v.brainTab !== "dashboard") parts.push(`brain:${v.brainTab}`);
+    if (v.isDevHubOpen) parts.push("modal:dev");
+    if (v.isScheduleModalOpen) parts.push("modal:schedule");
+    if (v.isRankRoadmapOpen) parts.push("modal:rank");
+    if (v.rankTransitionModal) parts.push("modal:rankTransition");
+    if (v.isTwoBoxModalOpen) parts.push("modal:twoBox");
+    if (v.isWeeklyReviewOpen) parts.push("modal:weeklyReview");
+    if (v.isNightShiftOpen) parts.push("modal:nightShift");
+    if (v.isFocusOpen) parts.push("modal:focus");
+    if (v.isConvDrawerOpen) parts.push("drawer:conv");
+    if (v.activeConversationId) parts.push(`conv:${v.activeConversationId}`);
+    if (v.expandedWisdomCategory) parts.push(`wisdom:${v.expandedWisdomCategory}`);
+    if (v.expandedVaultCategory) parts.push(`vault:${v.expandedVaultCategory}`);
+    return parts.join("|");
+  };
+
+  const lastNavSigRef = useRef<string>("");
+
+  useEffect(() => {
+    const sig = getNavSignature();
+    if (isNavigatingBackRef.current) {
+      isNavigatingBackRef.current = false;
+      lastNavSigRef.current = sig;
+      return;
+    }
+
+    if (sig !== lastNavSigRef.current) {
+      if (sig.length > 0) {
+        try {
+          window.history.pushState({ appNav: true, sig }, "");
+        } catch (e) {
+          console.warn("history pushState error:", e);
+        }
+      }
+      lastNavSigRef.current = sig;
+    }
+  }, [
+    appMode,
+    habitRoute,
+    settingsRoute,
+    brainTab,
+    isDevHubOpen,
+    isScheduleModalOpen,
+    isRankRoadmapOpen,
+    rankTransitionModal,
+    isTwoBoxModalOpen,
+    isWeeklyReviewOpen,
+    isNightShiftOpen,
+    focusState.isOpen,
+    isConvDrawerOpen,
+    krishnaState.activeConversationId,
+    expandedWisdomCategory,
+    expandedVaultCategory,
+  ]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const v = currentViewRef.current;
+      isNavigatingBackRef.current = true;
+
+      // 1. Modals & Overlays (Top-most priority)
+      if (v.isDevHubOpen) {
+        setIsDevHubOpen(false);
+        return;
+      }
+      if (v.isScheduleModalOpen) {
+        setIsScheduleModalOpen(false);
+        return;
+      }
+      if (v.isRankRoadmapOpen) {
+        setIsRankRoadmapOpen(false);
+        return;
+      }
+      if (v.rankTransitionModal) {
+        setRankTransitionModal(null);
+        return;
+      }
+      if (v.isTwoBoxModalOpen) {
+        setIsTwoBoxModalOpen(false);
+        return;
+      }
+      if (v.isWeeklyReviewOpen) {
+        setIsWeeklyReviewOpen(false);
+        return;
+      }
+      if (v.isNightShiftOpen) {
+        setIsNightShiftOpen(false);
+        return;
+      }
+      if (v.isFocusOpen) {
+        setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false }));
+        return;
+      }
+      if (v.isConvDrawerOpen) {
+        setIsConvDrawerOpen(false);
+        return;
+      }
+
+      // 2. Expanded Category Sheets & Active Conversations
+      if (v.expandedWisdomCategory) {
+        setExpandedWisdomCategory(null);
+        return;
+      }
+      if (v.expandedVaultCategory) {
+        setExpandedVaultCategory(null);
+        return;
+      }
+      if (v.activeConversationId) {
+        setKrishnaState((prev) => ({ ...prev, activeConversationId: null }));
+        return;
+      }
+
+      // 3. Settings Sub-Menu Navigation
+      if (v.habitRoute === "settings" && v.settingsRoute !== "menu") {
+        setSettingsRoute("menu");
+        return;
+      }
+
+      // 4. Habit OS Sub-Routes (Arena, Tracker, Shop, Settings, Analysis, Plan)
+      if (v.appMode === "habit" && v.habitRoute !== "hub") {
+        setHabitRoute("hub");
+        return;
+      }
+
+      // 5. Second Brain Sub-Routes (Queue/Study, History, Wisdom, Vault, Urge)
+      if (v.appMode === "brain" && v.brainTab !== "dashboard") {
+        setBrainTab("dashboard");
+        return;
+      }
+
+      // 6. Non-Habit Modes (Second Brain, My Krishna)
+      if (v.appMode !== "habit") {
+        setAppMode("habit");
+        setHabitRoute("hub");
+        return;
+      }
+
+      // 7. Root Screen (Habit OS Hub) - Double tap back to exit prevention
+      const now = Date.now();
+      if (now - lastBackPressTimeRef.current < 2000) {
+        try {
+          window.history.back();
+        } catch (e) {}
+      } else {
+        lastBackPressTimeRef.current = now;
+        showMessage("Tap back again to exit Second Brain");
+        try {
+          window.history.pushState({ rootGuard: true }, "");
+        } catch (e) {}
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // ==========================================
   // SMART PROACTIVE NOTIFICATION & SCHEDULE ENGINE
   // ==========================================
   const NOTIFICATION_STORAGE_KEY = "apex_notifications_dispatched_v1";
