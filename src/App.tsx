@@ -6674,34 +6674,58 @@ One short, electrifying sentence of raw motivation.`;
   };
 
   // ==========================================
-  // TOP BAR & APP WRAPPER
+  // TOP BAR & APP WRAPPER (MOBILE-FIRST ARCHITECTURE)
   // ==========================================
   return (
-    <div className={`min-h-screen ${t.appBg} ${t.fontHeading} transition-colors duration-500 relative`}>
-      {/* TOP BAR SWITCH */}
-      <div className={`fixed top-0 left-0 w-full z-40 p-3 sm:p-4 bg-inherit/80 backdrop-blur-xl border-b ${t.borderAccent} opacity-95 flex justify-center items-center`}>
-        <div className={`flex w-full max-w-md sm:max-w-lg rounded-3xl p-1.5 border-2 shadow-2xl shadow-black/20 ${t.cardInner} ${t.borderAccent}`}>
-          <button onClick={() => setAppMode("habit")} className={`flex-1 py-2 sm:py-2.5 text-[9px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-2xl transition-all duration-300 tap-effect ${appMode === 'habit' ? t.btnPrimary : t.textMuted + ' hover:' + t.textMain}`}>HABIT OS</button>
-          <button onClick={() => setAppMode("brain")} className={`flex-1 py-2 sm:py-2.5 text-[9px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-2xl transition-all duration-300 tap-effect ${appMode === 'brain' ? t.btnPrimary : t.textMuted + ' hover:' + t.textMain}`}>SECOND BRAIN</button>
-          <button onClick={() => setAppMode("krishna")} className={`flex-1 py-2 sm:py-2.5 text-[9px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-2xl transition-all duration-300 tap-effect ${appMode === 'krishna' ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border border-amber-300' : 'text-amber-400/70 hover:text-amber-300'}`}>MY KRISHNA 🪶</button>
+    <div className={`min-h-screen ${t.appBg} ${t.fontHeading} transition-colors duration-500 relative overflow-x-hidden`}>
+      {/* FLOATING TOP MODE CAPSULE (MOBILE ERGONOMIC) */}
+      <div className="fixed top-0 left-0 w-full z-40 px-2.5 sm:px-4 pt-[max(env(safe-area-inset-top,0px),0.5rem)] pb-2 bg-black/60 backdrop-blur-2xl border-b border-white/10 flex justify-center items-center">
+        <div className={`flex w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-1 border shadow-2xl shadow-black/40 ${t.cardInner} ${t.borderAccent}`}>
+          <button
+            onClick={() => setAppMode("habit")}
+            className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
+              appMode === 'habit' ? `${t.btnPrimary} shadow-md` : `${t.textMuted} hover:${t.textMain}`
+            }`}
+          >
+            HABIT OS
+          </button>
+          <button
+            onClick={() => setAppMode("brain")}
+            className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
+              appMode === 'brain' ? `${t.btnPrimary} shadow-md` : `${t.textMuted} hover:${t.textMain}`
+            }`}
+          >
+            SECOND BRAIN
+          </button>
+          <button
+            onClick={() => setAppMode("krishna")}
+            className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
+              appMode === 'krishna'
+                ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border border-amber-300'
+                : 'text-amber-400/80 hover:text-amber-300'
+            }`}
+          >
+            MY KRISHNA 🪶
+          </button>
         </div>
       </div>
 
-      <div className="p-4 md:p-8 relative pt-24 sm:pt-28 pb-28 sm:pb-24">
+      {/* MAIN VIEWPORT CONTAINER WITH RESPONSIVE SAFE-AREA PADDING */}
+      <div className="w-full max-w-4xl mx-auto px-3 sm:px-5 pt-20 sm:pt-24 pb-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] relative">
         {toast && (
-          <div className={`fixed top-28 sm:top-32 left-1/2 transform -translate-x-1/2 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-2xl shadow-black/40 z-[100] animate-bounce flex items-center gap-3 text-[10px] sm:text-sm uppercase tracking-widest ${t.badge} ${t.fontHeading} ${t.cardBorder}`}>
-            <Check size={18} className={`sm:size-5 ${t.textAccent ? t.textAccent : 'text-current'}`} /> {toast}
+          <div className={`fixed top-20 sm:top-24 left-1/2 transform -translate-x-1/2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-2xl shadow-2xl shadow-black/50 z-[100] animate-scale-pop flex items-center gap-2.5 text-[10px] sm:text-xs uppercase tracking-widest ${t.badge} ${t.fontHeading} border ${t.borderAccent}`}>
+            <Check size={16} className={`sm:size-5 ${t.textAccent ? t.textAccent : 'text-current'}`} /> {toast}
           </div>
         )}
         {errorMsg && (
-          <div className={`max-w-5xl mx-auto p-3 sm:p-4 mb-4 sm:mb-6 rounded-2xl flex items-start gap-3 shadow-2xl text-[10px] sm:text-sm uppercase tracking-widest bg-red-900/90 backdrop-blur-xl text-white ${t.fontHeading}`}>
-            <AlertTriangle size={18} className="sm:size-5 mt-0.5 flex-shrink-0" />
+          <div className={`w-full p-3 sm:p-4 mb-4 rounded-2xl flex items-start gap-2.5 shadow-2xl text-[10px] sm:text-xs uppercase tracking-widest bg-red-900/90 backdrop-blur-xl text-white ${t.fontHeading} border border-red-500/40`}>
+            <AlertTriangle size={16} className="sm:size-5 mt-0.5 flex-shrink-0 text-red-300" />
             <span className="flex-1 leading-relaxed">{errorMsg}</span>
-            <button onClick={() => setErrorMsg("")} className="hover:opacity-70 active:scale-90"><X size={16} className="sm:size-5" /></button>
+            <button onClick={() => setErrorMsg("")} className="hover:opacity-70 active:scale-90 p-1"><X size={14} className="sm:size-4" /></button>
           </div>
         )}
 
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
           {appMode === 'habit' && (
             <>
               {habitRoute === "hub" && renderHabitHub()}
@@ -6713,6 +6737,44 @@ One short, electrifying sentence of raw motivation.`;
               {habitRoute === "plan" && renderOngoingPlan()}
               {habitRoute === "vault" && renderVault()}
               {habitRoute === "coach" && renderCoach()}
+
+              {/* HABIT OS MOBILE BOTTOM NAVIGATION BAR */}
+              <div className={`fixed bottom-0 left-0 w-full border-t z-40 overflow-hidden backdrop-blur-2xl ${t.card} border-white/10`}>
+                <div className="max-w-md sm:max-w-lg mx-auto grid grid-cols-5 px-1 py-1 sm:py-1.5 pb-[calc(env(safe-area-inset-bottom,0px)+6px)]">
+                  {[
+                    { id: 'hub', icon: Trophy, label: 'HUB' },
+                    { id: 'arena', icon: Swords, label: 'ARENA' },
+                    {
+                      id: 'tracker',
+                      icon: CheckSquare,
+                      label: 'TRACKER',
+                      onClick: () => {
+                        setSelectedDate(todayStr);
+                        setUnlockedBlankDate(null);
+                        setHabitRoute('tracker');
+                      }
+                    },
+                    { id: 'shop', icon: ShoppingCart, label: 'SHOP' },
+                    { id: 'analysis', icon: BarChart2, label: 'STATS' },
+                  ].map((tab: any) => {
+                    const isActive = habitRoute === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => tab.onClick ? tab.onClick() : setHabitRoute(tab.id)}
+                        className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-xl transition-all duration-200 tap-effect ${
+                          isActive
+                            ? `${t.textAccent} font-black scale-105`
+                            : `${t.textMuted} hover:${t.textMain} font-bold opacity-70`
+                        }`}
+                      >
+                        <tab.icon size={18} className={isActive ? 'stroke-[2.5]' : 'stroke-2'} />
+                        <span className="text-[8px] sm:text-[9px] uppercase tracking-wider">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </>
           )}
 
@@ -6727,36 +6789,58 @@ One short, electrifying sentence of raw motivation.`;
 
               {/* Night Shift Widget */}
               {isNightTime && (
-                <div className="fixed bottom-28 sm:bottom-32 right-4 z-40 flex flex-col items-end">
+                <div className="fixed bottom-24 sm:bottom-28 right-3.5 sm:right-5 z-40 flex flex-col items-end">
                   {!isNightShiftOpen ? (
-                    <button onClick={() => setIsNightShiftOpen(true)} className={`px-5 sm:px-7 py-3 sm:py-4 flex items-center gap-2 sm:gap-3 text-xs sm:text-sm uppercase tracking-widest rounded-2xl tap-effect hover-lift transition-all shadow-2xl ${t.btnWarning} ${t.fontHeading}`}><Moon size={18} className="sm:size-5 stroke-[3]" /> PLAN TOMORROW</button>
+                    <button
+                      onClick={() => setIsNightShiftOpen(true)}
+                      className={`px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center gap-2 text-xs sm:text-sm uppercase tracking-widest rounded-2xl tap-effect hover-lift transition-all shadow-2xl ${t.btnWarning} ${t.fontHeading}`}
+                    >
+                      <Moon size={16} className="sm:size-5 stroke-[2.5]" />
+                      <span>PLAN TOMORROW</span>
+                    </button>
                   ) : (
-                    <div className={`p-5 sm:p-7 w-[calc(100vw-32px)] max-w-[320px] shadow-2xl shadow-black/40 rounded-3xl border-2 backdrop-blur-xl ${t.card} ${t.borderAccent}`}>
-                       <div className={`flex justify-between items-center mb-5 sm:mb-6 border-b pb-3 sm:pb-4 ${t.borderAccent} opacity-80`}>
-                         <h3 className={`font-black text-[10px] sm:text-xs uppercase tracking-widest flex items-center gap-2 ${t.textAccent}`}><Moon size={14} className="sm:size-4 stroke-[3]"/> NIGHT SHIFT INBOX</h3>
-                         <button onClick={() => setIsNightShiftOpen(false)} className={`transition-colors ${t.textMuted} hover:text-red-500 tap-effect`}><X size={16} className="sm:size-5 stroke-[3]"/></button>
+                    <div className={`p-4 sm:p-6 w-[calc(100vw-28px)] max-w-[320px] shadow-2xl shadow-black/60 rounded-3xl border backdrop-blur-2xl ${t.card} ${t.borderAccent}`}>
+                       <div className={`flex justify-between items-center mb-4 border-b pb-2.5 ${t.borderAccent} opacity-80`}>
+                         <h3 className={`font-black text-[10px] sm:text-xs uppercase tracking-widest flex items-center gap-2 ${t.textAccent}`}>
+                           <Moon size={14} className="sm:size-4 stroke-[3]"/> NIGHT SHIFT INBOX
+                         </h3>
+                         <button onClick={() => setIsNightShiftOpen(false)} className={`transition-colors ${t.textMuted} hover:text-red-500 tap-effect p-1`}>
+                           <X size={15} className="stroke-[3]"/>
+                         </button>
                        </div>
-                       <p className={`text-[9px] sm:text-[10px] font-bold mb-4 sm:mb-5 uppercase tracking-wider ${t.textMuted}`}>Add tasks for tomorrow, or pin a queue target.</p>
-                       <div className="flex gap-2 mb-5 sm:mb-6">
-                         <input type="text" value={newCustomMission} onChange={(e) => setNewCustomMission(e.target.value)} onKeyPress={(e) => {
+                       <p className={`text-[9px] sm:text-[10px] font-bold mb-3 uppercase tracking-wider ${t.textMuted}`}>Add tasks for tomorrow, or pin a queue target.</p>
+                       <div className="flex gap-2 mb-4">
+                         <input
+                           type="text"
+                           value={newCustomMission}
+                           onChange={(e) => setNewCustomMission(e.target.value)}
+                           onKeyPress={(e) => {
                               if(e.key === 'Enter' && newCustomMission.trim()) {
                                  updateBrainFirebase({ customMissions: [...brain.customMissions, { id: Date.now().toString(), text: newCustomMission.trim(), targetDate: addDays(todayStr, 1), completed: false }] });
                                  setNewCustomMission("");
                               }
-                           }} placeholder="CUSTOM TASK..." className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-[10px] sm:text-xs font-black uppercase outline-none rounded-xl ${t.input}`} />
-                         <button onClick={() => {
+                           }}
+                           placeholder="CUSTOM TASK..."
+                           className={`flex-1 px-3 py-2 text-[10px] sm:text-xs font-black uppercase outline-none rounded-xl ${t.input}`}
+                         />
+                         <button
+                           onClick={() => {
                               if(newCustomMission.trim()) {
                                  updateBrainFirebase({ customMissions: [...brain.customMissions, { id: Date.now().toString(), text: newCustomMission.trim(), targetDate: addDays(todayStr, 1), completed: false }] });
                                  setNewCustomMission("");
                               }
-                           }} className={`px-4 sm:px-5 py-2.5 rounded-xl tap-effect transition-all ${t.btnPrimary}`}><Send size={14} className="sm:size-4 stroke-[3]" /></button>
+                           }}
+                           className={`px-3.5 py-2 rounded-xl tap-effect transition-all ${t.btnPrimary}`}
+                         >
+                           <Send size={14} className="stroke-[3]" />
+                         </button>
                        </div>
                        {brain.customMissions.filter((m: any) => m.targetDate === addDays(todayStr, 1)).length > 0 && (
-                          <div className="mb-5 sm:mb-6 space-y-2">
+                          <div className="mb-4 space-y-1.5">
                             {brain.customMissions.filter((m: any) => m.targetDate === addDays(todayStr, 1)).map((m: any) => (
-                               <div key={m.id} className={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl flex justify-between items-center border ${t.cardInner} ${t.textMain} ${t.borderAccent}`}>
+                               <div key={m.id} className={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl flex justify-between items-center border ${t.cardInner} ${t.textMain} ${t.borderAccent}`}>
                                  <span className="truncate pr-2">• {m.text}</span>
-                                 <button onClick={() => updateBrainFirebase({ customMissions: brain.customMissions.filter((task: any) => task.id !== m.id) })} className={`transition-colors tap-effect ${t.textMuted} hover:text-red-500 shrink-0`}><Trash2 size={12} className="sm:size-3 stroke-[3]" /></button>
+                                 <button onClick={() => updateBrainFirebase({ customMissions: brain.customMissions.filter((task: any) => task.id !== m.id) })} className={`transition-colors tap-effect ${t.textMuted} hover:text-red-500 shrink-0 p-1`}><Trash2 size={12} className="stroke-[3]" /></button>
                                </div>
                             ))}
                           </div>
@@ -6768,7 +6852,7 @@ One short, electrifying sentence of raw motivation.`;
                            (e: ScheduledEvent) => e.date === addDays(todayStr, 1) && !e.completed
                          );
                          return (
-                           <div className="mb-4 space-y-1.5 border-t pt-3 border-white/10">
+                           <div className="mb-3 space-y-1.5 border-t pt-2.5 border-white/10">
                              <div className="flex items-center justify-between">
                                <span className={`text-[9px] font-black uppercase tracking-widest ${t.textAccent}`}>
                                  📅 TOMORROW'S CLASSES ({tomorrowEvents.length})
@@ -6793,7 +6877,7 @@ One short, electrifying sentence of raw motivation.`;
                                      <span className="truncate">🎓 {ev.title} {ev.time ? `(${ev.time})` : ''}</span>
                                      <button
                                        onClick={() => deleteScheduledEvent(ev.id)}
-                                       className="text-slate-400 hover:text-red-400 ml-1 shrink-0"
+                                       className="text-slate-400 hover:text-red-400 ml-1 shrink-0 p-1"
                                      >
                                        <Trash2 size={11} />
                                      </button>
@@ -6808,13 +6892,13 @@ One short, electrifying sentence of raw motivation.`;
                        })()}
                        {brain.stagingTopics.length > 0 && (
                          <>
-                           <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3 border-t pt-3 sm:pt-4 ${t.textAccent} ${t.borderAccent} opacity-80`}>PIN SYLLABUS TARGET</div>
-                           <div className="space-y-1.5 sm:space-y-2 max-h-32 overflow-y-auto hide-scrollbar pr-1">
+                           <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1.5 border-t pt-2.5 ${t.textAccent} ${t.borderAccent} opacity-80`}>PIN SYLLABUS TARGET</div>
+                           <div className="space-y-1 max-h-28 overflow-y-auto hide-scrollbar pr-1">
                              {brain.stagingTopics.slice(0, 3).map((topic: any, idx: any) => (
                                <button key={topic.id} onClick={() => {
                                    const items = [...brain.stagingTopics]; const clickedItem = items.splice(idx, 1)[0]; items.unshift(clickedItem);
                                    updateBrainFirebase({ stagingTopics: items });
-                                 }} className={`w-full text-left p-2.5 rounded-xl transition-colors flex items-center justify-between group border ${t.cardInner} hover:${t.borderAccent} tap-effect`}>
+                                 }} className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between group border ${t.cardInner} hover:${t.borderAccent} tap-effect`}>
                                  <span className={`font-black text-[9px] sm:text-[10px] uppercase truncate pr-2 tracking-widest ${t.textMain}`}>{topic.title}</span>
                                  <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${t.badge} ${t.textAccent}`}>PIN</span>
                                </button>
@@ -6827,12 +6911,27 @@ One short, electrifying sentence of raw motivation.`;
                 </div>
               )}
 
-              {/* Second Brain Bottom Nav */}
-              <div className={`fixed bottom-0 left-0 w-full border-t-2 z-50 overflow-hidden backdrop-blur-xl ${t.header} ${t.borderAccent}`}>
-                <div className="max-w-2xl mx-auto grid grid-cols-6 px-1 py-1.5 sm:py-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+6px)]">
-                  {[{ id: 'dashboard', icon: CalendarIcon, label: 'MISSION' }, { id: 'study', icon: Activity, label: 'QUEUE' }, { id: 'history', icon: History, label: 'HISTORY' }, { id: 'wisdom', icon: Folder, label: 'WISDOM' }, { id: 'vault', icon: BrainCircuit, label: 'DUMP' }, { id: 'urge', icon: ShieldAlert, label: 'URGE' }].map((tab: any) => (
-                    <button key={tab.id} onClick={() => setBrainTab(tab.id)} className={`flex flex-col items-center justify-center gap-0.5 sm:gap-1 py-1 px-0.5 rounded-xl transition-all duration-300 tap-effect ${brainTab === tab.id ? t.textAccent + ' bg-current/10 shadow-lg shadow-current/10' : t.textMuted + ' hover:' + t.textMain + ' hover:bg-current/5'}`}>
-                      <tab.icon size={18} className={`sm:size-[22px] ${brainTab === tab.id ? 'stroke-[2.5]' : 'stroke-2'}`} />
+              {/* SECOND BRAIN MOBILE BOTTOM NAVIGATION BAR */}
+              <div className={`fixed bottom-0 left-0 w-full border-t z-40 overflow-hidden backdrop-blur-2xl ${t.card} border-white/10`}>
+                <div className="max-w-md sm:max-w-xl mx-auto grid grid-cols-6 px-1 py-1 sm:py-1.5 pb-[calc(env(safe-area-inset-bottom,0px)+6px)]">
+                  {[
+                    { id: 'dashboard', icon: CalendarIcon, label: 'MISSION' },
+                    { id: 'study', icon: Activity, label: 'QUEUE' },
+                    { id: 'history', icon: History, label: 'HISTORY' },
+                    { id: 'wisdom', icon: Folder, label: 'WISDOM' },
+                    { id: 'vault', icon: BrainCircuit, label: 'DUMP' },
+                    { id: 'urge', icon: ShieldAlert, label: 'URGE' }
+                  ].map((tab: any) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setBrainTab(tab.id)}
+                      className={`flex flex-col items-center justify-center gap-0.5 py-1 px-0.5 rounded-xl transition-all duration-200 tap-effect ${
+                        brainTab === tab.id
+                          ? `${t.textAccent} font-black scale-105`
+                          : `${t.textMuted} hover:${t.textMain} font-bold opacity-70`
+                      }`}
+                    >
+                      <tab.icon size={18} className={brainTab === tab.id ? 'stroke-[2.5]' : 'stroke-2'} />
                       <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider truncate max-w-full">{tab.label}</span>
                     </button>
                   ))}
