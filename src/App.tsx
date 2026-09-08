@@ -5725,12 +5725,18 @@ CORE MANNERISMS & ESSENCE:
 
   const completeDailyCleanup = () => {
     const current = getSelectedTwoBox();
+    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
+
+    if (current.cleanupCompleted || dayRecord.twoBoxAudited) {
+      showMessage("✅ Daily Habit Cleanup is already locked in for this date (+30 XP already claimed).");
+      return;
+    }
+
     const updated = {
       ...current,
       cleanupCompleted: true,
       rating: twoBoxRating
     };
-    const dayRecord = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "" };
     const cleanupNote = `\n\n[📦 The Two-Box System - 9 PM to 12 AM Habit Cleanup]\n🛑 Box 1 (Failures Logged): ${current.failures.length}\n🏆 Box 2 (Achievements Stored): ${current.achievements.length}\n🧹 Cleaned & Conquered: ${current.cleanedFailures.length}\n✨ Daily Status: Habit Cleanup Protocol Executed.`;
     const updatedSummary = (dayRecord.summary || "") + cleanupNote;
     updateTrackerFirebase(selectedDate, { ...dayRecord, summary: updatedSummary, twoBox: updated, twoBoxAudited: true });
@@ -8301,103 +8307,130 @@ One short, electrifying sentence of raw motivation.`;
       {/* 2. THE TWO-BOX REFLECTION & 9 PM – 12 AM CLEANUP SYSTEM */}
       {/* ========================================== */}
       {isTwoBoxModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400/40 bg-[#0a0f1d] text-white relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="w-full max-w-xl rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/10 bg-[#0d1322]/95 text-white relative max-h-[92vh] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-700/80 mb-5">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-300 shadow-sm">
-                  <Layers className="w-6 h-6 stroke-[2.5]" />
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/10 mb-4 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-300 flex items-center justify-center shadow-sm">
+                  <Layers className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <div>
-                  <h3 className="font-black text-base sm:text-lg uppercase tracking-wider text-white">
+                  <h3 className="font-black text-sm sm:text-base uppercase tracking-wider text-white">
                     The Two-Box System
                   </h3>
-                  <p className="text-xs font-medium text-slate-300">
-                    Radical Honesty & Daily 9:00 PM – 12:00 AM Habit Cleanup
+                  <p className="text-[10px] sm:text-xs text-slate-400 font-medium">
+                    Radical Honesty & Daily Night Cleanup
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsTwoBoxModalOpen(false)}
-                className="p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white transition-all tap-effect"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                  {selectedDate}
+                </span>
+                <button
+                  onClick={() => setIsTwoBoxModalOpen(false)}
+                  className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white transition-all tap-effect"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 mb-5">
-              <button
-                onClick={() => setTwoBoxActiveTab("boxes")}
-                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect ${
-                  twoBoxActiveTab === "boxes"
-                    ? "bg-amber-400 text-black shadow-lg"
-                    : "text-slate-300 hover:text-white"
-                }`}
-              >
-                📦 Two Boxes
-              </button>
-              <button
-                onClick={() => setTwoBoxActiveTab("cleanup")}
-                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
-                  twoBoxActiveTab === "cleanup"
-                    ? "bg-amber-400 text-black shadow-lg"
-                    : "text-slate-300 hover:text-white"
-                }`}
-              >
-                <span>🧹 9 PM – 12 AM Cleanup</span>
-                {isCleanupHourActive() && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                )}
-              </button>
-              <button
-                onClick={() => setTwoBoxActiveTab("trophy")}
-                className={`py-2.5 text-xs sm:text-sm font-black uppercase rounded-xl transition-all tap-effect ${
-                  twoBoxActiveTab === "trophy"
-                    ? "bg-amber-400 text-black shadow-lg"
-                    : "text-slate-300 hover:text-white"
-                }`}
-              >
-                🏆 Trophy Wall
-              </button>
-            </div>
-
+            {/* Navigation Tabs & Body */}
             {(() => {
               const twoBoxData = getSelectedTwoBox();
+              const monthlyStats = getMonthlyTwoBoxStats();
+              const isCleanupLive = isCleanupHourActive();
+              const isAlreadyAudited = !!twoBoxData.cleanupCompleted || !!(trackerData[selectedDate]?.twoBoxAudited);
 
-              if (twoBoxActiveTab === "boxes") {
-                return (
-                  <div className="space-y-5 animate-in fade-in duration-200">
-                    {/* Top Info Tile */}
-                    <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                        Active Date: {selectedDate}
+              return (
+                <div className="flex flex-col flex-1 overflow-hidden">
+                  {/* Segmented Tab Controls */}
+                  <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 mb-4 shrink-0">
+                    <button
+                      onClick={() => setTwoBoxActiveTab("boxes")}
+                      className={`py-2 text-[11px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
+                        twoBoxActiveTab === "boxes"
+                          ? "bg-amber-400 text-black shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span>📦 Boxes</span>
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${twoBoxActiveTab === "boxes" ? "bg-black/20 text-black" : "bg-slate-800 text-slate-300"}`}>
+                        {twoBoxData.failures.length + twoBoxData.achievements.length}
                       </span>
-                      <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 animate-pulse' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
-                        {isCleanupHourActive() ? "🟢 9 PM – 12 AM Cleanup is LIVE" : "⏳ Next Cleanup: 9:00 PM"}
-                      </span>
-                    </div>
+                    </button>
 
-                    {/* The 2 Boxes Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Box 1: Failure Box */}
-                      <div className="p-4 sm:p-5 rounded-2xl border-2 border-rose-500/50 bg-gradient-to-b from-[#220a0f] to-[#140508] shadow-lg flex flex-col justify-between space-y-3.5">
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                              <span>🛑</span> Box 1: Failure Box
+                    <button
+                      onClick={() => setTwoBoxActiveTab("cleanup")}
+                      className={`py-2 text-[11px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
+                        twoBoxActiveTab === "cleanup"
+                          ? "bg-amber-400 text-black shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span>🧹 Cleanup</span>
+                      {isCleanupLive ? (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      ) : (
+                        twoBoxData.failures.length > 0 && (
+                          <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${twoBoxActiveTab === "cleanup" ? "bg-black/20 text-black" : "bg-rose-500/20 text-rose-300 border border-rose-500/40"}`}>
+                            {twoBoxData.failures.length}
+                          </span>
+                        )
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => setTwoBoxActiveTab("trophy")}
+                      className={`py-2 text-[11px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
+                        twoBoxActiveTab === "trophy"
+                          ? "bg-amber-400 text-black shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span>🏆 Trophy</span>
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${twoBoxActiveTab === "trophy" ? "bg-black/20 text-black" : "bg-slate-800 text-slate-300"}`}>
+                        {monthlyStats.totalWins}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Tab Contents (Scrollable Container) */}
+                  <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+                    {/* TAB 1: THE TWO BOXES */}
+                    {twoBoxActiveTab === "boxes" && (
+                      <div className="space-y-4 animate-in fade-in duration-200">
+                        {/* Status bar */}
+                        <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                            <Layers size={13} className="text-amber-400" /> Daily Honesty Log
+                          </span>
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                            isCleanupLive
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 animate-pulse"
+                              : isAlreadyAudited
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                              : "bg-slate-800 text-slate-400 border border-slate-700"
+                          }`}>
+                            {isCleanupLive ? "🟢 9 PM Cleanup Live" : isAlreadyAudited ? "✅ Cleaned Today" : "⏳ 9 PM Cleanup"}
+                          </span>
+                        </div>
+
+                        {/* Box 1: Slip-ups & Distractions */}
+                        <div className="p-3.5 sm:p-4 rounded-2xl border border-rose-500/30 bg-rose-950/20 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                              <span>🛑</span> Box 1: Slip-Ups & Distractions
                             </span>
-                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-500/50">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
                               {twoBoxData.failures.length} Logged
                             </span>
                           </div>
-                          <p className="text-xs text-slate-200 font-medium mb-3.5">
-                            Document mistakes, distractions, missed habits & triggers.
-                          </p>
 
-                          {/* Add Failure Input */}
-                          <div className="flex gap-2 mb-3.5">
+                          {/* Input row */}
+                          <div className="flex gap-2">
                             <input
                               type="text"
                               value={box1Input}
@@ -8405,40 +8438,40 @@ One short, electrifying sentence of raw motivation.`;
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") addBox1Failure(box1Input);
                               }}
-                              placeholder="e.g. Scrolled reels for 45m..."
-                              className="flex-1 p-3 text-xs sm:text-sm rounded-xl bg-[#0d0406] border-2 border-rose-500/50 text-white placeholder:text-slate-400 font-semibold focus:border-rose-400 outline-none transition-all shadow-inner"
+                              placeholder="Log slip (e.g., scrolled reels for 30 min)..."
+                              className="flex-1 px-3 py-2 text-xs rounded-xl bg-black/40 border border-rose-500/40 text-white placeholder:text-slate-500 outline-none focus:border-rose-400 transition-colors font-medium"
                             />
                             <button
                               onClick={() => addBox1Failure(box1Input)}
-                              className="px-4 py-3 text-xs font-black uppercase rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-md tap-effect"
+                              className="px-3 py-2 text-xs font-black uppercase rounded-xl bg-rose-500 hover:bg-rose-600 text-white tap-effect shrink-0 shadow-sm"
                             >
-                              + Add
+                              + Log
                             </button>
                           </div>
 
-                          {/* Failures List */}
-                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                          {/* List of failures */}
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {twoBoxData.failures.length === 0 ? (
-                              <div className="p-4 text-center border-2 border-dashed border-rose-500/30 bg-rose-950/20 rounded-xl">
-                                <p className="text-xs text-slate-300 font-medium italic">
-                                  No failures logged today. Practice radical honesty.
+                              <div className="p-3 text-center border border-dashed border-rose-500/20 bg-rose-950/10 rounded-xl">
+                                <p className="text-[11px] text-slate-400 font-medium">
+                                  No slip-ups logged today. Practice radical honesty.
                                 </p>
                               </div>
                             ) : (
                               twoBoxData.failures.map((f: string, i: number) => (
                                 <div
                                   key={i}
-                                  className="p-3 rounded-xl border border-rose-500/40 bg-[#2c0e14] flex items-center justify-between gap-2.5 shadow-sm"
+                                  className="p-2.5 rounded-xl border border-rose-500/30 bg-rose-950/30 flex items-center justify-between gap-2"
                                 >
-                                  <span className="text-slate-100 font-semibold text-xs leading-relaxed break-words flex-1 flex items-start gap-2">
-                                    <span className="text-rose-400 font-black text-sm">•</span> {f}
+                                  <span className="text-xs text-rose-100 font-medium break-words flex-1 flex items-start gap-1.5">
+                                    <span className="text-rose-400 font-bold">•</span> {f}
                                   </span>
                                   <button
                                     onClick={() => removeBox1Failure(i)}
-                                    className="text-rose-300 hover:text-white p-1 tap-effect"
+                                    className="text-rose-400 hover:text-white p-1 tap-effect shrink-0"
                                     title="Delete entry"
                                   >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={13} />
                                   </button>
                                 </div>
                               ))
@@ -8446,28 +8479,19 @@ One short, electrifying sentence of raw motivation.`;
                           </div>
                         </div>
 
-                        <div className="pt-2.5 border-t border-rose-500/30 text-[11px] text-rose-200 font-bold flex items-center gap-1.5">
-                          <span>💡 Clean these bad habits during 9 PM – 12 AM cleanup!</span>
-                        </div>
-                      </div>
-
-                      {/* Box 2: Achievement Box */}
-                      <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-b from-[#082216] to-[#04140c] shadow-lg flex flex-col justify-between space-y-3.5">
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                              <span>🏆</span> Box 2: Achievement Box
+                        {/* Box 2: Daily Wins & Achievements */}
+                        <div className="p-3.5 sm:p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                              <span>🏆</span> Box 2: Wins & Victories
                             </span>
-                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/50">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                               {twoBoxData.achievements.length} Wins
                             </span>
                           </div>
-                          <p className="text-xs text-slate-200 font-medium mb-3.5">
-                            Document victories, completed habits, personal bests & focus wins.
-                          </p>
 
-                          {/* Add Achievement Input */}
-                          <div className="flex gap-2 mb-3.5">
+                          {/* Input row */}
+                          <div className="flex gap-2">
                             <input
                               type="text"
                               value={box2Input}
@@ -8475,40 +8499,40 @@ One short, electrifying sentence of raw motivation.`;
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") addBox2Achievement(box2Input);
                               }}
-                              placeholder="e.g. Completed 2 hours focus..."
-                              className="flex-1 p-3 text-xs sm:text-sm rounded-xl bg-[#041009] border-2 border-emerald-500/50 text-white placeholder:text-slate-400 font-semibold focus:border-emerald-400 outline-none transition-all shadow-inner"
+                              placeholder="Log win (e.g., 2 hrs deep focus, urge defeated)..."
+                              className="flex-1 px-3 py-2 text-xs rounded-xl bg-black/40 border border-emerald-500/40 text-white placeholder:text-slate-500 outline-none focus:border-emerald-400 transition-colors font-medium"
                             />
                             <button
                               onClick={() => addBox2Achievement(box2Input)}
-                              className="px-4 py-3 text-xs font-black uppercase rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black shadow-md tap-effect"
+                              className="px-3 py-2 text-xs font-black uppercase rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black tap-effect shrink-0 shadow-sm font-bold"
                             >
                               + Win
                             </button>
                           </div>
 
-                          {/* Achievements List */}
-                          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                          {/* List of achievements */}
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {twoBoxData.achievements.length === 0 ? (
-                              <div className="p-4 text-center border-2 border-dashed border-emerald-500/30 bg-emerald-950/20 rounded-xl">
-                                <p className="text-xs text-slate-300 font-medium italic">
-                                  No wins logged yet today. Register your first victory!
+                              <div className="p-3 text-center border border-dashed border-emerald-500/20 bg-emerald-950/10 rounded-xl">
+                                <p className="text-[11px] text-slate-400 font-medium">
+                                  No wins logged yet. Register your first victory!
                                 </p>
                               </div>
                             ) : (
                               twoBoxData.achievements.map((a: string, i: number) => (
                                 <div
                                   key={i}
-                                  className="p-3 rounded-xl border border-emerald-500/40 bg-[#0e3321] flex items-center justify-between gap-2.5 shadow-sm"
+                                  className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex items-center justify-between gap-2"
                                 >
-                                  <span className="text-slate-100 font-semibold text-xs leading-relaxed break-words flex-1 flex items-start gap-2">
-                                    <span className="text-yellow-400 font-black text-sm">⭐</span> {a}
+                                  <span className="text-xs text-emerald-100 font-medium break-words flex-1 flex items-start gap-1.5">
+                                    <span className="text-yellow-400 font-bold">⭐</span> {a}
                                   </span>
                                   <button
                                     onClick={() => removeBox2Achievement(i)}
-                                    className="text-emerald-300 hover:text-white p-1 tap-effect"
+                                    className="text-emerald-400 hover:text-white p-1 tap-effect shrink-0"
                                     title="Delete entry"
                                   >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={13} />
                                   </button>
                                 </div>
                               ))
@@ -8516,212 +8540,227 @@ One short, electrifying sentence of raw motivation.`;
                           </div>
                         </div>
 
-                        <div className="pt-2.5 border-t border-emerald-500/30 text-[11px] text-emerald-200 font-bold flex items-center gap-1.5">
-                          <span>✨ Stored for your monthly victory momentum!</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Day Willpower & Satisfaction Rating */}
-                    <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between shadow-md">
-                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                        Day Discipline Rating:
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        {[1, 2, 3, 4, 5].map((starVal) => (
-                          <button
-                            key={starVal}
-                            type="button"
-                            onClick={() => setTwoBoxRating(starVal)}
-                            className={`text-xl sm:text-2xl transition-transform hover:scale-125 tap-effect ${
-                              twoBoxRating >= starVal ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" : "text-slate-600"
-                            }`}
-                          >
-                            ★
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Quick CTA to Cleanup Tab */}
-                    <button
-                      onClick={() => setTwoBoxActiveTab("cleanup")}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg tap-effect flex items-center justify-center gap-2"
-                    >
-                      <Sparkles size={16} /> Open 9:00 PM – 12:00 AM Habit Cleanup Window
-                    </button>
-                  </div>
-                );
-              }
-
-              if (twoBoxActiveTab === "cleanup") {
-                return (
-                  <div className="space-y-4 animate-in fade-in duration-200">
-                    {/* Live Indicator Banner */}
-                    <div className={`p-4 sm:p-5 rounded-2xl border-2 ${isCleanupHourActive() ? 'border-emerald-400 bg-gradient-to-r from-[#06291a] to-[#083522] shadow-[0_0_30px_rgba(52,211,153,0.3)]' : 'border-amber-400/60 bg-gradient-to-r from-[#291e06] to-[#382a08]'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 ${isCleanupHourActive() ? 'text-emerald-300' : 'text-amber-300'}`}>
-                          <span>🧹</span> 9:00 PM – 12:00 AM Habit Cleanup Protocol
-                        </span>
-                        <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase ${isCleanupHourActive() ? 'bg-emerald-400 text-black shadow-md' : 'bg-amber-400/20 text-amber-200 border border-amber-400/50'}`}>
-                          {isCleanupHourActive() ? "🟢 Window Live Now (9 PM - 12 AM)" : "⏳ Scheduled (9 PM - 12 AM)"}
-                        </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
-                        Review your daily failures from Box 1. Cleanse bad patterns, transform mistakes into wisdom, and systematically eliminate bad habits over time.
-                      </p>
-                    </div>
-
-                    {/* Bad Habits to Clean */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                          Active Bad Habits to Review ({twoBoxData.failures.length}):
-                        </span>
-                      </div>
-
-                      {twoBoxData.failures.length === 0 ? (
-                        <div className="p-7 text-center rounded-2xl border-2 border-dashed border-emerald-500/40 bg-emerald-950/20">
-                          <span className="text-3xl block mb-2">🎉</span>
-                          <p className="text-sm font-bold text-emerald-300">All bad habits cleaned or none logged today!</p>
-                          <p className="text-xs mt-1 text-slate-300 font-medium">Box 1 is clean and Box 2 is primed with your victories.</p>
-                        </div>
-                      ) : (
-                        twoBoxData.failures.map((failItem: string, idx: number) => (
-                          <div
-                            key={idx}
-                            className="p-4 rounded-2xl border-2 border-slate-700/80 bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md"
-                          >
-                            <div className="flex items-start gap-2.5">
-                              <span className="text-rose-400 font-black text-base mt-0.5">•</span>
-                              <span className="text-xs sm:text-sm font-bold text-white leading-relaxed">{failItem}</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                        {/* Discipline Rating & Quick CTA */}
+                        <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                          <span className="text-xs font-black uppercase tracking-wider text-slate-300">
+                            Discipline Rating:
+                          </span>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((starVal) => (
                               <button
-                                onClick={() => cleanBadHabit(idx)}
-                                className="px-3.5 py-2 rounded-xl bg-rose-500/30 hover:bg-rose-500 text-rose-100 hover:text-white border border-rose-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
-                                title="Strike through & eliminate this habit"
+                                key={starVal}
+                                type="button"
+                                onClick={() => setTwoBoxRating(starVal)}
+                                className={`text-lg transition-transform hover:scale-125 tap-effect ${
+                                  twoBoxRating >= starVal
+                                    ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]"
+                                    : "text-slate-600"
+                                }`}
                               >
-                                <span>🧹 Clean (+10 XP)</span>
+                                ★
                               </button>
-                              <button
-                                onClick={() => convertBadHabitToWin(idx)}
-                                className="px-3.5 py-2 rounded-xl bg-emerald-500/30 hover:bg-emerald-500 text-emerald-100 hover:text-black border border-emerald-400/80 text-xs font-black uppercase tap-effect flex items-center gap-1 shadow-sm"
-                                title="Convert this slippage into a victory in Box 2"
-                              >
-                                <span>⚡ Convert to Win (+20 XP)</span>
-                              </button>
-                            </div>
+                            ))}
                           </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Cleaned Habits History Today */}
-                    {twoBoxData.cleanedFailures.length > 0 && (
-                      <div className="p-4 rounded-2xl border-2 border-emerald-500/50 bg-[#082216] space-y-2.5 shadow-md">
-                        <span className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                          <CheckCircle2 size={15} /> Conquered & Cleaned Today ({twoBoxData.cleanedFailures.length}):
-                        </span>
-                        <div className="space-y-1.5">
-                          {twoBoxData.cleanedFailures.map((cItem: string, cIdx: number) => (
-                            <div key={cIdx} className="text-xs text-emerald-100 font-semibold flex items-center gap-2 line-through opacity-85">
-                              <span className="text-emerald-400 font-black">✓</span> {cItem}
-                            </div>
-                          ))}
                         </div>
+
+                        <button
+                          onClick={() => setTwoBoxActiveTab("cleanup")}
+                          className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-black text-xs uppercase tracking-wider shadow-md tap-effect flex items-center justify-center gap-1.5"
+                        >
+                          <Sparkles size={14} /> Open Night Cleanup Window 🧹 →
+                        </button>
                       </div>
                     )}
 
-                    {/* Finalize Daily Cleanup Button */}
-                    <button
-                      onClick={completeDailyCleanup}
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:from-emerald-300 hover:to-teal-300 text-black font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(52,211,153,0.4)] tap-effect flex items-center justify-center gap-2"
-                    >
-                      <Sparkles size={18} /> Complete Daily Cleanup & Lock In (+30 XP)
-                    </button>
-                  </div>
-                );
-              }
+                    {/* TAB 2: NIGHT CLEANUP PROTOCOL */}
+                    {twoBoxActiveTab === "cleanup" && (
+                      <div className="space-y-4 animate-in fade-in duration-200">
+                        {/* Protocol Banner */}
+                        <div className={`p-3.5 sm:p-4 rounded-2xl border ${
+                          isCleanupLive
+                            ? "border-emerald-400/80 bg-emerald-950/30 shadow-[0_0_20px_rgba(52,211,153,0.15)]"
+                            : "border-amber-400/40 bg-amber-950/20"
+                        }`}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className={`text-xs font-black uppercase tracking-wider flex items-center gap-1.5 ${
+                              isCleanupLive ? "text-emerald-300" : "text-amber-300"
+                            }`}>
+                              <span>🧹</span> 9:00 PM – 12:00 AM Cleanup Protocol
+                            </span>
+                            <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                              isCleanupLive
+                                ? "bg-emerald-400 text-black font-black shadow-sm"
+                                : "bg-amber-400/20 text-amber-300 border border-amber-400/40"
+                            }`}>
+                              {isCleanupLive ? "🟢 Live Now" : "⏳ 9 PM - 12 AM"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                            Review Box 1 slips. Eliminate bad habit triggers and transform mistakes into clean wins before sleep.
+                          </p>
+                        </div>
 
-              if (twoBoxActiveTab === "trophy") {
-                const monthlyStats = getMonthlyTwoBoxStats();
-                return (
-                  <div className="space-y-4 animate-in fade-in duration-200">
-                    {/* Monthly Highlight Grid */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-4 rounded-2xl border-2 border-amber-400/40 bg-slate-900 text-center shadow-md">
-                        <span className="text-2xl block mb-1">🏆</span>
-                        <span className="text-2xl sm:text-3xl font-black block text-amber-300">
-                          {monthlyStats.totalWins}
-                        </span>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
-                          Box 2 Wins
-                        </span>
-                      </div>
+                        {/* Active Failures to Clean */}
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                              Active Slips to Review ({twoBoxData.failures.length}):
+                            </span>
+                          </div>
 
-                      <div className="p-4 rounded-2xl border-2 border-emerald-400/40 bg-slate-900 text-center shadow-md">
-                        <span className="text-2xl block mb-1">🧹</span>
-                        <span className="text-2xl sm:text-3xl font-black block text-emerald-400">
-                          {monthlyStats.totalCleaned}
-                        </span>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
-                          Habits Cleaned
-                        </span>
-                      </div>
+                          {twoBoxData.failures.length === 0 ? (
+                            <div className="p-5 text-center rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-950/20">
+                              <span className="text-2xl block mb-1.5">🎉</span>
+                              <p className="text-xs font-bold text-emerald-300">
+                                All bad habits cleaned or none logged today!
+                              </p>
+                              <p className="text-[10px] mt-0.5 text-slate-400 font-medium">
+                                Box 1 is clean and Box 2 is primed with your victories.
+                              </p>
+                            </div>
+                          ) : (
+                            twoBoxData.failures.map((failItem: string, idx: number) => (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-2xl border border-slate-800 bg-slate-900/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-sm"
+                              >
+                                <div className="flex items-start gap-2">
+                                  <span className="text-rose-400 font-bold">•</span>
+                                  <span className="text-xs font-semibold text-slate-100 leading-relaxed break-words">
+                                    {failItem}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                                  <button
+                                    onClick={() => cleanBadHabit(idx)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-200 hover:text-white border border-rose-500/40 text-[10px] font-black uppercase tap-effect flex items-center gap-1 transition-all"
+                                    title="Strike through & eliminate this habit"
+                                  >
+                                    <span>🧹 Clean (+10 XP)</span>
+                                  </button>
+                                  <button
+                                    onClick={() => convertBadHabitToWin(idx)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-200 hover:text-black border border-emerald-500/40 text-[10px] font-black uppercase tap-effect flex items-center gap-1 transition-all"
+                                    title="Convert this slip into a victory in Box 2"
+                                  >
+                                    <span>⚡ To Win (+20 XP)</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
 
-                      <div className="p-4 rounded-2xl border-2 border-cyan-400/40 bg-slate-900 text-center shadow-md">
-                        <span className="text-2xl block mb-1">⚡</span>
-                        <span className="text-2xl sm:text-3xl font-black block text-cyan-300">
-                          {monthlyStats.totalWins + monthlyStats.totalCleaned > 0
-                            ? Math.round(
-                                (monthlyStats.totalWins /
-                                  (monthlyStats.totalWins + monthlyStats.totalFailures || 1)) *
-                                  100
-                              )
-                            : 100}
-                          %
-                        </span>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 mt-1 block">
-                          Victory Ratio
-                        </span>
-                      </div>
-                    </div>
+                        {/* Cleaned Habits History Today */}
+                        {twoBoxData.cleanedFailures.length > 0 && (
+                          <div className="p-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 space-y-2">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                              <CheckCircle2 size={13} /> Conquered & Cleaned Today ({twoBoxData.cleanedFailures.length}):
+                            </span>
+                            <div className="space-y-1">
+                              {twoBoxData.cleanedFailures.map((cItem: string, cIdx: number) => (
+                                <div key={cIdx} className="text-[11px] text-emerald-200/80 font-medium flex items-center gap-1.5 line-through">
+                                  <span className="text-emerald-400 font-bold">✓</span> {cItem}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
-                    {/* Monthly Motivation Stream */}
-                    <div className="space-y-2.5">
-                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                        This Month's Victory Wall ({monthlyStats.allMonthlyAchievements.length} Achievements):
-                      </span>
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                        {monthlyStats.allMonthlyAchievements.length === 0 ? (
-                          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900">
-                            <span className="text-3xl block mb-2 opacity-60">📜</span>
-                            <p className="text-xs font-bold text-slate-200">No achievements recorded this month yet.</p>
-                            <p className="text-[11px] mt-1 text-slate-400">Log your wins in Box 2 to build your monthly momentum!</p>
+                        {/* Single Daily Cleanup Button (Prevents Unlimited XP Exploitation) */}
+                        {isAlreadyAudited ? (
+                          <div className="w-full py-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-500/60 text-emerald-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm">
+                            <CheckCircle2 size={16} /> Daily Cleanup Locked In (+30 XP Claimed)
                           </div>
                         ) : (
-                          monthlyStats.allMonthlyAchievements.map((item, mIdx) => (
-                            <div
-                              key={mIdx}
-                              className="p-3.5 rounded-xl border-2 border-emerald-500/40 bg-[#082216] flex items-center justify-between gap-2.5 shadow-sm"
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-yellow-400 text-base">⭐</span>
-                                <span className="text-xs sm:text-sm text-slate-100 font-bold">{item.text}</span>
-                              </div>
-                              <span className="text-xs font-mono text-emerald-300 font-black px-2 py-0.5 rounded bg-black/40 border border-emerald-500/30">
-                                {item.date}
-                              </span>
-                            </div>
-                          ))
+                          <button
+                            onClick={completeDailyCleanup}
+                            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:from-emerald-300 hover:to-teal-300 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(52,211,153,0.3)] tap-effect flex items-center justify-center gap-2"
+                          >
+                            <Sparkles size={16} /> Complete Daily Cleanup & Lock In (+30 XP)
+                          </button>
                         )}
                       </div>
-                    </div>
+                    )}
+
+                    {/* TAB 3: TROPHY WALL */}
+                    {twoBoxActiveTab === "trophy" && (
+                      <div className="space-y-4 animate-in fade-in duration-200">
+                        {/* KPI Metric Cards */}
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                          <div className="p-3 sm:p-3.5 rounded-2xl border border-amber-400/30 bg-slate-900/90 text-center shadow-sm">
+                            <span className="text-xl block mb-0.5">🏆</span>
+                            <span className="text-xl sm:text-2xl font-black block text-amber-300">
+                              {monthlyStats.totalWins}
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                              Box 2 Wins
+                            </span>
+                          </div>
+
+                          <div className="p-3 sm:p-3.5 rounded-2xl border border-emerald-400/30 bg-slate-900/90 text-center shadow-sm">
+                            <span className="text-xl block mb-0.5">🧹</span>
+                            <span className="text-xl sm:text-2xl font-black block text-emerald-400">
+                              {monthlyStats.totalCleaned}
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                              Cleaned
+                            </span>
+                          </div>
+
+                          <div className="p-3 sm:p-3.5 rounded-2xl border border-cyan-400/30 bg-slate-900/90 text-center shadow-sm">
+                            <span className="text-xl block mb-0.5">⚡</span>
+                            <span className="text-xl sm:text-2xl font-black block text-cyan-300">
+                              {monthlyStats.totalWins + monthlyStats.totalCleaned > 0
+                                ? Math.round(
+                                    (monthlyStats.totalWins /
+                                      (monthlyStats.totalWins + monthlyStats.totalFailures || 1)) *
+                                      100
+                                  )
+                                : 100}
+                              %
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                              Win Rate
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Victory Stream */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                            This Month's Victory Wall ({monthlyStats.allMonthlyAchievements.length}):
+                          </span>
+                          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                            {monthlyStats.allMonthlyAchievements.length === 0 ? (
+                              <div className="p-6 text-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/60">
+                                <span className="text-2xl block mb-1 opacity-60">📜</span>
+                                <p className="text-xs font-bold text-slate-300">No achievements recorded this month yet.</p>
+                                <p className="text-[10px] mt-0.5 text-slate-400 font-medium">Log your wins in Box 2 to build your victory momentum!</p>
+                              </div>
+                            ) : (
+                              monthlyStats.allMonthlyAchievements.map((item, mIdx) => (
+                                <div
+                                  key={mIdx}
+                                  className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-950/30 flex items-center justify-between gap-2 shadow-sm"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-yellow-400 text-sm">⭐</span>
+                                    <span className="text-xs text-slate-100 font-semibold">{item.text}</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono text-emerald-300 font-bold px-1.5 py-0.5 rounded bg-black/40 border border-emerald-500/30 shrink-0">
+                                    {item.date}
+                                  </span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                );
-              }
-              return null;
+                </div>
+              );
             })()}
           </div>
         </div>
