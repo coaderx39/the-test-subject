@@ -4726,21 +4726,6 @@ CORE MANNERISMS & ESSENCE:
               <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>Profile Config</h2>
               <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Name, avatar & API key</p>
             </button>
-            <button onClick={() => setIsScheduleModalOpen(true)} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-sky-500/10 hover:bg-sky-500/20 border-sky-400/40 hover:border-sky-400`}>
-              <CalendarDays className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-sky-400" />
-              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-sky-300 ${t.fontHeading}`}>Class & Meeting Dispatcher</h2>
-              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-sky-200/70">Future dates, auto-tasks & notifications</p>
-            </button>
-            <button onClick={testAllSmartNotifications} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/40 hover:border-amber-400`}>
-              <Bell className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-amber-400" />
-              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-amber-300 ${t.fontHeading}`}>Test Smart Notifications</h2>
-              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-amber-200/70">11:30 PM alert & daily check suite</p>
-            </button>
-            <button onClick={handleFactoryResetApp} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-rose-950/40 hover:bg-rose-900/50 border-rose-500/50 hover:border-rose-400`}>
-              <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-rose-400" />
-              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-rose-300 ${t.fontHeading}`}>Factory Reset (0)</h2>
-              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-rose-200/70">Wipe all data & restart fresh</p>
-            </button>
           </div>
         </div>
       );
