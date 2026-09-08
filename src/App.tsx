@@ -31,11 +31,272 @@ import {
 declare const __initial_auth_token: any;
 
 // ==========================================
-// THEME ENGINE
+// OFFICIAL VECTOR APP LOGO (CLEAN & AESTHETIC)
+// ==========================================
+export const AppLogo = ({ className = "w-8 h-8", glow = true }: { className?: string; glow?: boolean }) => (
+  <svg
+    viewBox="0 0 512 512"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`${className} ${glow ? "drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" : ""}`}
+  >
+    <defs>
+      <linearGradient id="appLogoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#fff1be" />
+        <stop offset="35%" stopColor="#f5c042" />
+        <stop offset="70%" stopColor="#d98218" />
+        <stop offset="100%" stopColor="#9a4d06" />
+      </linearGradient>
+      <linearGradient id="appLogoAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#ffe494" />
+        <stop offset="100%" stopColor="#e69500" />
+      </linearGradient>
+      <radialGradient id="appLogoCore" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#ffffff" />
+        <stop offset="40%" stopColor="#fde047" stopOpacity="0.8" />
+        <stop offset="100%" stopColor="#d97706" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    {/* Squircle Base */}
+    <rect x="16" y="16" width="480" height="480" rx="120" fill="#0c0d12" stroke="url(#appLogoGold)" strokeWidth="6" />
+    <circle cx="256" cy="246" r="130" fill="url(#appLogoCore)" opacity="0.3" />
+    <circle cx="256" cy="246" r="160" stroke="url(#appLogoGold)" strokeWidth="2" strokeDasharray="14 7" opacity="0.35" />
+    {/* Left Lobe */}
+    <path
+      d="M 240 148 C 214 148, 186 162, 172 186 C 152 200, 142 226, 146 252 C 140 274, 150 298, 170 314 C 188 334, 218 344, 240 344 C 244 344, 246 340, 246 332 C 246 304, 244 276, 244 246 C 244 214, 246 182, 246 160 C 246 152, 244 148, 240 148 Z"
+      stroke="url(#appLogoGold)"
+      strokeWidth="11"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M 174 212 C 192 204, 216 216, 222 232" stroke="url(#appLogoAmber)" strokeWidth="6" strokeLinecap="round" opacity="0.85" />
+    <path d="M 166 266 C 186 260, 212 274, 224 294" stroke="url(#appLogoAmber)" strokeWidth="6" strokeLinecap="round" opacity="0.85" />
+    {/* Right Lobe */}
+    <path
+      d="M 272 148 C 298 148, 326 162, 340 186 C 360 200, 370 226, 366 252 C 372 274, 362 298, 342 314 C 324 334, 294 344, 272 344 C 268 344, 266 340, 266 332 C 266 304, 268 276, 268 246 C 268 214, 266 182, 266 160 C 266 152, 268 148, 272 148 Z"
+      stroke="url(#appLogoGold)"
+      strokeWidth="11"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M 338 212 C 320 204, 296 216, 290 232" stroke="url(#appLogoAmber)" strokeWidth="6" strokeLinecap="round" opacity="0.85" />
+    <path d="M 346 266 C 326 260, 300 274, 288 294" stroke="url(#appLogoAmber)" strokeWidth="6" strokeLinecap="round" opacity="0.85" />
+    {/* Center Star of Clarity */}
+    <line x1="256" y1="170" x2="256" y2="322" stroke="url(#appLogoGold)" strokeWidth="4" strokeLinecap="round" opacity="0.6" />
+    <path d="M 256 218 C 256 238, 264 246, 284 246 C 264 246, 256 254, 256 274 C 256 254, 248 246, 228 246 C 248 246, 256 238, 256 218 Z" fill="url(#appLogoGold)" />
+    <circle cx="256" cy="246" r="4.5" fill="#ffffff" />
+    <circle cx="256" cy="148" r="7" fill="url(#appLogoGold)" />
+    <circle cx="256" cy="344" r="7" fill="url(#appLogoGold)" />
+    <path d="M 264 382 L 246 408 L 258 408 L 248 430 L 274 398 L 260 398 Z" fill="url(#appLogoGold)" />
+  </svg>
+);
+
+// ==========================================
+// THEME ENGINE (31 MINDSET & FLOW STATE THEMES)
 // ==========================================
 const THEMES = {
-   titan: {
+  // --- AESTHETIC & MINDSET THEMES ---
+  zenMonk: {
+    id: 'zenMonk', name: 'Zen Monastic',
+    desc: 'Deep Solitude & Pure Flow State',
+    appBg: 'bg-[#0a0a0c] text-[#e4e4e7] font-sans selection:bg-[#d4d4d8] selection:text-black',
+    devBar: 'bg-[#27272a] text-[#fafafa] border-b border-[#3f3f46] font-medium',
+    header: 'bg-[#121215] text-[#fafafa] border border-[#27272a] shadow-[0_10px_30px_rgba(0,0,0,0.8)] rounded-2xl',
+    card: 'bg-[#121215] border border-[#27272a] shadow-xl rounded-2xl',
+    cardInner: 'bg-[#18181b] border border-[#27272a] hover:border-[#52525b] transition-all rounded-xl',
+    textMain: 'text-[#f4f4f5]', textMuted: 'text-[#71717a]', textAccent: 'text-[#e4e4e7]', textWarning: 'text-[#a1a1aa]',
+    input: 'bg-[#18181b] border border-[#27272a] text-[#fafafa] placeholder:text-[#52525b] focus:border-[#a1a1aa] rounded-xl px-4',
+    btnPrimary: 'bg-[#e4e4e7] text-[#09090b] hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.15)] rounded-xl font-bold transition-transform active:scale-95',
+    btnWarning: 'bg-[#27272a] text-[#d4d4d8] hover:bg-[#3f3f46] rounded-xl font-bold',
+    fontHeading: 'font-sans tracking-tight', borderAccent: 'border-[#3f3f46]', badge: 'bg-[#27272a] text-[#e4e4e7] border border-[#3f3f46] rounded-full'
+  },
+  matrixTerminal: {
+    id: 'matrixTerminal', name: 'Matrix Terminal',
+    desc: 'Hacker Focus & Code Mode',
+    appBg: 'bg-[#020d05] text-[#22c55e] font-mono selection:bg-[#22c55e] selection:text-black',
+    devBar: 'bg-[#14532d] text-[#86efac] border-b border-[#22c55e] font-bold',
+    header: 'bg-[#051c0b] text-[#4ade80] border border-[#22c55e]/50 shadow-[0_0_25px_rgba(34,197,94,0.2)] rounded-xl',
+    card: 'bg-[#051c0b]/90 border border-[#22c55e]/30 shadow-[0_0_15px_rgba(34,197,94,0.1)] rounded-xl',
+    cardInner: 'bg-[#021206] border border-[#22c55e]/20 hover:border-[#22c55e]/60 transition-all rounded-lg',
+    textMain: 'text-[#86efac]', textMuted: 'text-[#166534]', textAccent: 'text-[#22c55e]', textWarning: 'text-[#4ade80]',
+    input: 'bg-[#020d05] border border-[#22c55e]/40 text-[#86efac] placeholder:text-[#166534] focus:border-[#22c55e] rounded-lg px-4',
+    btnPrimary: 'bg-[#22c55e] text-black hover:bg-[#4ade80] shadow-[0_0_20px_rgba(34,197,94,0.5)] rounded-lg font-black uppercase tracking-wider',
+    btnWarning: 'bg-[#052e16] text-[#4ade80] border border-[#22c55e]/40 hover:bg-[#14532d] rounded-lg font-bold',
+    fontHeading: 'font-mono tracking-wider uppercase', borderAccent: 'border-[#22c55e]/40', badge: 'bg-[#052e16] text-[#86efac] border border-[#22c55e] rounded font-mono'
+  },
+  imperialGold: {
+    id: 'imperialGold', name: 'Imperial Sovereign',
+    desc: 'Pure 24k Gold & Royal Prestige',
+    appBg: 'bg-[#0b0b0d] text-[#fef08a] font-sans selection:bg-[#fbbf24] selection:text-black',
+    devBar: 'bg-[#f59e0b] text-black border-b-2 border-[#fbbf24] font-black',
+    header: 'bg-gradient-to-r from-[#1c1917] via-[#292524] to-[#1c1917] text-[#fbbf24] border-2 border-[#f59e0b]/80 shadow-[0_0_35px_rgba(245,158,11,0.35)] rounded-2xl',
+    card: 'bg-[#141210] border border-[#f59e0b]/40 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#1c1917] border border-[#f59e0b]/25 hover:border-[#fbbf24] transition-all rounded-xl',
+    textMain: 'text-[#fef3c7]', textMuted: 'text-[#92400e]', textAccent: 'text-[#fbbf24]', textWarning: 'text-[#f59e0b]',
+    input: 'bg-[#0b0b0d] border border-[#f59e0b]/40 text-[#fef3c7] placeholder:text-[#78350f] focus:border-[#fbbf24] rounded-xl px-4',
+    btnPrimary: 'bg-gradient-to-r from-[#fbbf24] via-[#f59e0b] to-[#d97706] text-black hover:brightness-110 shadow-[0_0_25px_rgba(245,158,11,0.6)] rounded-xl font-black uppercase tracking-wider',
+    btnWarning: 'bg-[#292524] text-[#fbbf24] border border-[#f59e0b] hover:bg-[#f59e0b] hover:text-black rounded-xl font-black uppercase',
+    fontHeading: 'font-bold tracking-wide uppercase', borderAccent: 'border-[#f59e0b]/50', badge: 'bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b] rounded-md font-bold'
+  },
+  soloShadow: {
+    id: 'soloShadow', name: 'Shadow Monarch',
+    desc: 'Solo Leveling & Unstoppable Grind',
+    appBg: 'bg-[#050508] text-[#e0e7ff] font-sans selection:bg-[#6366f1] selection:text-white',
+    devBar: 'bg-[#4338ca] text-white border-b border-[#818cf8] font-black',
+    header: 'bg-gradient-to-r from-[#0f1123] via-[#1e1b4b] to-[#0f1123] text-[#c7d2fe] border border-[#6366f1]/60 shadow-[0_0_35px_rgba(99,102,241,0.3)] rounded-2xl',
+    card: 'bg-[#0a0a14] border border-[#4338ca]/40 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#101026] border border-[#6366f1]/20 hover:border-[#818cf8] transition-all rounded-xl',
+    textMain: 'text-[#e0e7ff]', textMuted: 'text-[#6366f1]/60', textAccent: 'text-[#818cf8]', textWarning: 'text-[#a5b4fc]',
+    input: 'bg-[#050508] border border-[#4338ca]/50 text-[#e0e7ff] placeholder:text-[#3730a3] focus:border-[#818cf8] rounded-xl px-4',
+    btnPrimary: 'bg-gradient-to-r from-[#4f46e5] to-[#6366f1] text-white hover:from-[#6366f1] hover:to-[#818cf8] shadow-[0_0_25px_rgba(99,102,241,0.5)] rounded-xl font-black uppercase tracking-wider',
+    btnWarning: 'bg-[#1e1b4b] text-[#a5b4fc] border border-[#6366f1]/40 hover:bg-[#312e81] rounded-xl font-bold',
+    fontHeading: 'font-black tracking-wide uppercase', borderAccent: 'border-[#6366f1]/40', badge: 'bg-[#312e81] text-[#c7d2fe] border border-[#6366f1] rounded-md font-bold'
+  },
+  evaUnit01: {
+    id: 'evaUnit01', name: 'Evangelion Berserk',
+    desc: 'Relentless Will & High Adrenaline',
+    appBg: 'bg-[#0c0814] text-[#e9d5ff] font-sans selection:bg-[#a855f7] selection:text-black',
+    devBar: 'bg-[#7e22ce] text-[#4ade80] border-b-2 border-[#4ade80] font-black',
+    header: 'bg-[#1e1035] text-[#4ade80] border-2 border-[#a855f7] shadow-[0_0_30px_rgba(168,85,247,0.4)] rounded-2xl',
+    card: 'bg-[#150a24] border border-[#7e22ce]/50 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#201037] border border-[#a855f7]/30 hover:border-[#4ade80] transition-all rounded-xl',
+    textMain: 'text-[#f3e8ff]', textMuted: 'text-[#9333ea]/70', textAccent: 'text-[#4ade80]', textWarning: 'text-[#c084fc]',
+    input: 'bg-[#0c0814] border border-[#7e22ce]/50 text-[#4ade80] placeholder:text-[#581c87] focus:border-[#4ade80] rounded-xl px-4',
+    btnPrimary: 'bg-[#4ade80] text-[#0c0814] hover:bg-[#86efac] shadow-[0_0_20px_rgba(74,222,128,0.5)] rounded-xl font-black uppercase tracking-widest',
+    btnWarning: 'bg-[#581c87] text-[#4ade80] border border-[#4ade80]/40 hover:bg-[#6b21a8] rounded-xl font-bold',
+    fontHeading: 'font-mono tracking-wider uppercase font-black', borderAccent: 'border-[#a855f7]/50', badge: 'bg-[#3b0764] text-[#4ade80] border border-[#4ade80] rounded font-mono'
+  },
+  darkAcademia: {
+    id: 'darkAcademia', name: 'Oxford Scholar',
+    desc: 'Parchment & Intellectual Focus',
+    appBg: 'bg-[#140e0a] text-[#fed7aa] font-sans selection:bg-[#b45309] selection:text-white',
+    devBar: 'bg-[#78350f] text-[#ffedd5] border-b border-[#b45309] font-bold',
+    header: 'bg-[#21160f] text-[#ffedd5] border border-[#b45309]/50 shadow-2xl rounded-2xl',
+    card: 'bg-[#1a120c] border border-[#78350f]/40 shadow-xl rounded-2xl',
+    cardInner: 'bg-[#241a12] border border-[#78350f]/30 hover:border-[#d97706] transition-all rounded-xl',
+    textMain: 'text-[#ffedd5]', textMuted: 'text-[#9a3412]', textAccent: 'text-[#fb923c]', textWarning: 'text-[#f59e0b]',
+    input: 'bg-[#140e0a] border border-[#78350f]/50 text-[#ffedd5] placeholder:text-[#78350f] focus:border-[#fb923c] rounded-xl px-4',
+    btnPrimary: 'bg-[#b45309] text-white hover:bg-[#d97706] shadow-[0_0_15px_rgba(180,83,9,0.4)] rounded-xl font-bold tracking-wide',
+    btnWarning: 'bg-[#2e1d13] text-[#fed7aa] border border-[#78350f] hover:bg-[#3d2719] rounded-xl font-bold',
+    fontHeading: 'font-serif tracking-normal', borderAccent: 'border-[#78350f]', badge: 'bg-[#2e1d13] text-[#fed7aa] border border-[#b45309] rounded-md'
+  },
+  nordicFrost: {
+    id: 'nordicFrost', name: 'Nordic Glacier',
+    desc: 'Arctic Frost & Calm Precision',
+    appBg: 'bg-[#060e17] text-[#e0f2fe] font-sans selection:bg-[#38bdf8] selection:text-black',
+    devBar: 'bg-[#0369a1] text-white border-b border-[#38bdf8] font-bold',
+    header: 'bg-gradient-to-r from-[#0c1f33] to-[#081829] text-[#7dd3fc] border border-[#38bdf8]/40 shadow-[0_0_25px_rgba(56,189,248,0.2)] rounded-2xl',
+    card: 'bg-[#081524] border border-[#0284c7]/30 shadow-xl rounded-2xl',
+    cardInner: 'bg-[#0c1e33] border border-[#0284c7]/20 hover:border-[#38bdf8] transition-all rounded-xl',
+    textMain: 'text-[#f0f9ff]', textMuted: 'text-[#0284c7]', textAccent: 'text-[#38bdf8]', textWarning: 'text-[#7dd3fc]',
+    input: 'bg-[#060e17] border border-[#0284c7]/40 text-[#f0f9ff] placeholder:text-[#0369a1] focus:border-[#38bdf8] rounded-xl px-4',
+    btnPrimary: 'bg-[#38bdf8] text-[#082f49] hover:bg-[#7dd3fc] shadow-[0_0_20px_rgba(56,189,248,0.4)] rounded-xl font-black uppercase tracking-wider',
+    btnWarning: 'bg-[#0c1e33] text-[#7dd3fc] border border-[#38bdf8]/30 hover:bg-[#075985] rounded-xl font-bold',
+    fontHeading: 'font-sans tracking-wide', borderAccent: 'border-[#0284c7]/50', badge: 'bg-[#075985] text-[#e0f2fe] border border-[#38bdf8] rounded-full'
+  },
+  crimsonRonin: {
+    id: 'crimsonRonin', name: 'Crimson Ronin',
+    desc: 'Samurai Discipline & Bushido Code',
+    appBg: 'bg-[#0a0506] text-[#ffe4e6] font-sans selection:bg-[#e11d48] selection:text-white',
+    devBar: 'bg-[#9f1239] text-white border-b-2 border-[#e11d48] font-black',
+    header: 'bg-[#180a0d] text-[#fda4af] border-2 border-[#e11d48]/70 shadow-[0_0_30px_rgba(225,29,72,0.3)] rounded-2xl',
+    card: 'bg-[#120709] border border-[#9f1239]/40 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#1c0b0f] border border-[#e11d48]/25 hover:border-[#f43f5e] transition-all rounded-xl',
+    textMain: 'text-[#fff1f2]', textMuted: 'text-[#9f1239]', textAccent: 'text-[#f43f5e]', textWarning: 'text-[#fb7185]',
+    input: 'bg-[#0a0506] border border-[#9f1239]/50 text-[#fff1f2] placeholder:text-[#881337] focus:border-[#f43f5e] rounded-xl px-4',
+    btnPrimary: 'bg-[#e11d48] text-white hover:bg-[#f43f5e] shadow-[0_0_20px_rgba(225,29,72,0.5)] rounded-xl font-black uppercase tracking-widest',
+    btnWarning: 'bg-[#270c12] text-[#fda4af] border border-[#e11d48]/40 hover:bg-[#4c0519] rounded-xl font-bold',
+    fontHeading: 'font-black tracking-wider uppercase', borderAccent: 'border-[#e11d48]/50', badge: 'bg-[#4c0519] text-[#fda4af] border border-[#e11d48] rounded'
+  },
+  emeraldSanctuary: {
+    id: 'emeraldSanctuary', name: 'Forest Alchemist',
+    desc: 'Botanical Calm & Rejuvenation',
+    appBg: 'bg-[#040e08] text-[#d1fae5] font-sans selection:bg-[#10b981] selection:text-black',
+    devBar: 'bg-[#065f46] text-[#a7f3d0] border-b border-[#10b981] font-bold',
+    header: 'bg-[#071d11] text-[#6ee7b7] border border-[#10b981]/50 shadow-[0_0_25px_rgba(16,185,129,0.2)] rounded-2xl',
+    card: 'bg-[#05170d] border border-[#047857]/30 shadow-xl rounded-2xl',
+    cardInner: 'bg-[#092415] border border-[#10b981]/20 hover:border-[#34d399] transition-all rounded-xl',
+    textMain: 'text-[#ecfdf5]', textMuted: 'text-[#065f46]', textAccent: 'text-[#10b981]', textWarning: 'text-[#34d399]',
+    input: 'bg-[#040e08] border border-[#047857]/40 text-[#ecfdf5] placeholder:text-[#064e3b] focus:border-[#10b981] rounded-xl px-4',
+    btnPrimary: 'bg-[#10b981] text-black hover:bg-[#34d399] shadow-[0_0_20px_rgba(16,185,129,0.4)] rounded-xl font-bold tracking-wide',
+    btnWarning: 'bg-[#064e3b] text-[#a7f3d0] border border-[#10b981]/30 hover:bg-[#065f46] rounded-xl font-bold',
+    fontHeading: 'font-sans tracking-normal', borderAccent: 'border-[#047857]/50', badge: 'bg-[#064e3b] text-[#6ee7b7] border border-[#10b981] rounded-full'
+  },
+  cosmicAbyss: {
+    id: 'cosmicAbyss', name: 'Cosmic Abyss',
+    desc: 'Deep Space Void & Zero Distraction',
+    appBg: 'bg-[#03000a] text-[#ede9fe] font-sans selection:bg-[#7c3aed] selection:text-white',
+    devBar: 'bg-[#5b21b6] text-white border-b border-[#a78bfa] font-bold',
+    header: 'bg-gradient-to-r from-[#0c051f] via-[#17093b] to-[#0c051f] text-[#c4b5fd] border border-[#7c3aed]/50 shadow-[0_0_35px_rgba(124,58,237,0.3)] rounded-2xl',
+    card: 'bg-[#080214] border border-[#6d28d9]/30 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#110526] border border-[#7c3aed]/25 hover:border-[#a78bfa] transition-all rounded-xl',
+    textMain: 'text-[#f5f3ff]', textMuted: 'text-[#6d28d9]', textAccent: 'text-[#a78bfa]', textWarning: 'text-[#c4b5fd]',
+    input: 'bg-[#03000a] border border-[#6d28d9]/40 text-[#f5f3ff] placeholder:text-[#4c1d95] focus:border-[#a78bfa] rounded-xl px-4',
+    btnPrimary: 'bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6] text-white hover:brightness-110 shadow-[0_0_20px_rgba(139,92,246,0.5)] rounded-xl font-bold uppercase tracking-wider',
+    btnWarning: 'bg-[#1e0b3d] text-[#c4b5fd] border border-[#7c3aed]/30 hover:bg-[#2e1065] rounded-xl font-bold',
+    fontHeading: 'font-sans tracking-wide', borderAccent: 'border-[#6d28d9]/50', badge: 'bg-[#2e1065] text-[#c4b5fd] border border-[#7c3aed] rounded-full'
+  },
+  solarPhoenix: {
+    id: 'solarPhoenix', name: 'Solar Phoenix',
+    desc: 'Resilience, Rebirth & High Energy',
+    appBg: 'bg-[#0d0602] text-[#ffedd5] font-sans selection:bg-[#ea580c] selection:text-white',
+    devBar: 'bg-[#c2410c] text-white border-b-2 border-[#fb923c] font-black',
+    header: 'bg-gradient-to-r from-[#240e03] via-[#3a1504] to-[#240e03] text-[#fed7aa] border-2 border-[#ea580c]/80 shadow-[0_0_35px_rgba(234,88,12,0.4)] rounded-2xl',
+    card: 'bg-[#170902] border border-[#c2410c]/40 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#260f04] border border-[#ea580c]/30 hover:border-[#fb923c] transition-all rounded-xl',
+    textMain: 'text-[#fff7ed]', textMuted: 'text-[#9a3412]', textAccent: 'text-[#fb923c]', textWarning: 'text-[#f97316]',
+    input: 'bg-[#0d0602] border border-[#c2410c]/50 text-[#fff7ed] placeholder:text-[#7c2d12] focus:border-[#fb923c] rounded-xl px-4',
+    btnPrimary: 'bg-gradient-to-r from-[#ea580c] via-[#f97316] to-[#fb923c] text-black hover:brightness-110 shadow-[0_0_25px_rgba(234,88,12,0.6)] rounded-xl font-black uppercase tracking-wider',
+    btnWarning: 'bg-[#351405] text-[#fed7aa] border border-[#ea580c]/40 hover:bg-[#431407] rounded-xl font-black uppercase',
+    fontHeading: 'font-black tracking-wide uppercase', borderAccent: 'border-[#ea580c]/50', badge: 'bg-[#431407] text-[#fed7aa] border border-[#ea580c] rounded font-bold'
+  },
+  divineSarathi: {
+    id: 'divineSarathi', name: 'Divine Sarathi',
+    desc: 'Bhagavad Gita & Transcendent Duty',
+    appBg: 'bg-[#030a14] text-[#e0f2fe] font-sans selection:bg-[#fbbf24] selection:text-black',
+    devBar: 'bg-[#0284c7] text-[#fbbf24] border-b-2 border-[#fbbf24] font-black',
+    header: 'bg-gradient-to-r from-[#061e38] via-[#0c3156] to-[#061e38] text-[#fbbf24] border-2 border-[#38bdf8]/60 shadow-[0_0_40px_rgba(56,189,248,0.3)] rounded-2xl',
+    card: 'bg-[#05172b] border border-[#0284c7]/40 shadow-2xl rounded-2xl',
+    cardInner: 'bg-[#092544] border border-[#38bdf8]/25 hover:border-[#fbbf24] transition-all rounded-xl',
+    textMain: 'text-[#f0f9ff]', textMuted: 'text-[#0284c7]', textAccent: 'text-[#fbbf24]', textWarning: 'text-[#38bdf8]',
+    input: 'bg-[#030a14] border border-[#0284c7]/50 text-[#f0f9ff] placeholder:text-[#075985] focus:border-[#fbbf24] rounded-xl px-4',
+    btnPrimary: 'bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] text-black hover:brightness-110 shadow-[0_0_25px_rgba(251,191,36,0.6)] rounded-xl font-black uppercase tracking-widest',
+    btnWarning: 'bg-[#0a2f54] text-[#fbbf24] border border-[#fbbf24]/40 hover:bg-[#0c3b69] rounded-xl font-bold',
+    fontHeading: 'font-bold tracking-wide uppercase', borderAccent: 'border-[#38bdf8]/50', badge: 'bg-[#0c3b69] text-[#fbbf24] border border-[#fbbf24] rounded-full font-bold'
+  },
+  sakuraBreeze: {
+    id: 'sakuraBreeze', name: 'Sakura Zen',
+    desc: 'Minimalist Japanese Cherry Blossom',
+    appBg: 'bg-[#0e0a12] text-[#fce7f3] font-sans selection:bg-[#ec4899] selection:text-white',
+    devBar: 'bg-[#be185d] text-white border-b border-[#f472b6] font-bold',
+    header: 'bg-[#1b1222] text-[#fbcfe8] border border-[#ec4899]/40 shadow-[0_0_25px_rgba(236,72,153,0.2)] rounded-2xl',
+    card: 'bg-[#150d1b] border border-[#9d174d]/30 shadow-xl rounded-2xl',
+    cardInner: 'bg-[#201429] border border-[#ec4899]/20 hover:border-[#f472b6] transition-all rounded-xl',
+    textMain: 'text-[#fdf2f8]', textMuted: 'text-[#9d174d]', textAccent: 'text-[#f472b6]', textWarning: 'text-[#fbcfe8]',
+    input: 'bg-[#0e0a12] border border-[#9d174d]/40 text-[#fdf2f8] placeholder:text-[#831843] focus:border-[#f472b6] rounded-xl px-4',
+    btnPrimary: 'bg-[#ec4899] text-white hover:bg-[#f472b6] shadow-[0_0_20px_rgba(236,72,153,0.4)] rounded-xl font-bold tracking-wide',
+    btnWarning: 'bg-[#2e1837] text-[#fbcfe8] border border-[#ec4899]/30 hover:bg-[#3d1a45] rounded-xl font-bold',
+    fontHeading: 'font-sans tracking-normal', borderAccent: 'border-[#9d174d]/50', badge: 'bg-[#500724] text-[#fbcfe8] border border-[#ec4899] rounded-full'
+  },
+  cyberpunkNeon: {
+    id: 'cyberpunkNeon', name: 'Night City 2077',
+    desc: 'High-Voltage Cyber Yellow & Hyper Cyan',
+    appBg: 'bg-[#040406] text-[#fef08a] font-sans selection:bg-[#00f0ff] selection:text-black',
+    devBar: 'bg-[#fee500] text-black border-b-2 border-[#00f0ff] font-black tracking-widest',
+    header: 'bg-[#0a0a10] text-[#fee500] border-2 border-[#fee500] shadow-[0_0_30px_rgba(254,229,0,0.3)] rounded-none',
+    card: 'bg-[#0d0d14] border-2 border-[#00f0ff]/40 shadow-[4px_4px_0px_#fee500] rounded-none',
+    cardInner: 'bg-[#141420] border border-[#00f0ff]/30 hover:border-[#fee500] transition-all rounded-none',
+    textMain: 'text-[#fffbeb]', textMuted: 'text-[#00f0ff]/60', textAccent: 'text-[#fee500]', textWarning: 'text-[#00f0ff]',
+    input: 'bg-[#040406] border-2 border-[#00f0ff]/50 text-[#fee500] placeholder:text-[#008b94] focus:border-[#fee500] rounded-none px-4',
+    btnPrimary: 'bg-[#fee500] text-black border-2 border-[#fee500] hover:bg-[#00f0ff] hover:border-[#00f0ff] shadow-[0_0_20px_rgba(254,229,0,0.6)] rounded-none font-black uppercase tracking-widest',
+    btnWarning: 'bg-[#0d0d14] text-[#00f0ff] border-2 border-[#00f0ff] hover:bg-[#00f0ff] hover:text-black rounded-none font-black uppercase',
+    fontHeading: 'font-mono uppercase tracking-widest font-black', borderAccent: 'border-[#fee500]', badge: 'bg-[#fee500] text-black font-mono font-black px-2'
+  },
+
+  // --- CLASSIC & POP CULTURE THEMES ---
+  titan: {
     id: 'titan', name: 'Mad Titan',
+    desc: 'Infinity Power & Cosmic Destiny',
     appBg: 'bg-[#1a0525] text-[#e0b0ff] font-sans selection:bg-[#ffd700] selection:text-black',
     devBar: 'bg-[#ffd700] text-black border-b-4 border-[#4a148c] font-black',
     header: 'bg-[#4a148c] text-[#ffd700] border-4 border-[#ffd700] shadow-[0_0_30px_rgba(255,215,0,0.3)] rounded-lg',
@@ -49,6 +310,7 @@ const THEMES = {
   },
   speedster: {
     id: 'speedster', name: 'Speed Force',
+    desc: 'Maximum Velocity & Lightning Speed',
     appBg: 'bg-[#990000] text-white font-sans selection:bg-[#ffcc00] selection:text-black',
     devBar: 'bg-[#ffcc00] text-black border-b-4 border-black font-black',
     header: 'bg-gradient-to-r from-[#cc0000] to-[#ff3333] text-white border-[3px] border-black shadow-[6px_6px_0px_#ffcc00] rounded-xl transform -skew-x-2',
@@ -62,6 +324,7 @@ const THEMES = {
   },
   wolverine: {
     id: 'wolverine', name: 'Weapon X',
+    desc: 'Adamantium Resilience & Berserker Rage',
     appBg: 'bg-[#ffce00] text-black font-sans selection:bg-[#32527b] selection:text-white',
     devBar: 'bg-[#32527b] text-white border-b-4 border-black font-black',
     header: 'bg-[#32527b] text-white border-4 border-black shadow-[6px_6px_0px_#000] rounded-none',
@@ -75,6 +338,7 @@ const THEMES = {
   },
   batman: {
     id: 'batman', name: 'Dark Knight',
+    desc: 'Tactical Stealth & Gotham Shadows',
     appBg: 'bg-[#0a0a0a] text-gray-300 font-sans selection:bg-[#ffe81f] selection:text-black',
     devBar: 'bg-[#ffe81f] text-black border-b-2 border-black font-black',
     header: 'bg-[#111] text-gray-100 border border-[#222] shadow-[0_10px_30px_rgba(255,232,31,0.1)] rounded-xl',
@@ -86,8 +350,9 @@ const THEMES = {
     btnWarning: 'bg-[#222] text-[#ffe81f] border border-[#ffe81f] hover:bg-[#ffe81f] hover:text-black rounded-lg font-black uppercase',
     fontHeading: 'font-bold tracking-widest', borderAccent: 'border-[#ffe81f]/30', badge: 'bg-[#ffe81f]/10 text-[#ffe81f] border border-[#ffe81f]/20 rounded-md'
   },
-   mario: {
+  mario: {
     id: 'mario', name: 'Super Plumber',
+    desc: 'Classic 8-Bit Joy & 1-Up Momentum',
     appBg: 'bg-[#5c94fc] text-white font-sans selection:bg-[#e02424] selection:text-white',
     devBar: 'bg-[#e02424] text-white border-b-4 border-[#000] font-black',
     header: 'bg-[#e02424] text-white border-4 border-black shadow-[6px_6px_0px_#fbd000] rounded-2xl',
@@ -99,8 +364,9 @@ const THEMES = {
     btnWarning: 'bg-[#fbd000] text-black border-4 border-black hover:bg-white shadow-[4px_4px_0px_black] rounded-xl font-black uppercase',
     fontHeading: 'font-black tracking-wide', borderAccent: 'border-[#e02424]', badge: 'bg-[#43b047] text-white border-2 border-black font-black rounded-full'
   },
-   stark: {
+  stark: {
     id: 'stark', name: 'Stark Tech',
+    desc: 'Arc Reactor Energy & Advanced HUD',
     appBg: 'bg-[#050505] text-[#e0e0e0] font-sans selection:bg-[#00f3ff] selection:text-black',
     devBar: 'bg-[#990000] text-[#ffcc00] border-b border-[#ffcc00] font-bold',
     header: 'bg-gradient-to-r from-[#800000] to-[#cc0000] text-[#ffcc00] border-b-2 border-[#00f3ff] shadow-[0_0_20px_rgba(204,0,0,0.5)] rounded-xl',
@@ -114,6 +380,7 @@ const THEMES = {
   },
   rpgDark: {
     id: 'rpgDark', name: 'RPG Stealth',
+    desc: 'Clean Dark Fantasy & Dungeon Crawler',
     appBg: 'bg-gray-950 text-gray-200 font-sans selection:bg-blue-500/30 selection:text-blue-200',
     devBar: 'bg-blue-900 text-blue-100 border-b border-blue-700 font-bold',
     header: 'bg-gray-900 border border-gray-800 shadow-xl rounded-2xl',
@@ -127,6 +394,7 @@ const THEMES = {
   },
   brutalist: {
     id: 'brutalist', name: 'Neo-Brutalist',
+    desc: 'High-Contrast Monochrome & Hard Shadows',
     appBg: 'bg-black text-white font-sans uppercase tracking-wider selection:bg-yellow-400 selection:text-black',
     devBar: 'bg-yellow-400 text-black border-b-4 border-white font-black',
     header: 'bg-black border-4 border-white shadow-[6px_6px_0px_white] sm:shadow-[8px_8px_0px_white] rounded-none',
@@ -140,6 +408,7 @@ const THEMES = {
   },
   doraemonDark: {
     id: 'doraemonDark', name: 'Doraemon Dark',
+    desc: 'Pocket of Miracles & Midnight Cobalt',
     appBg: 'bg-[#09111e] text-slate-200 font-sans selection:bg-[#0096FE] selection:text-white',
     devBar: 'bg-[#FFD900] text-slate-900 border-b border-[#E6C300] font-bold',
     header: 'bg-gradient-to-r from-[#0096FE] to-[#0077CC] text-white border border-[#0096FE]/50 shadow-[0_10px_30px_rgba(0,150,254,0.3)] rounded-2xl',
@@ -153,6 +422,7 @@ const THEMES = {
   },
   doraemonLight: {
     id: 'doraemonLight', name: 'Doraemon Light',
+    desc: 'Sunny Cyan & Gadget Cheer',
     appBg: 'bg-[#FAFAFA] text-slate-800 font-sans selection:bg-[#0096FE] selection:text-white',
     devBar: 'bg-[#FFD900] text-slate-900 border-b border-[#E6C300] font-bold',
     header: 'bg-gradient-to-r from-[#0096FE] to-[#33AAFF] text-white shadow-lg rounded-2xl',
@@ -166,6 +436,7 @@ const THEMES = {
   },
   cyber: {
     id: 'cyber', name: 'Cyber-Glass',
+    desc: 'Holographic Glassmorphism & Cyan Frost',
     appBg: 'bg-[#050b14] text-cyan-50 font-sans selection:bg-cyan-500 selection:text-white',
     devBar: 'bg-cyan-900 text-cyan-100 border-b border-cyan-500 font-bold',
     header: 'bg-[#0a192f]/80 backdrop-blur-md border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] rounded-2xl',
@@ -179,6 +450,7 @@ const THEMES = {
   },
   shinchan: {
     id: 'shinchan', name: 'Action Kamen',
+    desc: 'Unapologetic Fun & High Energy Comic',
     appBg: 'bg-[#ffeb3b] text-[#111] font-sans selection:bg-[#ff0000] selection:text-white',
     devBar: 'bg-[#ff0000] text-white border-b-4 border-black font-black',
     header: 'bg-[#00a8ff] text-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#111]',
@@ -192,6 +464,7 @@ const THEMES = {
   },
   squid: {
     id: 'squid', name: 'Squid Game',
+    desc: 'High Stakes & Neon Pink Geometry',
     appBg: 'bg-[#111] text-[#eee] font-sans selection:bg-[#ff0055] selection:text-white',
     devBar: 'bg-[#ff0055] text-white border-b-2 border-black font-bold tracking-widest',
     header: 'bg-[#ff0055] text-white border-b-4 border-black rounded-none shadow-[0_4px_20px_rgba(255,0,85,0.4)]',
@@ -205,6 +478,7 @@ const THEMES = {
   },
   spider: {
     id: 'spider', name: 'Spider-Verse',
+    desc: 'Multiverse Glitch & Urban Web',
     appBg: 'bg-[#0a0a0a] text-white font-sans selection:bg-[#e23636] selection:text-white',
     devBar: 'bg-[#e23636] text-white border-b-2 border-[#0033cc] font-bold',
     header: 'bg-gradient-to-b from-[#e23636] to-[#b91c1c] text-white border-b-4 border-[#0033cc] shadow-[0_8px_0px_#0033cc] rounded-2xl',
@@ -218,6 +492,7 @@ const THEMES = {
   },
   goku: {
     id: 'goku', name: 'Super Saiyan',
+    desc: 'Infinite Ki & Ascended Form',
     appBg: 'bg-[#FF5E00] text-black font-sans selection:bg-[#0047BB] selection:text-white',
     devBar: 'bg-[#0047BB] text-white border-b-4 border-black font-black',
     header: 'bg-[#0047BB] text-white border-4 border-black shadow-[6px_6px_0px_#FFD700] rounded-2xl',
@@ -231,6 +506,7 @@ const THEMES = {
   },
   synthwave: {
     id: 'synthwave', name: 'Retro Synthwave',
+    desc: 'Outrun Sunset & Neon Gridlines',
     appBg: 'bg-[#1a0b2e] text-[#00f3ff] font-sans selection:bg-[#ff007f] selection:text-white',
     devBar: 'bg-[#ff007f] text-white border-b-2 border-[#00f3ff] font-bold tracking-widest',
     header: 'bg-gradient-to-r from-[#2b0f4c] to-[#1a0b2e] text-[#00f3ff] border-2 border-[#ff007f] shadow-[0_0_20px_rgba(255,0,127,0.5)] rounded-xl',
@@ -244,6 +520,7 @@ const THEMES = {
   },
   naruto: {
     id: 'naruto', name: 'Hidden Leaf',
+    desc: 'Will of Fire & Shinobi Determination',
     appBg: 'bg-[#1c1c1c] text-[#f4f4f4] font-sans selection:bg-[#ff7b00] selection:text-black',
     devBar: 'bg-[#ff7b00] text-black border-b-4 border-black font-black',
     header: 'bg-[#2b2b2b] text-white border-l-8 border-[#ff7b00] shadow-xl rounded-lg',
@@ -748,29 +1025,91 @@ export interface RankTransitionModalState {
   newRank: RpgRank;
 }
 
-export const playRankFanfare = (type: "up" | "down") => {
+export const playRankFanfare = (type: "up" | "down", tier: number = 1) => {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
 
     if (type === "up") {
-      // 6-note triumphant arpeggio crescendo with bell shimmer
-      const pitches = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99];
-      pitches.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = idx === pitches.length - 1 ? "sine" : "triangle";
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
-        gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.1 + (idx === pitches.length - 1 ? 0.9 : 0.45));
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + idx * 0.1);
-        osc.stop(ctx.currentTime + idx * 0.1 + 1.0);
-      });
+      if (tier >= 13) {
+        // 🌌 GOD TIER (Tiers 13-15): Sacred Solfeggio 432Hz/528Hz Divine Harmonics & Om Vibrations
+        const solfeggioFrequencies = [432.0, 528.0, 639.0, 852.0, 963.0, 1056.0];
+        solfeggioFrequencies.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.09);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.09 + 2.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.09);
+          osc.stop(ctx.currentTime + idx * 0.09 + 2.4);
+        });
+      } else if (tier >= 10) {
+        // ☀️ SOLAR / OVERLORD TIER (Tiers 10-12): Cosmic Synthesizer Overdrive
+        const cosmicFrequencies = [220.0, 277.18, 329.63, 440.0, 554.37, 659.25, 880.0, 1318.51];
+        cosmicFrequencies.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx % 2 === 0 ? "triangle" : "sine";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.08 + 1.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.08);
+          osc.stop(ctx.currentTime + idx * 0.08 + 1.8);
+        });
+      } else if (tier >= 7) {
+        // 🔥 WARLORD / DRAGONSLAYER TIER (Tiers 7-9): Orchestral Brass Crescendo with Sub-Bass
+        const warlordFrequencies = [130.81, 261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.50];
+        warlordFrequencies.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx === 0 ? "sawtooth" : idx > 4 ? "triangle" : "sine";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(idx === 0 ? 0.35 : 0.22, ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.08 + (idx === warlordFrequencies.length - 1 ? 1.4 : 0.6));
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.08);
+          osc.stop(ctx.currentTime + idx * 0.08 + 1.5);
+        });
+      } else if (tier >= 4) {
+        // ⚡ STRIKER / CENTURION TIER (Tiers 4-6): Electric Power Arpeggio
+        const powerFrequencies = [329.63, 440.0, 554.37, 659.25, 880.0, 1108.73];
+        powerFrequencies.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx === powerFrequencies.length - 1 ? "sine" : "triangle";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.09);
+          gain.gain.setValueAtTime(0.24, ctx.currentTime + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.09 + 0.7);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.09);
+          osc.stop(ctx.currentTime + idx * 0.09 + 0.8);
+        });
+      } else {
+        // 🌱 INITIATE / SENTINEL TIER (Tiers 1-3): Crisp Emerald Bell Chime
+        const initiateFrequencies = [523.25, 659.25, 783.99, 1046.50];
+        initiateFrequencies.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.1 + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.1);
+          osc.stop(ctx.currentTime + idx * 0.1 + 0.6);
+        });
+      }
     } else {
-      // Descending warning 4-note chime with low undertone
+      // ⚠️ DESCENDING DEMOTION CHIME
       const pitches = [392.0, 311.13, 261.63, 130.81];
       pitches.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
@@ -1937,7 +2276,7 @@ export default function App() {
         oldRank: oldRankData.currentRank,
         newRank: newRankData.currentRank,
       });
-      playRankFanfare("up");
+      playRankFanfare("up", newRankData.currentRank.tier);
     } else if (newRankData.currentRankIndex < oldRankData.currentRankIndex) {
       setRankTransitionModal({
         isOpen: true,
@@ -1947,7 +2286,7 @@ export default function App() {
         oldRank: oldRankData.currentRank,
         newRank: newRankData.currentRank,
       });
-      playRankFanfare("down");
+      playRankFanfare("down", newRankData.currentRank.tier);
     }
 
     setProfile(newProfile);
@@ -5355,16 +5694,57 @@ CORE MANNERISMS & ESSENCE:
 
         {settingsRoute === "theme" && (
           <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
-            <h3 className={`font-black uppercase tracking-widest mb-5 flex items-center gap-2 text-xs sm:text-sm border-b pb-3 ${t.textAccent} ${t.fontHeading} ${t.borderAccent}`}>APP THEME ENGINE</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {Object.values(THEMES).map((themeOption: any) => (
-                <button key={themeOption.id} onClick={() => updateProfileFirebase({ activeTheme: themeOption.id })} className={`p-4 rounded-2xl transition-all tap-effect flex flex-col items-center gap-2.5 cursor-pointer shadow-md ${t.cardInner} ${profile.activeTheme === themeOption.id ? t.borderAccent + ' opacity-100 scale-[1.03] ring-2 ring-current shadow-lg' : 'opacity-70 hover:opacity-100 border-transparent'}`}>
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center border border-white/20 ${themeOption.appBg.split(' ')[0]}`}>
-                     {profile.activeTheme === themeOption.id && <CheckCircle2 className={`w-5 h-5 sm:w-6 sm:h-6 ${themeOption.textAccent ? themeOption.textAccent : 'text-white'}`} />}
-                  </div>
-                  <span className={`text-[9px] sm:text-[10px] font-black text-center uppercase tracking-wider ${t.textMain} ${t.fontHeading}`}>{themeOption.name}</span>
-                </button>
-              ))}
+            <div className="flex items-center justify-between pb-3 border-b mb-5">
+              <h3 className={`font-black uppercase tracking-widest flex items-center gap-2 text-xs sm:text-sm ${t.textAccent} ${t.fontHeading}`}>
+                <Sparkles size={16} /> MINDSET & COGNITIVE THEME ENGINE
+              </h3>
+              <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full ${t.badge}`}>
+                {Object.keys(THEMES).length} Themes
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-h-[62vh] overflow-y-auto pr-1">
+              {Object.values(THEMES).map((themeOption: any) => {
+                const isActive = profile.activeTheme === themeOption.id;
+                return (
+                  <button
+                    key={themeOption.id}
+                    onClick={() => {
+                      updateProfileFirebase({ activeTheme: themeOption.id });
+                      showMessage(`Theme set to ${themeOption.name}`);
+                    }}
+                    className={`p-3.5 sm:p-4 rounded-2xl transition-all tap-effect flex items-center gap-3.5 text-left cursor-pointer shadow-md ${
+                      themeOption.card || t.cardInner
+                    } ${
+                      isActive
+                        ? `${t.borderAccent} opacity-100 scale-[1.02] ring-2 ring-current shadow-lg`
+                        : "opacity-75 hover:opacity-100 border border-white/10"
+                    }`}
+                  >
+                    <div className={`w-11 h-11 rounded-2xl shadow-lg flex-shrink-0 flex items-center justify-center border border-white/25 ${themeOption.appBg.split(' ')[0]}`}>
+                      {isActive ? (
+                        <CheckCircle2 className={`w-6 h-6 ${themeOption.textAccent ? themeOption.textAccent : 'text-white'}`} />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full bg-white/30" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={`text-xs font-black uppercase tracking-wide truncate ${themeOption.textAccent || t.textMain} ${themeOption.fontHeading || t.fontHeading}`}>
+                          {themeOption.name}
+                        </span>
+                        {isActive && (
+                          <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full bg-white text-black shrink-0">
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                        {themeOption.desc || "Aesthetic Palette"}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -6935,26 +7315,100 @@ One short, electrifying sentence of raw motivation.`;
   };
 
   // ==========================================
-  // 🏆 DUOLINGO-STYLE RANK UP & RANK DOWN MODAL
+  // 🏆 TIERED RPG RANK CELEBRATION & DEMOTION VFX MODAL
   // ==========================================
   const renderRankTransitionModal = () => {
     if (!rankTransitionModal || !rankTransitionModal.isOpen) return null;
     const isUp = rankTransitionModal.type === "up";
     const { oldTier, newTier, oldRank, newRank } = rankTransitionModal;
+    const tier = newRank.tier;
 
     return (
-      <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300 overflow-hidden">
-        {/* Animated Confetti & Sparkle Layer for Rank Up */}
+      <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-300 overflow-hidden select-none">
+        {/* ========================================== */}
+        {/* TIERED VFX CELEBRATION PARTICLES & BACKDROPS */}
+        {/* ========================================== */}
         {isUp && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {/* Ambient Radial Spotlight */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-400/20 via-yellow-400/25 to-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
-            {/* Confetti Particles */}
-            {[...Array(24)].map((_, i) => {
-              const leftPos = (i * 4.2 + (i % 3) * 2) % 100;
-              const delay = (i * 0.15) % 2.5;
+          <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
+            {/* TIER 13-15: GOD TIER (Brahman, Maharathi, Apex Eternal) */}
+            {tier >= 13 && (
+              <>
+                {/* Hyper Flash Opening */}
+                <div className="absolute inset-0 bg-white/40 pointer-events-none animate-hyper-flash z-30" />
+                {/* Sacred Rotating Mandala Lotus Bloom */}
+                <div className="absolute w-[460px] h-[460px] sm:w-[580px] sm:h-[580px] rounded-full border-2 border-dashed border-amber-300/40 animate-mandala-bloom pointer-events-none flex items-center justify-center">
+                  <div className="w-[390px] h-[390px] sm:w-[480px] sm:h-[480px] rounded-full border border-purple-400/30 rotate-45" />
+                  <div className="w-[310px] h-[310px] sm:w-[380px] sm:h-[380px] rounded-full border border-sky-400/30 -rotate-45" />
+                  <div className="w-[230px] h-[230px] sm:w-[280px] sm:h-[280px] rounded-full border-2 border-amber-400/50 rotate-12" />
+                </div>
+                {/* Pulsating Celestial God-Rays */}
+                <div className="absolute w-[520px] h-[520px] sm:w-[650px] sm:h-[650px] rounded-full bg-gradient-to-tr from-amber-400/25 via-purple-600/30 to-sky-400/25 blur-3xl animate-celestial-rays" />
+                {/* Triple Expanding Golden Shockwaves */}
+                <div className="absolute w-36 h-36 rounded-full border-2 border-amber-300/80 animate-shockwave-1" />
+                <div className="absolute w-36 h-36 rounded-full border-2 border-purple-400/80 animate-shockwave-2" />
+                <div className="absolute w-36 h-36 rounded-full border-2 border-sky-300/80 animate-shockwave-3" />
+                {/* Floating Sacred Mystical Glyphs */}
+                <div className="absolute top-12 left-10 text-3xl animate-float-glyph-1">🕉️</div>
+                <div className="absolute top-16 right-12 text-3xl animate-float-glyph-2">🪶</div>
+                <div className="absolute bottom-16 left-12 text-3xl animate-float-glyph-3">⚡</div>
+                <div className="absolute bottom-12 right-10 text-3xl animate-float-glyph-1">👑</div>
+                <div className="absolute top-1/2 right-6 text-3xl animate-float-glyph-2">🌌</div>
+                <div className="absolute top-1/2 left-6 text-3xl animate-float-glyph-3">✨</div>
+              </>
+            )}
+
+            {/* TIER 10-12: SOLAR / COSMIC OVERLORD */}
+            {tier >= 10 && tier < 13 && (
+              <>
+                {/* Spinning Solar Rays */}
+                <div className="absolute w-[420px] h-[420px] sm:w-[520px] sm:h-[520px] rounded-full border-4 border-dashed border-amber-400/50 animate-solar-rays pointer-events-none" />
+                {/* Cosmic Nebula Gradient Glow */}
+                <div className="absolute w-[500px] h-[500px] bg-gradient-to-r from-amber-500/30 via-rose-500/25 to-indigo-600/30 rounded-full blur-3xl animate-pulse" />
+                {/* Double Expanding Shockwaves */}
+                <div className="absolute w-36 h-36 rounded-full border-2 border-amber-400/90 animate-shockwave-1" />
+                <div className="absolute w-36 h-36 rounded-full border-2 border-cyan-400/90 animate-shockwave-2" />
+              </>
+            )}
+
+            {/* TIER 7-9: WARLORD / DRAGONSLAYER */}
+            {tier >= 7 && tier < 10 && (
+              <>
+                {/* Blazing Crimson Flame Columns */}
+                <div className="absolute inset-0 flex justify-center items-center gap-12 pointer-events-none">
+                  <div className="text-4xl sm:text-5xl animate-flame-1">🔥</div>
+                  <div className="text-5xl sm:text-6xl animate-flame-2">⚡</div>
+                  <div className="text-4xl sm:text-5xl animate-flame-3">🔥</div>
+                </div>
+                {/* Crimson Ambient Glow */}
+                <div className="absolute w-[480px] h-[480px] bg-rose-600/25 rounded-full blur-3xl animate-pulse" />
+              </>
+            )}
+
+            {/* TIER 4-6: STRIKER / CENTURION */}
+            {tier >= 4 && tier < 7 && (
+              <>
+                <div className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full border-2 border-dashed border-cyan-400/50 animate-spin-slow pointer-events-none" />
+                <div className="absolute w-[440px] h-[440px] bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
+              </>
+            )}
+
+            {/* TIER 1-3: INITIATE / NOVICE / VANGUARD */}
+            {tier < 4 && (
+              <div className="absolute w-[420px] h-[420px] bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
+            )}
+
+            {/* Universal Dynamic Confetti Particles */}
+            {[...Array(28)].map((_, i) => {
+              const leftPos = (i * 3.6 + (i % 3) * 2.5) % 100;
+              const delay = (i * 0.12) % 2.5;
               const size = (i % 3 === 0) ? "text-xl" : (i % 2 === 0 ? "text-base" : "text-2xl");
-              const symbols = ["⭐", "✨", "🎉", "🔥", "💎", "⚡", "🌟", "👑"];
+              const symbols = tier >= 13
+                ? ["⭐", "✨", "🕉️", "🪶", "👑", "⚡", "🌟", "🌌"]
+                : tier >= 10
+                ? ["⭐", "✨", "☀️", "👑", "⚡", "🌟", "💎", "🔥"]
+                : tier >= 7
+                ? ["🔥", "⚔️", "💎", "⭐", "🎉", "⚡", "🌟", "✨"]
+                : ["⭐", "✨", "🎉", "🔥", "💎", "⚡", "🌟", "👑"];
               const sym = symbols[i % symbols.length];
               return (
                 <div
@@ -6962,9 +7416,9 @@ One short, electrifying sentence of raw motivation.`;
                   className={`absolute animate-confetti ${size}`}
                   style={{
                     left: `${leftPos}%`,
-                    top: `${-5 - (i % 5) * 5}%`,
+                    top: `${-5 - (i % 5) * 6}%`,
                     animationDelay: `${delay}s`,
-                    animationDuration: `${2.8 + (i % 4) * 0.4}s`
+                    animationDuration: `${2.6 + (i % 4) * 0.4}s`
                   }}
                 >
                   {sym}
@@ -6985,15 +7439,27 @@ One short, electrifying sentence of raw motivation.`;
         <div
           className={`w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-center border-2 ${
             isUp
-              ? "border-amber-400/80 bg-gradient-to-b from-[#141208] via-[#0d0f1a] to-[#050711] shadow-[0_0_60px_rgba(245,158,11,0.35)]"
+              ? tier >= 13
+                ? "border-amber-300 bg-gradient-to-b from-[#1a1506] via-[#100c1e] to-[#04060f] shadow-[0_0_80px_rgba(251,191,36,0.5)]"
+                : tier >= 10
+                ? "border-amber-400 bg-gradient-to-b from-[#181105] via-[#120b18] to-[#050711] shadow-[0_0_65px_rgba(245,158,11,0.4)]"
+                : tier >= 7
+                ? "border-rose-400/90 bg-gradient-to-b from-[#1c080e] via-[#13070f] to-[#060408] shadow-[0_0_60px_rgba(244,63,94,0.35)]"
+                : "border-amber-400/80 bg-gradient-to-b from-[#141208] via-[#0d0f1a] to-[#050711] shadow-[0_0_60px_rgba(245,158,11,0.35)]"
               : "border-rose-500/80 bg-gradient-to-b from-[#1a080c] via-[#10070a] to-[#080304] shadow-[0_0_50px_rgba(244,63,94,0.3)] animate-warning-shake"
           }`}
         >
           {/* Top Pill / Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-widest mb-4 shadow-lg">
             {isUp ? (
-              <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-black px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-md animate-bounce">
-                <Sparkles size={14} className="stroke-[3]" /> NEW RANK PROMOTION!
+              <span className={`px-4 py-1.5 rounded-full font-black flex items-center gap-1.5 shadow-md ${
+                tier >= 13
+                  ? "bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 text-black animate-bounce ring-2 ring-amber-300/80"
+                  : tier >= 10
+                  ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 text-black animate-bounce"
+                  : "bg-gradient-to-r from-amber-400 to-yellow-300 text-black animate-bounce"
+              }`}>
+                <Sparkles size={14} className="stroke-[3]" /> {tier >= 13 ? "👑 GOD TIER APEX UNLOCKED!" : "NEW RANK PROMOTION!"}
               </span>
             ) : (
               <span className="bg-rose-500/30 text-rose-300 border border-rose-500/60 px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-md">
@@ -7003,20 +7469,30 @@ One short, electrifying sentence of raw motivation.`;
           </div>
 
           {/* Central Animated Badge Reveal */}
-          <div className="relative my-4 flex items-center justify-center">
-            {/* Spinning decorative halo ring */}
+          <div className="relative my-5 flex items-center justify-center">
+            {/* Spinning decorative halo rings */}
             <div
-              className={`w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed absolute flex items-center justify-center ${
+              className={`w-36 h-36 sm:w-40 sm:h-40 rounded-full border-2 border-dashed absolute flex items-center justify-center ${
                 isUp
-                  ? "border-amber-400/60 animate-spin-slow"
+                  ? tier >= 13
+                    ? "border-amber-300/80 animate-spin-slow"
+                    : "border-amber-400/60 animate-spin-slow"
                   : "border-rose-500/60 animate-spin-reverse-slow"
               }`}
             ></div>
 
             {/* Hero Badge */}
             <div
-              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-black/80 border-2 flex items-center justify-center text-6xl sm:text-7xl shadow-2xl relative z-10 animate-scale-pop ${
-                isUp ? "border-amber-400/90 shadow-[0_0_35px_rgba(245,158,11,0.5)]" : "border-rose-500/90 shadow-[0_0_30px_rgba(244,63,94,0.4)]"
+              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-black/85 border-2 flex items-center justify-center text-6xl sm:text-7xl shadow-2xl relative z-10 animate-scale-pop ${
+                isUp
+                  ? tier >= 13
+                    ? "border-amber-300 animate-divine-aura shadow-[0_0_50px_rgba(251,191,36,0.7)]"
+                    : tier >= 10
+                    ? "border-amber-400 shadow-[0_0_40px_rgba(245,158,11,0.6)]"
+                    : tier >= 7
+                    ? "border-rose-400 shadow-[0_0_35px_rgba(244,63,94,0.5)]"
+                    : "border-amber-400/90 shadow-[0_0_35px_rgba(245,158,11,0.5)]"
+                  : "border-rose-500/90 shadow-[0_0_30px_rgba(244,63,94,0.4)]"
               }`}
             >
               {newRank.badge}
@@ -7153,9 +7629,7 @@ One short, electrifying sentence of raw motivation.`;
               {/* Header: App Name & Meta */}
               <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/10">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-md bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-[9px] font-black text-black shadow-sm">
-                    ⚡
-                  </div>
+                  <AppLogo className="w-4 h-4" glow={false} />
                   <span className="text-[10px] font-black tracking-wider uppercase text-slate-200">
                     {appMode === "habit" ? "HABIT OS" : appMode === "krishna" ? "MY KRISHNA" : "SECOND BRAIN"}
                   </span>
@@ -7851,13 +8325,34 @@ One short, electrifying sentence of raw motivation.`;
                         </div>
                       </div>
 
-                      <div className="sm:text-right flex-shrink-0 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                        <span className="text-[10px] font-mono text-cyan-300 block font-bold">
-                          Requires Lv {r.minLevel}
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-400 block">
-                          {r.minXp.toLocaleString()} XP
-                        </span>
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <button
+                          onClick={() => {
+                            const prevRank = RPG_RANKS[Math.max(0, r.tier - 2)];
+                            playRankFanfare("up", r.tier);
+                            setRankTransitionModal({
+                              isOpen: true,
+                              type: "up",
+                              oldTier: prevRank.tier,
+                              newTier: r.tier,
+                              oldRank: prevRank,
+                              newRank: r
+                            });
+                          }}
+                          className="px-2.5 py-1 rounded-xl bg-amber-400/10 hover:bg-amber-400/25 border border-amber-400/30 text-amber-300 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all tap-effect"
+                          title="Preview celebration animation and sound for this rank"
+                        >
+                          <Sparkles size={12} className="text-amber-400" />
+                          <span>Preview VFX</span>
+                        </button>
+                        <div className="sm:text-right flex-shrink-0 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+                          <span className="text-[10px] font-mono text-cyan-300 block font-bold">
+                            Requires Lv {r.minLevel}
+                          </span>
+                          <span className="text-[9px] font-mono text-slate-400 block">
+                            {r.minXp.toLocaleString()} XP
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );

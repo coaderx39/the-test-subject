@@ -1,27 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="38%" r="80%">
-      <stop offset="0%" stop-color="#1a1a24"/>
-      <stop offset="55%" stop-color="#0d0d14"/>
-      <stop offset="100%" stop-color="#060608"/>
+    <!-- Background Radial Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#161822"/>
+      <stop offset="60%" stop-color="#0b0c10"/>
+      <stop offset="100%" stop-color="#040507"/>
     </radialGradient>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffe08a"/>
-      <stop offset="45%" stop-color="#ffc233"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
+
+    <!-- Luxury Gold Linear Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1be"/>
+      <stop offset="35%" stop-color="#f5c042"/>
+      <stop offset="70%" stop-color="#d98218"/>
+      <stop offset="100%" stop-color="#9a4d06"/>
     </linearGradient>
-    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffd54a"/>
-      <stop offset="100%" stop-color="#b45309"/>
+
+    <!-- Secondary Amber Glow Gradient -->
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe494"/>
+      <stop offset="100%" stop-color="#e69500"/>
     </linearGradient>
-    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
+
+    <!-- Core Radiant Beam Gradient -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#fde047" stop-opacity="0.9"/>
+      <stop offset="80%" stop-color="#d97706" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#d97706" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Premium Bevel Border Gradient -->
+    <linearGradient id="borderGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#b45309" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Deep Ambient Drop Shadow -->
+    <filter id="glowEffect" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="4" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
@@ -30,52 +54,111 @@
     </filter>
   </defs>
 
-  <!-- Dark badge with subtle vertical highlight -->
-  <rect x="8" y="8" width="496" height="496" rx="116" fill="url(#bg)"/>
-  <rect x="8" y="8" width="496" height="496" rx="116" fill="none" stroke="url(#ring)" stroke-width="6" opacity="0.9"/>
+  <!-- Squircle Base Canvas -->
+  <rect x="12" y="12" width="488" height="488" rx="124" fill="url(#bgGrad)" />
+  <rect x="12" y="12" width="488" height="488" rx="124" fill="none" stroke="url(#borderGrad)" stroke-width="4.5" />
 
-  <!-- Neural network forming a brain silhouette -->
-  <g stroke="url(#gold)" fill="none" stroke-linecap="round" stroke-width="5" opacity="0.55">
-    <!-- Left hemisphere web -->
-    <path d="M186 196 L214 178 L252 184 L186 196 L168 232 L204 226 L252 214 L168 232 L160 272 L198 264 L242 256 L198 264 L184 306 L222 300 L252 288 L222 300"/>
-    <path d="M214 178 L256 168"/>
-    <!-- Right hemisphere web (mirror) -->
-    <path d="M326 196 L298 178 L260 184 L326 196 L344 232 L308 226 L260 214 L344 232 L352 272 L314 264 L270 256 L314 264 L328 306 L290 300 L260 288 L290 300"/>
-    <path d="M298 178 L256 168"/>
-    <!-- Cross-links between hemispheres -->
-    <path d="M214 178 C236 214 276 214 298 178"/>
-    <path d="M186 196 C226 238 286 238 326 196" stroke-width="3"/>
-    <path d="M184 306 C226 288 286 288 328 306" stroke-width="3"/>
-    <!-- Brainstem -->
-    <path d="M256 288 L244 330 L256 360 L268 330 Z" stroke-width="4"/>
-  </g>
+  <!-- Ambient Radiant Core Glow -->
+  <circle cx="256" cy="246" r="140" fill="url(#coreGlow)" opacity="0.35" />
 
-  <!-- Brain contour outline -->
-  <path d="M256 150 C 292 150 318 166 330 192 C 348 180 366 194 372 214 C 380 240 362 252 348 250 C 352 270 338 292 314 296 C 310 322 288 344 262 344 C 256 348 248 348 242 344 C 216 344 194 322 190 296 C 166 292 152 270 156 250 C 142 252 124 240 132 214 C 138 194 156 180 174 192 C 186 166 220 150 256 150 Z"
-        fill="none" stroke="url(#gold)" stroke-width="7" stroke-linejoin="round" filter="url(#glow)" opacity="0.95"/>
+  <!-- Outer Orbital Focus Rings (Geometric Aesthetic) -->
+  <circle cx="256" cy="246" r="168" fill="none" stroke="url(#goldGrad)" stroke-width="1.75" stroke-dasharray="16 8" opacity="0.3" />
+  <ellipse cx="256" cy="246" rx="142" ry="152" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" opacity="0.2" />
 
-  <!-- Inner gyri folds -->
-  <g stroke="url(#gold)" fill="none" stroke-linecap="round" stroke-width="4" opacity="0.5">
-    <path d="M196 196 C204 210 198 222 188 228"/>
-    <path d="M316 196 C308 210 314 222 324 228"/>
-    <path d="M214 176 C206 164 212 152 224 152"/>
-    <path d="M298 176 C306 164 300 152 288 152"/>
-  </g>
+  <!-- LEFT BRAIN HEMISPHERE (Smooth, Iconic, Organic Curves) -->
+  <path d="M 240 148
+           C 214 148, 186 162, 172 186
+           C 152 200, 142 226, 146 252
+           C 140 274, 150 298, 170 314
+           C 188 334, 218 344, 240 344
+           C 244 344, 246 340, 246 332
+           C 246 304, 244 276, 244 246
+           C 244 214, 246 182, 246 160
+           C 246 152, 244 148, 240 148 Z"
+        fill="none"
+        stroke="url(#goldGrad)"
+        stroke-width="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#glowEffect)" />
 
-  <!-- Glowing synapse nodes -->
-  <g fill="url(#gold)" filter="url(#glow)">
-    <circle cx="256" cy="168" r="9"/>
-    <circle cx="256" cy="288" r="8"/>
-    <circle cx="252" cy="196" r="7"/>
-    <circle cx="198" cy="230" r="6"/>
-    <circle cx="314" cy="230" r="6"/>
-    <circle cx="176" cy="268" r="6"/>
-    <circle cx="336" cy="268" r="6"/>
-    <circle cx="218" cy="304" r="6"/>
-    <circle cx="294" cy="304" r="6"/>
-  </g>
+  <!-- Left Inner Gyri / Dynamic Flow Lines -->
+  <path d="M 174 212
+           C 192 204, 216 216, 222 232"
+        fill="none"
+        stroke="url(#amberGrad)"
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.85" />
 
-  <!-- Lightning bolt (Habit OS energy) -->
-  <path d="M270 356 L232 396 L254 396 L242 434 L288 392 L262 392 Z"
-        fill="url(#gold)" filter="url(#soft)"/>
+  <path d="M 166 266
+           C 186 260, 212 274, 224 294"
+        fill="none"
+        stroke="url(#amberGrad)"
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.85" />
+
+  <!-- RIGHT BRAIN HEMISPHERE (Smooth, Symmetrical Balance) -->
+  <path d="M 272 148
+           C 298 148, 326 162, 340 186
+           C 360 200, 370 226, 366 252
+           C 372 274, 362 298, 342 314
+           C 324 334, 294 344, 272 344
+           C 268 344, 266 340, 266 332
+           C 266 304, 268 276, 268 246
+           C 268 214, 266 182, 266 160
+           C 266 152, 268 148, 272 148 Z"
+        fill="none"
+        stroke="url(#goldGrad)"
+        stroke-width="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#glowEffect)" />
+
+  <!-- Right Inner Gyri / Flow Lines -->
+  <path d="M 338 212
+           C 320 204, 296 216, 290 232"
+        fill="none"
+        stroke="url(#amberGrad)"
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.85" />
+
+  <path d="M 346 266
+           C 326 260, 300 274, 288 294"
+        fill="none"
+        stroke="url(#amberGrad)"
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.85" />
+
+  <!-- CENTRAL TRANSCENDENT NEXUS / STAR OF CLARITY -->
+  <!-- Center Vertical Conduit -->
+  <line x1="256" y1="168" x2="256" y2="324" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" opacity="0.6" />
+
+  <!-- 4-Pointed Radiant Diamond Star -->
+  <path d="M 256 216
+           C 256 238, 264 246, 286 246
+           C 264 246, 256 254, 256 276
+           C 256 254, 248 246, 226 246
+           C 248 246, 256 238, 256 216 Z"
+        fill="url(#goldGrad)"
+        filter="url(#softGlow)" />
+
+  <circle cx="256" cy="246" r="4.5" fill="#ffffff" />
+
+  <!-- Top Synapse Nodes -->
+  <circle cx="256" cy="148" r="7" fill="url(#goldGrad)" filter="url(#softGlow)" />
+  <circle cx="256" cy="344" r="7" fill="url(#goldGrad)" filter="url(#softGlow)" />
+
+  <!-- Bottom Crest: Apex Lightning / Karma Spark -->
+  <path d="M 264 382
+           L 246 408
+           L 258 408
+           L 248 430
+           L 274 398
+           L 260 398 Z"
+        fill="url(#goldGrad)"
+        filter="url(#softGlow)" />
 </svg>
