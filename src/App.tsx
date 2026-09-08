@@ -24,7 +24,7 @@ import {
   Sparkles, Activity, GripVertical, Moon, Image as ImageIcon, Folder,
   ShieldAlert, Mic, Clock, Volume2, Pause, Play, Square, RotateCcw, AlertCircle,
   Sliders, Sun, FastForward, Coffee, RefreshCw, Award, Timer, Layers, CheckSquare,
-  ListTodo, Inbox, TrendingUp, PieChart, Crown, Compass, Bell, BellRing, GraduationCap,
+  ListTodo, Inbox, TrendingUp, TrendingDown, ArrowRight, PieChart, Crown, Compass, Bell, BellRing, GraduationCap,
   Users, CalendarDays, CheckCheck
 } from "lucide-react";
 
@@ -739,6 +739,57 @@ export const getPlayerRankData = (stars: number = 0, xp: number = 0) => {
   };
 };
 
+export interface RankTransitionModalState {
+  isOpen: boolean;
+  type: "up" | "down";
+  oldTier: number;
+  newTier: number;
+  oldRank: RpgRank;
+  newRank: RpgRank;
+}
+
+export const playRankFanfare = (type: "up" | "down") => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+
+    if (type === "up") {
+      // 6-note triumphant arpeggio crescendo with bell shimmer
+      const pitches = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99];
+      pitches.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = idx === pitches.length - 1 ? "sine" : "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.1 + (idx === pitches.length - 1 ? 0.9 : 0.45));
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.1);
+        osc.stop(ctx.currentTime + idx * 0.1 + 1.0);
+      });
+    } else {
+      // Descending warning 4-note chime with low undertone
+      const pitches = [392.0, 311.13, 261.63, 130.81];
+      pitches.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.16);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.16);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.16 + 0.55);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.16);
+        osc.stop(ctx.currentTime + idx * 0.16 + 0.6);
+      });
+    }
+  } catch (e) {
+    console.warn("Web Audio API not supported or autoplay restricted:", e);
+  }
+};
+
 // ==========================================
 // SCHEDULED EVENTS, CLASSES & MEETINGS TYPES
 // ==========================================
@@ -1107,6 +1158,7 @@ export default function App() {
 
   // ================= RPG RANK PROGRESSION & ROADMAP STATE =================
   const [isRankRoadmapOpen, setIsRankRoadmapOpen] = useState(false);
+  const [rankTransitionModal, setRankTransitionModal] = useState<RankTransitionModalState | null>(null);
 
   // ================= ADVANCED ANALYTICS STATE =================
   const [analyticsTab, setAnalyticsTab] = useState<"heatmap" | "focus" | "habits" | "economy">("heatmap");
@@ -1601,7 +1653,33 @@ export default function App() {
   // DUAL SAVE WRAPPERS
   // ==========================================
   const updateProfileFirebase = async (updates: any) => {
+    const oldRankData = getPlayerRankData(profile.stars, profile.xp);
     const newProfile = { ...profile, ...updates };
+    const newRankData = getPlayerRankData(newProfile.stars, newProfile.xp);
+
+    // Dynamic Rank Transition Check
+    if (newRankData.currentRankIndex > oldRankData.currentRankIndex) {
+      setRankTransitionModal({
+        isOpen: true,
+        type: "up",
+        oldTier: oldRankData.currentRank.tier,
+        newTier: newRankData.currentRank.tier,
+        oldRank: oldRankData.currentRank,
+        newRank: newRankData.currentRank,
+      });
+      playRankFanfare("up");
+    } else if (newRankData.currentRankIndex < oldRankData.currentRankIndex) {
+      setRankTransitionModal({
+        isOpen: true,
+        type: "down",
+        oldTier: oldRankData.currentRank.tier,
+        newTier: newRankData.currentRank.tier,
+        oldRank: oldRankData.currentRank,
+        newRank: newRankData.currentRank,
+      });
+      playRankFanfare("down");
+    }
+
     setProfile(newProfile);
     try {
       localStorage.setItem('apex_profile_v5', JSON.stringify(newProfile));
@@ -1734,10 +1812,13 @@ export default function App() {
     if (vals.length >= totalActiveTasks && vals.every((v) => v === "X")) {
       const dayData = trackerData[dateStr] || {};
       if (!dayData.perfectBonusClaimed) {
-        updateProfileFirebase({ stars: profile.stars + 3 });
+        updateProfileFirebase({
+          stars: (profile.stars || 0) + 3,
+          xp: (profile.xp || 0) + 50
+        });
         saveDayData(dateStr, tasks, dayData.reasonForO, dayData.summary, dayData.star, dayData.taskSnapshot);
         if (user && db) setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateStr), { perfectBonusClaimed: true }, { merge: true });
-        showMessage("🔥 +3 Stars for a PERFECT DAY!");
+        showMessage("🔥 +50 XP & +3 Stars for a PERFECT DAY!");
       }
     }
   };
@@ -1745,26 +1826,61 @@ export default function App() {
   const handleTaskClick = async (taskId: any, value: any, currentSnapshot: any) => {
     const isToday = selectedDate === todayStr;
     const currentDayData = trackerData[selectedDate] || { tasks: {}, reasonForO: "", summary: "", taskSnapshot: null };
-    
+
     if (!isToday && unlockedBlankDate !== selectedDate) {
       if (isEraserActive) {
         if (currentDayData.tasks && currentDayData.tasks[taskId] === "O" && value === "X") {
           const updatedTasks = { ...currentDayData.tasks, [taskId]: value };
           saveDayData(selectedDate, updatedTasks, currentDayData.reasonForO, currentDayData.summary, currentDayData.star, currentDayData.taskSnapshot);
           const markedInv = profile.inventory.map((i: any) => i.isEraserActiveFlag ? { ...i, status: "used", isEraserActiveFlag: false } : i);
-          updateProfileFirebase({ inventory: markedInv });
+          updateProfileFirebase({
+            inventory: markedInv,
+            xp: (profile.xp || 0) + 10,
+            stars: (profile.stars || 0) + 1
+          });
           setIsEraserActive(false);
-          showMessage("History Rewritten! 🧽 Eraser Consumed.");
+          showMessage("History Rewritten! 🧽 Eraser Consumed. (+10 XP, +1 Star)");
           return;
         } else return;
       } else return;
     }
 
-    const updatedTasks = { ...currentDayData.tasks, [taskId]: value };
+    const prevVal = currentDayData.tasks ? currentDayData.tasks[taskId] : undefined;
+    const nextVal = prevVal === value ? undefined : value;
+
+    const updatedTasks = { ...(currentDayData.tasks || {}) };
+    if (nextVal === undefined) {
+      delete updatedTasks[taskId];
+    } else {
+      updatedTasks[taskId] = nextVal;
+    }
+
+    let xpDelta = 0;
+    let starDelta = 0;
+
+    if (prevVal !== "X" && nextVal === "X") {
+      // Habit completed
+      xpDelta += 10;
+      starDelta += 1;
+    } else if (prevVal === "X" && nextVal !== "X") {
+      // Habit unchecked or failed
+      xpDelta -= 10;
+      starDelta -= 1;
+    }
+
+    if (xpDelta !== 0 || starDelta !== 0) {
+      updateProfileFirebase({
+        xp: Math.max(0, (profile.xp || 0) + xpDelta),
+        stars: Math.max(0, (profile.stars || 0) + starDelta),
+      });
+    }
+
     const hasO = Object.values(updatedTasks).includes("O");
     const newReason = hasO ? currentDayData.reasonForO : "";
     saveDayData(selectedDate, updatedTasks, newReason, currentDayData.summary, currentDayData.star, currentSnapshot);
-    checkPerfectDayBonus(selectedDate, updatedTasks, currentSnapshot.length);
+    if (nextVal === "X") {
+      checkPerfectDayBonus(selectedDate, updatedTasks, currentSnapshot.length);
+    }
   };
 
   const handleStarClick = async (currentSnapshot: any) => {
@@ -1825,30 +1941,52 @@ export default function App() {
   };
 
   // ==========================================
-  // AUTOMATED STREAK SHIELD PROTECTION
+  // AUTOMATED STREAK SHIELD & DEMOTION PENALTY ENGINE
   // ==========================================
   useEffect(() => {
     const yesterdayStr = addDays(todayStr, -1);
     const yesterdayData = trackerData[yesterdayStr];
     const shieldsAvailable = profile.streakShields || 0;
 
-    if (shieldsAvailable > 0 && yesterdayData && !yesterdayData.shieldProtected && !yesterdayData.shieldChecked) {
+    if (yesterdayData && !yesterdayData.shieldChecked) {
       const activeListCount = (yesterdayData.taskSnapshot || profile.customTasks || DEFAULT_TASKS).length;
       const vals = yesterdayData.tasks ? Object.values(yesterdayData.tasks) : [];
       const isMissed = vals.length === 0 || vals.includes("O") || vals.length < activeListCount || !vals.every(v => v === "X");
 
       if (isMissed) {
+        if (shieldsAvailable > 0) {
+          const updatedYesterday = {
+            ...yesterdayData,
+            shieldProtected: true,
+            shieldChecked: true,
+          };
+          updateTrackerFirebase(yesterdayStr, updatedYesterday);
+          updateProfileFirebase({ streakShields: Math.max(0, shieldsAvailable - 1) });
+          showMessage(`🛡️ Streak Freeze Shield auto-protected your streak for ${yesterdayStr}! (1 Shield Used)`);
+        } else {
+          // Unshielded missed day: apply demotion penalty (-150 XP, -25 Stars)
+          const updatedYesterday = {
+            ...yesterdayData,
+            shieldProtected: false,
+            shieldChecked: true,
+          };
+          updateTrackerFirebase(yesterdayStr, updatedYesterday);
+          const currentXp = profile.xp || 0;
+          const currentStars = profile.stars || 0;
+          const penalizedXp = Math.max(0, currentXp - 150);
+          const penalizedStars = Math.max(0, currentStars - 25);
+          updateProfileFirebase({ xp: penalizedXp, stars: penalizedStars });
+          showMessage(`⚠️ Unshielded missed day on ${yesterdayStr}: -150 XP & -25 Stars penalty applied.`);
+        }
+      } else {
         const updatedYesterday = {
           ...yesterdayData,
-          shieldProtected: true,
           shieldChecked: true,
         };
         updateTrackerFirebase(yesterdayStr, updatedYesterday);
-        updateProfileFirebase({ streakShields: Math.max(0, shieldsAvailable - 1) });
-        showMessage(`🛡️ Streak Freeze Shield auto-protected your streak for ${yesterdayStr}! (1 Shield Used)`);
       }
     }
-  }, [todayStr, trackerData, profile.streakShields]);
+  }, [todayStr, trackerData, profile.streakShields, profile.xp, profile.stars]);
 
   const getStreaks = () => {
     let study = 0, trigger = 0, perfect = 0;
@@ -6370,6 +6508,172 @@ One short, electrifying sentence of raw motivation.`;
   };
 
   // ==========================================
+  // 🏆 DUOLINGO-STYLE RANK UP & RANK DOWN MODAL
+  // ==========================================
+  const renderRankTransitionModal = () => {
+    if (!rankTransitionModal || !rankTransitionModal.isOpen) return null;
+    const isUp = rankTransitionModal.type === "up";
+    const { oldTier, newTier, oldRank, newRank } = rankTransitionModal;
+
+    return (
+      <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300 overflow-hidden">
+        {/* Animated Confetti & Sparkle Layer for Rank Up */}
+        {isUp && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Ambient Radial Spotlight */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-400/20 via-yellow-400/25 to-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+            {/* Confetti Particles */}
+            {[...Array(24)].map((_, i) => {
+              const leftPos = (i * 4.2 + (i % 3) * 2) % 100;
+              const delay = (i * 0.15) % 2.5;
+              const size = (i % 3 === 0) ? "text-xl" : (i % 2 === 0 ? "text-base" : "text-2xl");
+              const symbols = ["⭐", "✨", "🎉", "🔥", "💎", "⚡", "🌟", "👑"];
+              const sym = symbols[i % symbols.length];
+              return (
+                <div
+                  key={i}
+                  className={`absolute animate-confetti ${size}`}
+                  style={{
+                    left: `${leftPos}%`,
+                    top: `${-5 - (i % 5) * 5}%`,
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${2.8 + (i % 4) * 0.4}s`
+                  }}
+                >
+                  {sym}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Backdrop Glow for Rank Down */}
+        {!isUp && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-rose-600/20 rounded-full blur-3xl animate-pulse"></div>
+          </div>
+        )}
+
+        {/* Modal Dialog Card */}
+        <div
+          className={`w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-center border-2 ${
+            isUp
+              ? "border-amber-400/80 bg-gradient-to-b from-[#141208] via-[#0d0f1a] to-[#050711] shadow-[0_0_60px_rgba(245,158,11,0.35)]"
+              : "border-rose-500/80 bg-gradient-to-b from-[#1a080c] via-[#10070a] to-[#080304] shadow-[0_0_50px_rgba(244,63,94,0.3)] animate-warning-shake"
+          }`}
+        >
+          {/* Top Pill / Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-widest mb-4 shadow-lg">
+            {isUp ? (
+              <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-black px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-md animate-bounce">
+                <Sparkles size={14} className="stroke-[3]" /> NEW RANK PROMOTION!
+              </span>
+            ) : (
+              <span className="bg-rose-500/30 text-rose-300 border border-rose-500/60 px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-md">
+                <TrendingDown size={14} className="stroke-[3]" /> RANK DEMOTION WARNING
+              </span>
+            )}
+          </div>
+
+          {/* Central Animated Badge Reveal */}
+          <div className="relative my-4 flex items-center justify-center">
+            {/* Spinning decorative halo ring */}
+            <div
+              className={`w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed absolute flex items-center justify-center ${
+                isUp
+                  ? "border-amber-400/60 animate-spin-slow"
+                  : "border-rose-500/60 animate-spin-reverse-slow"
+              }`}
+            ></div>
+
+            {/* Hero Badge */}
+            <div
+              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-black/80 border-2 flex items-center justify-center text-6xl sm:text-7xl shadow-2xl relative z-10 animate-scale-pop ${
+                isUp ? "border-amber-400/90 shadow-[0_0_35px_rgba(245,158,11,0.5)]" : "border-rose-500/90 shadow-[0_0_30px_rgba(244,63,94,0.4)]"
+              }`}
+            >
+              {newRank.badge}
+            </div>
+          </div>
+
+          {/* Title and Tier Transition */}
+          <div className="space-y-2 mb-5">
+            <h2
+              className={`text-2xl sm:text-3xl font-black uppercase tracking-tight ${
+                isUp ? newRank.color || "text-amber-300" : "text-rose-400"
+              }`}
+            >
+              {isUp ? `PROMOTED TO TIER ${newTier}!` : `DEMOTED TO TIER ${newTier}`}
+            </h2>
+            <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
+              {newRank.name}
+            </h3>
+
+            {/* Old Rank ➔ New Rank Transition Strip */}
+            <div className="inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-2xl bg-black/50 border border-white/10 text-xs sm:text-sm font-black uppercase mt-2">
+              <span className="text-slate-400 flex items-center gap-1">
+                <span>{oldRank.badge}</span> Tier {oldTier}: {oldRank.name}
+              </span>
+              <ArrowRight size={16} className={isUp ? "text-amber-400" : "text-rose-400"} />
+              <span className={isUp ? "text-amber-300 font-black flex items-center gap-1" : "text-rose-300 font-black flex items-center gap-1"}>
+                <span>{newRank.badge}</span> Tier {newTier}: {newRank.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Lore / Motivation Message */}
+          <div className={`p-4 rounded-2xl border mb-5 text-left text-xs sm:text-sm leading-relaxed ${
+            isUp ? "bg-amber-400/5 border-amber-400/30 text-amber-100" : "bg-rose-500/10 border-rose-500/30 text-rose-100"
+          }`}>
+            {isUp ? (
+              <>
+                <p className="italic font-medium text-slate-200 mb-2">"{newRank.lore}"</p>
+                <div className="pt-2 border-t border-amber-400/20 flex items-center gap-2 text-amber-300 font-bold">
+                  <Zap size={15} className="flex-shrink-0" />
+                  <span>UNLOCKED PERK: {newRank.perk}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-rose-200 mb-1">
+                  ⚠️ <strong>Discipline Warning:</strong> Your rank decreased from Tier {oldTier} to Tier {newTier} due to uncompleted habits or missed days.
+                </p>
+                <p className="text-[11px] text-slate-300 mt-1">
+                  Real progress is forged in consistency. Complete today's missions and streak habits to reclaim your glory!
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Action Button */}
+          <div className="flex flex-col sm:flex-row gap-2.5">
+            {isUp ? (
+              <button
+                onClick={() => setRankTransitionModal(null)}
+                className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-black font-black text-xs sm:text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(245,158,11,0.5)] tap-effect flex items-center justify-center gap-2"
+              >
+                <span>CLAIM RANK & CONTINUE 🚀</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setRankTransitionModal(null);
+                  setAppMode("habit");
+                  setHabitRoute("hub");
+                }}
+                className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest shadow-[0_0_25px_rgba(244,63,94,0.4)] tap-effect flex items-center justify-center gap-2"
+              >
+                <Flame size={16} />
+                <span>RECLAIM MY RANK & GRIND 🔥</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================
   // TOP BAR & APP WRAPPER
   // ==========================================
   return (
@@ -7484,6 +7788,11 @@ One short, electrifying sentence of raw motivation.`;
       {/* 📅 CLASS & MEETING DISPATCHER MODAL */}
       {/* ========================================== */}
       {isScheduleModalOpen && renderScheduleModal()}
+
+      {/* ========================================== */}
+      {/* 🏆 DUOLINGO-STYLE RANK UP & RANK DOWN MODAL */}
+      {/* ========================================== */}
+      {renderRankTransitionModal()}
     </div>
   );
 }
