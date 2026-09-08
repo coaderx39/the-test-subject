@@ -1115,7 +1115,10 @@ export default function App() {
   const [isNightShiftOpen, setIsNightShiftOpen] = useState(false);
   const [newCustomMission, setNewCustomMission] = useState("");
   const [isRealNightTime, setIsRealNightTime] = useState(new Date().getHours() >= 21 || new Date().getHours() < 4);
-  const isNightTime = isRealNightTime;
+  const [devNightOverride, setDevNightOverride] = useState<boolean | null>(null);
+  const isNightTime = devNightOverride !== null ? devNightOverride : isRealNightTime;
+  const [isDevHubOpen, setIsDevHubOpen] = useState(false);
+  const [devCustomDate, setDevCustomDate] = useState(getRealTodayStr());
 
   // ================= FOCUS ENGINE STATE =================
   const [focusState, setFocusState] = useState<{
@@ -4916,6 +4919,16 @@ CORE MANNERISMS & ESSENCE:
               <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>Profile Config</h2>
               <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Name, avatar & API key</p>
             </button>
+            <button onClick={() => setIsDevHubOpen(true)} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border ${t.cardInner} hover:${t.borderAccent} ${t.borderAccent}`}>
+              <Sliders className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>Developer & QA Hub</h2>
+              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Test features, ranks & time travel</p>
+            </button>
+            <button onClick={handleFactoryResetApp} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border bg-rose-500/10 border-rose-500/30 hover:border-rose-500`}>
+              <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors text-rose-400" />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 text-rose-300 ${t.fontHeading}`}>Factory Reset (0)</h2>
+              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 text-rose-400/80">Wipe all data & restart from 0</p>
+            </button>
           </div>
         </div>
       );
@@ -5526,6 +5539,559 @@ One short, electrifying sentence of raw motivation.`;
     } finally {
       setIsGeneratingWeeklyReview(false);
     }
+  };
+
+  // ==========================================
+  // 🛠️ DEVELOPER TESTING & SIMULATION ENGINE
+  // ==========================================
+  const devTimeTravel = (daysOffset: number) => {
+    const nextDate = addDays(todayStr, daysOffset);
+    setTodayStr(nextDate);
+    setSelectedDate(nextDate);
+    const [y, m] = nextDate.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`🕒 Time Traveled to: ${nextDate}`);
+  };
+
+  const devSetExactDate = (targetDate: string) => {
+    if (!targetDate) return;
+    setTodayStr(targetDate);
+    setSelectedDate(targetDate);
+    const [y, m] = targetDate.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`🕒 Date Set to: ${targetDate}`);
+  };
+
+  const devResetToRealToday = () => {
+    const realToday = getRealTodayStr();
+    setTodayStr(realToday);
+    setSelectedDate(realToday);
+    const [y, m] = realToday.split("-");
+    setCalYear(parseInt(y));
+    setCalMonth(parseInt(m) - 1);
+    showMessage(`🔄 Date Reset to Real Today: ${realToday}`);
+  };
+
+  const devAddStars = (amount: number) => {
+    const newStars = Math.max(0, (profile.stars || 0) + amount);
+    updateProfileFirebase({ stars: newStars });
+    showMessage(`⭐ ${amount > 0 ? "+" : ""}${amount} Stars! Balance: ${newStars}`);
+  };
+
+  const devSetStars = (exactAmount: number) => {
+    updateProfileFirebase({ stars: Math.max(0, exactAmount) });
+    showMessage(`⭐ Stars set to: ${exactAmount}`);
+  };
+
+  const devAddXp = (amount: number) => {
+    const newXp = Math.max(0, (profile.xp || 0) + amount);
+    updateProfileFirebase({ xp: newXp });
+    showMessage(`⚡ ${amount > 0 ? "+" : ""}${amount} XP! Lifetime: ${newXp}`);
+  };
+
+  const devSetXp = (exactAmount: number) => {
+    updateProfileFirebase({ xp: Math.max(0, exactAmount) });
+    showMessage(`⚡ XP set to: ${exactAmount}`);
+  };
+
+  const devSetStreakShields = (count: number) => {
+    const validCount = Math.max(0, Math.min(2, count));
+    updateProfileFirebase({ streakShields: validCount });
+    showMessage(`🛡️ Streak Freeze Shields set to ${validCount}/2`);
+  };
+
+  const devJumpToTier = (tierNum: number) => {
+    const targetRank = RPG_RANKS.find((r) => r.tier === tierNum);
+    if (targetRank) {
+      updateProfileFirebase({ xp: targetRank.minXp });
+      showMessage(`👑 Set to Tier ${targetRank.tier}: ${targetRank.name} (${targetRank.badge})`);
+    }
+  };
+
+  const devSimulateRankUp = () => {
+    const currentTier = rankData.currentRank.tier;
+    if (currentTier >= 15) {
+      showMessage("Already at maximum Tier 15: Omniscient Apex!");
+      return;
+    }
+    const nextTier = RPG_RANKS.find((r) => r.tier === currentTier + 1);
+    if (nextTier) {
+      updateProfileFirebase({ xp: nextTier.minXp });
+    }
+  };
+
+  const devSimulateRankDown = () => {
+    const currentTier = rankData.currentRank.tier;
+    if (currentTier <= 1) {
+      showMessage("Already at Tier 1: Raw Rookie!");
+      return;
+    }
+    const prevTier = RPG_RANKS.find((r) => r.tier === currentTier - 1);
+    if (prevTier) {
+      updateProfileFirebase({ xp: prevTier.minXp });
+    }
+  };
+
+  const devTriggerRankModalDirect = (type: "up" | "down") => {
+    const currentTier = rankData.currentRank.tier;
+    const targetTier = type === "up" ? Math.min(15, currentTier + 1) : Math.max(1, currentTier - 1);
+    const targetRank = RPG_RANKS.find((r) => r.tier === targetTier) || rankData.currentRank;
+    setRankTransitionModal({
+      isOpen: true,
+      type: type,
+      oldTier: currentTier,
+      newTier: targetTier,
+      oldRank: rankData.currentRank,
+      newRank: targetRank,
+    });
+    playRankFanfare(type);
+  };
+
+  const devCompleteAllTodayHabits = () => {
+    const activeTasks = profile.customTasks || DEFAULT_TASKS;
+    const mockTasks: Record<string, string> = {};
+    activeTasks.forEach((t: any) => {
+      mockTasks[t.id] = "X";
+    });
+    const currentDay = trackerData[todayStr] || {};
+    updateTrackerFirebase(todayStr, {
+      ...currentDay,
+      tasks: mockTasks,
+      star: true,
+      summary: "Dev 100% completed habit day",
+    });
+    devAddStars(2);
+    devAddXp(200);
+    showMessage("✅ 100% Habits Checked for today (+2 Stars & +200 XP)!");
+  };
+
+  const devSimulateMissedDay = () => {
+    const yesterdayStr = addDays(todayStr, -1);
+    const activeTasks = profile.customTasks || DEFAULT_TASKS;
+    const mockTasks: Record<string, string> = {};
+    activeTasks.forEach((t: any) => {
+      mockTasks[t.id] = "O";
+    });
+    const currentYesterday = trackerData[yesterdayStr] || {};
+    updateTrackerFirebase(yesterdayStr, {
+      ...currentYesterday,
+      tasks: mockTasks,
+      reasonForO: "Dev simulated missed habit day",
+      star: false,
+      summary: "Dev missed day simulation",
+    });
+    showMessage("⚠️ Yesterday set to FAILED ('O'). Open Hub to test Streak Freeze Shield or Streak break!");
+  };
+
+  const devInject30DayStreak = () => {
+    const mockTracker = { ...trackerData };
+    const tasks = profile.customTasks || DEFAULT_TASKS;
+    for (let i = 1; i <= 30; i++) {
+      const pastDate = addDays(todayStr, -i);
+      const dayTasks: Record<string, string> = {};
+      tasks.forEach((t: any) => {
+        dayTasks[t.id] = "X";
+      });
+      mockTracker[pastDate] = {
+        tasks: dayTasks,
+        reasonForO: "",
+        summary: `Day ${i} victory`,
+        star: true,
+      };
+    }
+    setTrackerData(mockTracker);
+    try {
+      localStorage.setItem("apex_tracker_v5", JSON.stringify(mockTracker));
+    } catch (e) {
+      console.warn("Storage write error:", e);
+    }
+    if (user && db) {
+      Object.keys(mockTracker).forEach((dateKey) => {
+        setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateKey), mockTracker[dateKey], { merge: true }).catch(console.error);
+      });
+    }
+    devAddStars(60);
+    devAddXp(6000);
+    showMessage("🔥 30-Day Perfect Streak injected! Check Level Map Arena & Analytics.");
+  };
+
+  const devClearTodayHabits = () => {
+    const currentDay = trackerData[todayStr] || {};
+    updateTrackerFirebase(todayStr, {
+      ...currentDay,
+      tasks: {},
+      star: false,
+      summary: "",
+      reasonForO: "",
+    });
+    showMessage("🧹 Cleared today's habit entries.");
+  };
+
+  const devFastForwardFocusTimer = () => {
+    setFocusState((prev) => ({
+      ...prev,
+      isOpen: true,
+      isRunning: true,
+      secondsLeft: 3,
+    }));
+    showMessage("⚡ Focus Chamber opened with 3 seconds remaining! Watch it finish.");
+  };
+
+  const devSendPushNotification = () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification("⚡ Second Brain Dev Test", {
+          body: "🔔 Proactive Smart Notification engine is working properly!",
+          icon: "/logo192.png",
+        });
+        showMessage("🔔 Test Notification Dispatched!");
+      } else {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            new Notification("⚡ Second Brain Dev Test", {
+              body: "🔔 Notifications Enabled & Working!",
+              icon: "/logo192.png",
+            });
+            showMessage("🔔 Permission Granted & Notification Sent!");
+          } else {
+            showMessage("⚠️ Notification permission was not granted.");
+          }
+        });
+      }
+    } else {
+      showMessage("⚠️ Browser does not support Web Notifications.");
+    }
+  };
+
+  // ==========================================
+  // 🛠️ DEVELOPER TESTING & QA LAB MODAL
+  // ==========================================
+  const renderDevHubModal = () => {
+    if (!isDevHubOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
+        <div className="w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-500/50 bg-[#0c101c] text-slate-100 relative max-h-[90vh] overflow-y-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-white/10 sticky top-0 bg-[#0c101c]/95 backdrop-blur-md z-20 -mt-2 pt-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xl shadow-md">
+                🛠️
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-base sm:text-lg uppercase tracking-wider text-white">
+                    Developer & QA Sandbox
+                  </h3>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500 text-black">
+                    Live Testing
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5">
+                  Simulate dates, XP/Stars, ranks, streaks, timers & notifications
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsDevHubOpen(false)}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white transition-all tap-effect"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* SECTION 1: TIME TRAVEL */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <Clock size={14} /> 1. Time Travel Engine
+              </span>
+              <span className="text-[10px] font-mono text-slate-300 bg-black/50 px-2.5 py-1 rounded-lg border border-slate-700">
+                Active: <strong className="text-amber-300">{todayStr}</strong> (Real: {getRealTodayStr()})
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                onClick={() => devTimeTravel(-1)}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-bold border border-slate-600 flex items-center justify-center gap-1 tap-effect"
+              >
+                ⏪ -1 Day
+              </button>
+              <button
+                onClick={() => devTimeTravel(1)}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-bold border border-slate-600 flex items-center justify-center gap-1 tap-effect"
+              >
+                ⏩ +1 Day
+              </button>
+              <button
+                onClick={() => devTimeTravel(7)}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-bold border border-slate-600 flex items-center justify-center gap-1 tap-effect"
+              >
+                ⏩ +7 Days
+              </button>
+              <button
+                onClick={devResetToRealToday}
+                className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 active:scale-95 text-[11px] font-bold border border-amber-500/40 flex items-center justify-center gap-1 tap-effect"
+              >
+                <RotateCcw size={12} /> Reset Real
+              </button>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="date"
+                value={devCustomDate}
+                onChange={(e) => setDevCustomDate(e.target.value)}
+                className="flex-1 bg-black/60 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-mono outline-none"
+              />
+              <button
+                onClick={() => devSetExactDate(devCustomDate)}
+                className="px-4 py-2 bg-amber-500 text-black text-xs font-black uppercase tracking-wider rounded-xl hover:bg-amber-400 active:scale-95 tap-effect"
+              >
+                Jump Date
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION 2: RPG RANK & CELEBRATIONS */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <Crown size={14} /> 2. 15-Tier RPG Rank & Animation Simulator
+              </span>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                Tier {rankData.currentRank.tier}: {rankData.currentRank.name}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                onClick={devSimulateRankUp}
+                className="py-2.5 px-2 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 text-[10px] sm:text-[11px] font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-1"
+              >
+                <TrendingUp size={13} /> Rank UP (+XP)
+              </button>
+              <button
+                onClick={devSimulateRankDown}
+                className="py-2.5 px-2 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 border border-rose-500/40 text-[10px] sm:text-[11px] font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-1"
+              >
+                <TrendingDown size={13} /> Rank DOWN
+              </button>
+              <button
+                onClick={() => devTriggerRankModalDirect("up")}
+                className="py-2.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] sm:text-[11px] font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-1"
+              >
+                <Sparkles size={13} /> Modal: UP 🎉
+              </button>
+              <button
+                onClick={() => devTriggerRankModalDirect("down")}
+                className="py-2.5 px-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] sm:text-[11px] font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-1"
+              >
+                <AlertTriangle size={13} /> Modal: DOWN ⚠️
+              </button>
+            </div>
+            {/* Quick Tier Jumper */}
+            <div className="pt-1">
+              <label className="text-[10px] text-slate-400 uppercase font-black tracking-wider block mb-1.5">
+                Direct Jump to Any Tier:
+              </label>
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-1.5">
+                {RPG_RANKS.map((r) => (
+                  <button
+                    key={r.tier}
+                    onClick={() => devJumpToTier(r.tier)}
+                    className={`p-1.5 rounded-lg border text-center tap-effect transition-all ${
+                      rankData.currentRank.tier === r.tier
+                        ? "bg-amber-500 text-black font-black border-amber-300 shadow-md scale-105"
+                        : "bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700 text-[10px]"
+                    }`}
+                    title={`Tier ${r.tier}: ${r.name}`}
+                  >
+                    <div className="text-sm">{r.badge}</div>
+                    <div className="text-[8px] font-mono font-bold leading-none mt-0.5">T{r.tier}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: ECONOMY (STARS, XP, SHIELDS) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <Star size={14} /> 3. Stars, XP & Streak Shields
+              </span>
+              <span className="text-[10px] font-mono text-slate-300">
+                ⭐ {profile.stars} | ⚡ {profile.xp} XP | 🛡️ {profile.streakShields || 0}/2
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                onClick={() => devAddStars(5)}
+                className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold tap-effect"
+              >
+                +5 ⭐ Stars
+              </button>
+              <button
+                onClick={() => devAddStars(20)}
+                className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold tap-effect"
+              >
+                +20 ⭐ Stars
+              </button>
+              <button
+                onClick={() => devAddXp(250)}
+                className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 text-xs font-bold tap-effect"
+              >
+                +250 ⚡ XP
+              </button>
+              <button
+                onClick={() => devAddXp(1000)}
+                className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 text-xs font-bold tap-effect"
+              >
+                +1,000 ⚡ XP
+              </button>
+            </div>
+            {/* Streak Freeze Shields Setter */}
+            <div className="pt-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-slate-400 uppercase font-black">Streak Shields:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => devSetStreakShields(0)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700 tap-effect"
+                >
+                  0 🛡️
+                </button>
+                <button
+                  onClick={() => devSetStreakShields(1)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700 tap-effect"
+                >
+                  1 🛡️
+                </button>
+                <button
+                  onClick={() => devSetStreakShields(2)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold border border-amber-500/40 tap-effect"
+                >
+                  2 🛡️ (MAX)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 4: HABIT TRACKER & ARENA STREAK SIMULATOR */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 space-y-3">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <CheckSquare size={14} /> 4. Habit Checklist & Arena Streak Simulator
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                onClick={devCompleteAllTodayHabits}
+                className="py-2.5 px-3 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 size={15} /> 100% Check Today (+Stars/XP)
+              </button>
+              <button
+                onClick={devSimulateMissedDay}
+                className="py-2.5 px-3 rounded-xl bg-rose-600/30 hover:bg-rose-600/40 text-rose-300 border border-rose-500/50 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <XCircle size={15} /> Set Yesterday Failed ('O')
+              </button>
+              <button
+                onClick={devInject30DayStreak}
+                className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <Flame size={15} /> Inject 30-Day Perfect Streak
+              </button>
+              <button
+                onClick={devClearTodayHabits}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={15} /> Clear Today's Habits
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION 5: FOCUS TIMER & NOTIFICATIONS */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-700/60 space-y-3">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <Zap size={14} /> 5. Focus Chamber & Notifications Lab
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                onClick={devFastForwardFocusTimer}
+                className="py-2.5 px-3 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/50 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <FastForward size={15} /> Fast-Forward Timer (3s left)
+              </button>
+              <button
+                onClick={devSendPushNotification}
+                className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black uppercase tracking-wider tap-effect flex items-center justify-center gap-2"
+              >
+                <Bell size={15} /> Dispatch Test Notification
+              </button>
+            </div>
+
+            {/* Night Shift Override */}
+            <div className="pt-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-slate-400 uppercase font-black">Night Shift:</span>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => { setDevNightOverride(false); showMessage("☀️ Forced Day Mode (Active)"); }}
+                  className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold border tap-effect ${
+                    devNightOverride === false ? "bg-amber-400 text-black border-amber-300" : "bg-slate-800 text-slate-300 border-slate-700"
+                  }`}
+                >
+                  ☀️ Day
+                </button>
+                <button
+                  onClick={() => { setDevNightOverride(true); showMessage("🌙 Forced Night Shift (Active)"); }}
+                  className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold border tap-effect ${
+                    devNightOverride === true ? "bg-indigo-500 text-white border-indigo-400" : "bg-slate-800 text-slate-300 border-slate-700"
+                  }`}
+                >
+                  🌙 Night
+                </button>
+                <button
+                  onClick={() => { setDevNightOverride(null); showMessage("⚙️ Reset to System Clock"); }}
+                  className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold border tap-effect ${
+                    devNightOverride === null ? "bg-slate-700 text-amber-300 border-slate-600" : "bg-slate-800 text-slate-300 border-slate-700"
+                  }`}
+                >
+                  Auto
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 6: DANGER ZONE FACTORY RESET */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/40 border border-rose-800/60 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                <AlertTriangle size={14} /> 6. Factory Reset (Day 0)
+              </span>
+            </div>
+            <p className="text-[10px] text-rose-300/80 leading-relaxed">
+              Completely wipes all local storage, Firebase documents, tasks, XP, stars, and resets the entire app to day zero default.
+            </p>
+            <button
+              onClick={handleFactoryResetApp}
+              className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-lg tap-effect flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={15} /> Factory Reset App to 0
+            </button>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={() => setIsDevHubOpen(false)}
+              className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-wider border border-slate-600 tap-effect"
+            >
+              Close Lab
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // ==========================================
@@ -7944,6 +8510,23 @@ One short, electrifying sentence of raw motivation.`;
       {/* 🏆 DUOLINGO-STYLE RANK UP & RANK DOWN MODAL */}
       {/* ========================================== */}
       {renderRankTransitionModal()}
+
+      {/* ========================================== */}
+      {/* 🛠️ DEVELOPER TESTING & QA LAB MODAL */}
+      {/* ========================================== */}
+      {renderDevHubModal()}
+
+      {/* ========================================== */}
+      {/* 🛠️ FLOATING DEVELOPER QUICK ACCESS BUTTON */}
+      {/* ========================================== */}
+      <button
+        onClick={() => setIsDevHubOpen(true)}
+        className="fixed bottom-24 right-3.5 sm:bottom-6 sm:right-6 z-40 px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 active:scale-95 text-black font-black text-[10px] sm:text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-amber-500/30 border-2 border-black flex items-center gap-1.5 transition-all tap-effect"
+        title="Open Developer & QA Testing Sandbox"
+      >
+        <Sliders size={14} className="stroke-[3]" />
+        <span>DEV QA</span>
+      </button>
     </div>
   );
 }
