@@ -1941,8 +1941,17 @@ export default function App() {
     }
   };
 
-  const saveDayData = async (dateStr: string, tasks: any, reason?: string, summary?: string, star?: boolean, snapshot?: any) => {
-    const updatedDay = { tasks, reasonForO: reason || "", summary: summary || "", star: !!star, taskSnapshot: snapshot || (profile.customTasks || DEFAULT_TASKS) };
+  const saveDayData = async (dateStr: string, tasks: any, reason?: string, summary?: string, star?: boolean, snapshot?: any, extraFlags?: any) => {
+    const existing = trackerData[dateStr] || {};
+    const updatedDay = {
+      ...existing,
+      tasks,
+      reasonForO: reason !== undefined ? reason : (existing.reasonForO || ""),
+      summary: summary !== undefined ? summary : (existing.summary || ""),
+      star: star !== undefined ? !!star : !!existing.star,
+      taskSnapshot: snapshot || existing.taskSnapshot || (profile.customTasks || DEFAULT_TASKS),
+      ...(extraFlags || {})
+    };
     const newTrackerData = { ...trackerData, [dateStr]: updatedDay };
     setTrackerData(newTrackerData);
     try {
@@ -2029,8 +2038,7 @@ export default function App() {
           stars: (profile.stars || 0) + 3,
           xp: (profile.xp || 0) + 50
         });
-        saveDayData(dateStr, tasks, dayData.reasonForO, dayData.summary, dayData.star, dayData.taskSnapshot);
-        if (user && db) setDoc(doc(db, "artifacts", appId, "users", user.uid, "tracker_data", dateStr), { perfectBonusClaimed: true }, { merge: true });
+        saveDayData(dateStr, tasks, dayData.reasonForO, dayData.summary, dayData.star, dayData.taskSnapshot, { perfectBonusClaimed: true });
         showMessage("🔥 +50 XP & +3 Stars for a PERFECT DAY!");
       }
     }
@@ -2044,15 +2052,32 @@ export default function App() {
       if (isEraserActive) {
         if (currentDayData.tasks && currentDayData.tasks[taskId] === "O" && value === "X") {
           const updatedTasks = { ...currentDayData.tasks, [taskId]: value };
-          saveDayData(selectedDate, updatedTasks, currentDayData.reasonForO, currentDayData.summary, currentDayData.star, currentDayData.taskSnapshot);
-          const markedInv = profile.inventory.map((i: any) => i.isEraserActiveFlag ? { ...i, status: "used", isEraserActiveFlag: false } : i);
-          updateProfileFirebase({
-            inventory: markedInv,
-            xp: (profile.xp || 0) + 10,
-            stars: (profile.stars || 0) + 1
-          });
+          const activeTasksCount = currentSnapshot?.length || (profile.customTasks || DEFAULT_TASKS).length;
+          const taskVals = Object.values(updatedTasks);
+          const isDayPerfect = taskVals.length >= activeTasksCount && taskVals.every((v) => v === "X");
+          let extraFlags: any = {};
+          if (isDayPerfect && currentDayData.shieldProtected) {
+            const currentShields = profile.streakShields || 0;
+            const refundedShields = Math.min(2, currentShields + 1);
+            updateProfileFirebase({
+              inventory: profile.inventory.map((i: any) => i.isEraserActiveFlag ? { ...i, status: "used", isEraserActiveFlag: false } : i),
+              streakShields: refundedShields,
+              xp: (profile.xp || 0) + 10,
+              stars: (profile.stars || 0) + 1
+            });
+            extraFlags = { shieldProtected: false, shieldChecked: true };
+            showMessage(`History Rewritten! 🧽 Eraser Consumed & 1 Shield Refunded! (Shields: ${refundedShields}/2)`);
+          } else {
+            const markedInv = profile.inventory.map((i: any) => i.isEraserActiveFlag ? { ...i, status: "used", isEraserActiveFlag: false } : i);
+            updateProfileFirebase({
+              inventory: markedInv,
+              xp: (profile.xp || 0) + 10,
+              stars: (profile.stars || 0) + 1
+            });
+            showMessage("History Rewritten! 🧽 Eraser Consumed. (+10 XP, +1 Star)");
+          }
+          saveDayData(selectedDate, updatedTasks, currentDayData.reasonForO, currentDayData.summary, currentDayData.star, currentDayData.taskSnapshot, extraFlags);
           setIsEraserActive(false);
-          showMessage("History Rewritten! 🧽 Eraser Consumed. (+10 XP, +1 Star)");
           return;
         } else return;
       } else return;
@@ -2081,18 +2106,62 @@ export default function App() {
       starDelta -= 1;
     }
 
-    if (xpDelta !== 0 || starDelta !== 0) {
+    const isPastDay = selectedDate < todayStr;
+    const activeTasksCount = currentSnapshot?.length || (profile.customTasks || DEFAULT_TASKS).length;
+    const taskVals = Object.values(updatedTasks);
+    const isDayPerfect = taskVals.length >= activeTasksCount && taskVals.every((v) => v === "X");
+
+    let extraFlags: any = {};
+    let shieldDelta = 0;
+
+    if (isPastDay) {
+      if (isDayPerfect) {
+        if (currentDayData.shieldProtected) {
+          // 100% Perfect day achieved on past date: Refund the 1 shield previously consumed!
+          shieldDelta = 1;
+          extraFlags = { shieldProtected: false, shieldChecked: true };
+          const newShields = Math.min(2, (profile.streakShields || 0) + 1);
+          showMessage(`🔥 Day Perfected! Streak restored & 1 Shield Refunded! (Shields: ${newShields}/2) 🛡️`);
+        } else {
+          extraFlags = { shieldProtected: false, shieldChecked: true };
+        }
+      } else {
+        // Not a perfect day (partial or has failures)
+        if (currentDayData.shieldProtected) {
+          // Already protected with 1 shield: keep shieldProtected: true, 0 additional shields consumed
+          extraFlags = { shieldProtected: true, shieldChecked: true };
+        } else {
+          // Not protected yet
+          const currentShields = profile.streakShields || 0;
+          if (currentShields > 0) {
+            shieldDelta = -1;
+            extraFlags = { shieldProtected: true, shieldChecked: true };
+            const newShields = Math.max(0, currentShields - 1);
+            showMessage(`🛡️ 1 Streak Freeze Shield used to protect past streak for ${selectedDate}! (Shields: ${newShields}/2)`);
+          } else {
+            extraFlags = { shieldProtected: false, shieldChecked: true };
+          }
+        }
+      }
+    }
+
+    const newXp = Math.max(0, (profile.xp || 0) + xpDelta);
+    const newStars = Math.max(0, (profile.stars || 0) + starDelta);
+    const newShields = Math.max(0, Math.min(2, (profile.streakShields || 0) + shieldDelta));
+
+    if (xpDelta !== 0 || starDelta !== 0 || shieldDelta !== 0) {
       updateProfileFirebase({
-        xp: Math.max(0, (profile.xp || 0) + xpDelta),
-        stars: Math.max(0, (profile.stars || 0) + starDelta),
+        xp: newXp,
+        stars: newStars,
+        streakShields: newShields,
       });
     }
 
     const hasO = Object.values(updatedTasks).includes("O");
     const newReason = hasO ? currentDayData.reasonForO : "";
-    saveDayData(selectedDate, updatedTasks, newReason, currentDayData.summary, currentDayData.star, currentSnapshot);
+    saveDayData(selectedDate, updatedTasks, newReason, currentDayData.summary, currentDayData.star, currentSnapshot, extraFlags);
     if (nextVal === "X") {
-      checkPerfectDayBonus(selectedDate, updatedTasks, currentSnapshot.length);
+      checkPerfectDayBonus(selectedDate, updatedTasks, activeTasksCount);
     }
   };
 
@@ -2156,50 +2225,73 @@ export default function App() {
   // ==========================================
   // AUTOMATED STREAK SHIELD & DEMOTION PENALTY ENGINE
   // ==========================================
+  const evaluatedShieldDatesRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const yesterdayStr = addDays(todayStr, -1);
+    if (evaluatedShieldDatesRef.current.has(yesterdayStr)) {
+      return;
+    }
+
     const yesterdayData = trackerData[yesterdayStr];
+    if (yesterdayData?.shieldChecked) {
+      evaluatedShieldDatesRef.current.add(yesterdayStr);
+      return;
+    }
+
+    // Don't auto-evaluate if user is actively viewing/editing yesterday
+    if (selectedDate === yesterdayStr) {
+      return;
+    }
+
+    evaluatedShieldDatesRef.current.add(yesterdayStr);
     const shieldsAvailable = profile.streakShields || 0;
+    const activeListCount = (yesterdayData?.taskSnapshot || profile.customTasks || DEFAULT_TASKS).length;
+    const vals = yesterdayData?.tasks ? Object.values(yesterdayData.tasks) : [];
+    const isMissed = !yesterdayData || vals.length === 0 || vals.includes("O") || vals.length < activeListCount || !vals.every(v => v === "X");
 
-    if (yesterdayData && !yesterdayData.shieldChecked) {
-      const activeListCount = (yesterdayData.taskSnapshot || profile.customTasks || DEFAULT_TASKS).length;
-      const vals = yesterdayData.tasks ? Object.values(yesterdayData.tasks) : [];
-      const isMissed = vals.length === 0 || vals.includes("O") || vals.length < activeListCount || !vals.every(v => v === "X");
-
-      if (isMissed) {
-        if (shieldsAvailable > 0) {
-          const updatedYesterday = {
-            ...yesterdayData,
-            shieldProtected: true,
-            shieldChecked: true,
-          };
-          updateTrackerFirebase(yesterdayStr, updatedYesterday);
-          updateProfileFirebase({ streakShields: Math.max(0, shieldsAvailable - 1) });
-          showMessage(`🛡️ Streak Freeze Shield auto-protected your streak for ${yesterdayStr}! (1 Shield Used)`);
-        } else {
-          // Unshielded missed day: apply demotion penalty (-150 XP, -25 Stars)
-          const updatedYesterday = {
-            ...yesterdayData,
-            shieldProtected: false,
-            shieldChecked: true,
-          };
-          updateTrackerFirebase(yesterdayStr, updatedYesterday);
-          const currentXp = profile.xp || 0;
-          const currentStars = profile.stars || 0;
-          const penalizedXp = Math.max(0, currentXp - 150);
-          const penalizedStars = Math.max(0, currentStars - 25);
-          updateProfileFirebase({ xp: penalizedXp, stars: penalizedStars });
-          showMessage(`⚠️ Unshielded missed day on ${yesterdayStr}: -150 XP & -25 Stars penalty applied.`);
-        }
-      } else {
+    if (isMissed) {
+      if (shieldsAvailable > 0) {
         const updatedYesterday = {
-          ...yesterdayData,
+          ...(yesterdayData || {}),
+          tasks: yesterdayData?.tasks || {},
+          reasonForO: yesterdayData?.reasonForO || "",
+          summary: yesterdayData?.summary || "",
+          taskSnapshot: yesterdayData?.taskSnapshot || (profile.customTasks || DEFAULT_TASKS),
+          shieldProtected: true,
           shieldChecked: true,
         };
         updateTrackerFirebase(yesterdayStr, updatedYesterday);
+        updateProfileFirebase({ streakShields: Math.max(0, shieldsAvailable - 1) });
+        showMessage(`🛡️ Streak Freeze Shield auto-protected your streak for ${yesterdayStr}! (1 Shield Used)`);
+      } else {
+        // Unshielded missed day: apply demotion penalty (-150 XP, -25 Stars)
+        const updatedYesterday = {
+          ...(yesterdayData || {}),
+          tasks: yesterdayData?.tasks || {},
+          reasonForO: yesterdayData?.reasonForO || "",
+          summary: yesterdayData?.summary || "",
+          taskSnapshot: yesterdayData?.taskSnapshot || (profile.customTasks || DEFAULT_TASKS),
+          shieldProtected: false,
+          shieldChecked: true,
+        };
+        updateTrackerFirebase(yesterdayStr, updatedYesterday);
+        const currentXp = profile.xp || 0;
+        const currentStars = profile.stars || 0;
+        const penalizedXp = Math.max(0, currentXp - 150);
+        const penalizedStars = Math.max(0, currentStars - 25);
+        updateProfileFirebase({ xp: penalizedXp, stars: penalizedStars });
+        showMessage(`⚠️ Unshielded missed day on ${yesterdayStr}: -150 XP & -25 Stars penalty applied.`);
       }
+    } else {
+      const updatedYesterday = {
+        ...yesterdayData,
+        shieldProtected: false,
+        shieldChecked: true,
+      };
+      updateTrackerFirebase(yesterdayStr, updatedYesterday);
     }
-  }, [todayStr, trackerData, profile.streakShields, profile.xp, profile.stars]);
+  }, [todayStr, trackerData, profile.streakShields, profile.xp, profile.stars, selectedDate]);
 
   const getStreaks = () => {
     let study = 0, trigger = 0, perfect = 0;
