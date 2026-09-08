@@ -2855,85 +2855,95 @@ CORE MANNERISMS & ESSENCE:
   // ==========================================
   const renderHabitHub = () => {
     return (
-      <div className="space-y-6 sm:space-y-8 pb-10 animate-in fade-in zoom-in duration-300">
-        {/* HERO PROFILE & XP PROGRESS CARD */}
-        <div className={`p-5 sm:p-7 relative overflow-hidden shadow-2xl transition-all ${t.header} border-2 ${t.borderAccent}`}>
+      <div className="space-y-4 sm:space-y-6 pb-10 animate-in fade-in zoom-in duration-300">
+        {/* HERO PROFILE & METRICS CARD (SLEEK MOBILE-FIRST ARCHITECTURE) */}
+        <div className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl relative overflow-hidden shadow-2xl transition-all ${t.header} border ${t.borderAccent}`}>
           <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-            <div className="flex items-center gap-3 sm:gap-5 flex-shrink min-w-0">
-              <div className={`w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 rounded-full flex items-center justify-center overflow-hidden border-2 shadow-lg transition-transform duration-300 hover:scale-105 ${t.borderAccent} ring-2 ring-current ring-offset-2 ring-offset-black/40`}>
+
+          {/* Top Profile Row */}
+          <div className="flex items-center justify-between gap-3 relative z-10">
+            <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
+              <div className={`w-11 h-11 sm:w-14 sm:h-14 flex-shrink-0 rounded-2xl flex items-center justify-center overflow-hidden border shadow-md transition-transform hover:scale-105 ${t.borderAccent} ring-1 ring-current`}>
                 {profile.dp ? (
                   <img src={profile.dp} alt="User DP" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl sm:text-4xl animate-bounce-subtle">{rankData.currentRank.badge}</span>
+                  <span className="text-2xl sm:text-3xl">{rankData.currentRank.badge}</span>
                 )}
               </div>
-              <div className="min-w-0 overflow-hidden">
-                <h1 className={`text-lg sm:text-3xl font-black truncate tracking-tight ${t.textMain} ${t.fontHeading}`}>{profile.name}</h1>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <div className="min-w-0 flex-1">
+                <h1 className={`text-base sm:text-2xl font-black truncate tracking-tight ${t.textMain} ${t.fontHeading}`}>{profile.name}</h1>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   <button
                     onClick={() => setIsRankRoadmapOpen(true)}
-                    className={`text-[9px] sm:text-xs font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${t.badge} ${t.fontHeading} tap-effect flex items-center gap-1 hover:scale-105 transition-transform shadow-md`}
+                    className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${t.badge} ${t.fontHeading} tap-effect flex items-center gap-1 shadow-sm hover:scale-105 transition-transform`}
                     title="Click to view full 15-tier RPG Rank Progression Roadmap!"
                   >
-                    <Crown size={12} /> {rankData.currentRank.title}
+                    <Crown size={10} /> Tier {rankData.currentRank.tier}: {rankData.currentRank.title}
                   </button>
-                  <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${t.textAccent} ${t.fontHeading}`}>
+                  <span className={`text-[9px] sm:text-xs font-bold uppercase tracking-wider ${t.textAccent} ${t.fontHeading}`}>
                     Level {rankData.level}
-                  </span>
-                  <span className="text-[9px] sm:text-[10px] font-mono text-slate-400 font-bold">
-                    ({profile.xp || 0} XP)
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Star Counter, Streak Shield & Schedule Dispatcher Pills */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
-              {/* Scheduled Classes & Meetings Quick Pill */}
-              <div
-                onClick={() => setIsScheduleModalOpen(true)}
-                className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl flex items-center gap-2 flex-shrink-0 shadow-lg border tap-effect cursor-pointer ${
-                  (brain.scheduledEvents || []).filter((e: ScheduledEvent) => e.date === todayStr && !e.completed).length > 0
-                    ? "bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-400/50 animate-pulse"
-                    : `${t.cardInner} ${t.borderAccent}`
-                }`}
-                title="Class & Meeting Dispatcher: Schedule future dates & get alerts"
+            {/* Total XP Badge */}
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => setIsRankRoadmapOpen(true)}
+                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[9px] sm:text-xs font-bold border tap-effect ${t.cardInner} ${t.borderAccent}`}
               >
-                <span className="text-lg sm:text-2xl">📅</span>
-                <div className="text-right">
-                  <span className={`text-base sm:text-2xl font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
-                    {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
-                  </span>
-                  <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-widest ${t.textMuted}`}>Schedule</span>
-                </div>
-              </div>
+                {profile.xp || 0} XP
+              </button>
+            </div>
+          </div>
 
-              {/* Streak Shield Status Pill */}
-              <div
-                onClick={() => setHabitRoute("shop")}
-                className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl flex items-center gap-2 flex-shrink-0 shadow-lg border tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}
-                title="Streak Freeze Shields protect your streak when you miss a day! (Max 2 stored)"
-              >
-                <span className="text-lg sm:text-2xl">🛡️</span>
-                <div className="text-right">
-                  <span className={`text-base sm:text-2xl font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
-                    {profile.streakShields || 0}/2
-                  </span>
-                  <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-widest ${t.textMuted}`}>Shields</span>
-                </div>
+          {/* Balanced 3-Column Metrics Grid (Guaranteed 0 horizontal overflow on mobile) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3.5 pt-3 border-t border-current/15 relative z-10">
+            {/* Star Counter Pill */}
+            <div
+              onClick={() => setHabitRoute("shop")}
+              className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-center sm:justify-center text-center sm:text-left gap-1 sm:gap-2.5 border tap-effect cursor-pointer glow-gold-pulse ${t.cardInner} ${t.borderAccent}`}
+              title="Reward Shop & Stars Wallet"
+            >
+              <span className="text-base sm:text-2xl animate-float">⭐</span>
+              <div className="min-w-0">
+                <span className={`text-xs sm:text-lg font-black block leading-none ${t.textWarning} ${t.fontHeading}`}>{profile.stars}</span>
+                <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-wider block mt-0.5 ${t.textMuted}`}>Stars</span>
               </div>
+            </div>
 
-              {/* Star Counter Pill with Glow */}
-              <div
-                onClick={() => setHabitRoute("shop")}
-                className={`px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-2xl flex items-center gap-2 sm:gap-3 flex-shrink-0 shadow-lg border glow-gold-pulse tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}
-              >
-                <span className="text-xl sm:text-3xl animate-float">⭐</span>
-                <div className="text-right">
-                  <span className={`text-xl sm:text-3xl font-black block leading-none ${t.textWarning} ${t.fontHeading}`}>{profile.stars}</span>
-                  <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-widest ${t.textMuted}`}>Stars Wallet</span>
-                </div>
+            {/* Streak Shields Pill */}
+            <div
+              onClick={() => setHabitRoute("shop")}
+              className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-center sm:justify-center text-center sm:text-left gap-1 sm:gap-2.5 border tap-effect cursor-pointer ${t.cardInner} ${t.borderAccent}`}
+              title="Streak Freeze Shields (Max 2 stored)"
+            >
+              <span className="text-base sm:text-2xl">🛡️</span>
+              <div className="min-w-0">
+                <span className={`text-xs sm:text-lg font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
+                  {profile.streakShields || 0}/2
+                </span>
+                <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-wider block mt-0.5 ${t.textMuted}`}>Shields</span>
+              </div>
+            </div>
+
+            {/* Scheduled Classes & Meetings Quick Pill */}
+            <div
+              onClick={() => setIsScheduleModalOpen(true)}
+              className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-center sm:justify-center text-center sm:text-left gap-1 sm:gap-2.5 border tap-effect cursor-pointer ${
+                (brain.scheduledEvents || []).filter((e: ScheduledEvent) => e.date === todayStr && !e.completed).length > 0
+                  ? "bg-amber-500/20 border-amber-400 text-amber-300 ring-1 ring-amber-400/50 animate-pulse"
+                  : `${t.cardInner} ${t.borderAccent}`
+              }`}
+              title="Class & Meeting Dispatcher"
+            >
+              <span className="text-base sm:text-2xl">📅</span>
+              <div className="min-w-0">
+                <span className={`text-xs sm:text-lg font-black block leading-none ${t.textAccent} ${t.fontHeading}`}>
+                  {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
+                </span>
+                <span className={`text-[7px] sm:text-[9px] font-bold uppercase tracking-wider block mt-0.5 ${t.textMuted}`}>Schedule</span>
               </div>
             </div>
           </div>
@@ -2941,22 +2951,22 @@ CORE MANNERISMS & ESSENCE:
           {/* Dynamic XP Progress Bar */}
           <div
             onClick={() => setIsRankRoadmapOpen(true)}
-            className="mt-5 sm:mt-6 pt-4 border-t border-current/20 cursor-pointer group"
+            className="mt-3 cursor-pointer group"
             title="Click to view RPG Rank Progression"
           >
-            <div className="flex justify-between items-center text-[9px] sm:text-xs font-bold uppercase tracking-wider mb-1.5">
-              <span className={`flex items-center gap-1.5 ${t.textMain} group-hover:${t.textAccent} transition-colors`}>
-                <Sparkles size={13} className={t.textAccent} /> Tier {rankData.currentRank.tier}: {rankData.currentRank.name} Mastery
+            <div className="flex justify-between items-center text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mb-1">
+              <span className={`flex items-center gap-1 ${t.textMain}`}>
+                <Sparkles size={10} className={t.textAccent} /> Tier {rankData.currentRank.tier}: {rankData.currentRank.name}
               </span>
               {rankData.nextRank ? (
                 <span className={t.textAccent}>
-                  {rankData.xpNeededForNext} XP to {rankData.nextRank.badge} Tier {rankData.nextRank.tier} ({rankData.progressToNext}%)
+                  {rankData.xpNeededForNext} XP to {rankData.nextRank.badge} T{rankData.nextRank.tier} ({rankData.progressToNext}%)
                 </span>
               ) : (
                 <span className="text-emerald-400 font-black">👑 MAX RANK ACHIEVED</span>
               )}
             </div>
-            <div className={`w-full h-2.5 sm:h-3 rounded-full overflow-hidden p-0.5 border ${t.cardInner} ${t.borderAccent}`}>
+            <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden p-0.2 bg-black/40 border ${t.borderAccent}`}>
               <div
                 className={`h-full rounded-full transition-all duration-700 ease-out animate-shimmer ${t.btnPrimary}`}
                 style={{ width: `${Math.max(4, rankData.progressToNext)}%` }}
@@ -2973,19 +2983,19 @@ CORE MANNERISMS & ESSENCE:
           if (todaysActiveEvents.length === 0) return null;
 
           return (
-            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border-2 border-amber-400/70 shadow-[0_0_30px_rgba(251,191,36,0.3)] space-y-3 animate-in fade-in zoom-in duration-300">
+            <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border border-amber-400/70 shadow-[0_0_25px_rgba(251,191,36,0.25)] space-y-2.5 animate-in fade-in zoom-in duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-xl bg-amber-400 text-black font-black text-xs animate-bounce">
+                  <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-black font-black text-[9px] sm:text-xs animate-bounce">
                     🚨 TODAY
                   </span>
                   <h3 className={`text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 ${t.fontHeading}`}>
-                    Scheduled Classes & Meetings Today ({todaysActiveEvents.length})
+                    Scheduled Today ({todaysActiveEvents.length})
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsScheduleModalOpen(true)}
-                  className="text-[10px] font-black uppercase tracking-wider text-amber-200 hover:text-white underline tap-effect"
+                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-200 hover:text-white underline tap-effect"
                 >
                   View All 📅
                 </button>
@@ -2997,17 +3007,17 @@ CORE MANNERISMS & ESSENCE:
                   return (
                     <div
                       key={ev.id}
-                      className="p-3 sm:p-3.5 rounded-2xl bg-black/60 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md"
+                      className="p-3 rounded-xl bg-black/60 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-md"
                     >
                       <div className="flex items-start gap-2.5 flex-1 min-w-0">
                         <span className="text-xl flex-shrink-0 mt-0.5">{catMeta.icon}</span>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border ${catMeta.badgeBg}`}>
                               {catMeta.label}
                             </span>
                             {ev.time && (
-                              <span className="text-[9px] font-bold text-amber-200 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/30 flex items-center gap-1">
+                              <span className="text-[8px] sm:text-[9px] font-bold text-amber-200 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/30 flex items-center gap-1">
                                 <Clock size={10} /> {ev.time}
                               </span>
                             )}
@@ -3016,7 +3026,7 @@ CORE MANNERISMS & ESSENCE:
                             {ev.title}
                           </h4>
                           {ev.notes && (
-                            <p className="text-[10px] text-slate-300 line-clamp-1 mt-0.5 font-sans">
+                            <p className="text-[9px] sm:text-[10px] text-slate-300 line-clamp-1 mt-0.5 font-sans">
                               {ev.notes}
                             </p>
                           )}
@@ -3026,15 +3036,15 @@ CORE MANNERISMS & ESSENCE:
                       <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                         <button
                           onClick={() => startFocusSession(ev.title, ev.id)}
-                          className={`px-3 py-1.5 rounded-xl tap-effect text-[10px] font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
+                          className={`px-3 py-1.5 rounded-xl tap-effect text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 shadow-sm ${t.btnWarning}`}
                         >
-                          <Zap size={12} /> Focus ⚡
+                          <Zap size={11} /> Focus ⚡
                         </button>
                         <button
                           onClick={() => toggleCompleteScheduledEvent(ev.id)}
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 text-[10px] font-black uppercase tap-effect flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 text-[9px] sm:text-[10px] font-black uppercase tap-effect flex items-center gap-1"
                         >
-                          <CheckCircle2 size={13} /> Attended ✅
+                          <CheckCircle2 size={12} /> Attended ✅
                         </button>
                       </div>
                     </div>
@@ -3045,136 +3055,162 @@ CORE MANNERISMS & ESSENCE:
           );
         })()}
 
-        {/* HIGH-VELOCITY ACTION ROW: FOCUS CHAMBER & TWO-BOX REFLECTION */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+        {/* ACTION CARDS GRID (CLEAN 2-COLUMN MOBILE RESPONSIVE) */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+          {/* Focus Chamber */}
           <button
             onClick={() => startFocusSession()}
-            className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border flex items-center justify-between ${t.cardInner} hover:${t.borderAccent}`}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
           >
-            <div className="flex items-center gap-3.5 relative z-10">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
-                <Zap className={`w-6 h-6 ${t.textAccent} animate-pulse`} />
+            <div className="flex items-center justify-between w-full mb-2 sm:mb-3">
+              <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
+                <Zap className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent} animate-pulse`} />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Focus Chamber</h3>
-                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+1⭐</span>
-                </div>
-                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Pomodoro, Deep Flow, Timer & Stopwatch.</p>
-              </div>
+              <span className={`text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black ${t.badge}`}>+1⭐</span>
             </div>
-            <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Focus Chamber</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Pomodoro & Deep Work.</p>
+            </div>
           </button>
 
+          {/* Two-Box System */}
           <button
             onClick={() => setIsTwoBoxModalOpen(true)}
-            className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border flex items-center justify-between ${t.cardInner} hover:${t.borderAccent}`}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
           >
-            <div className="flex items-center gap-3.5 relative z-10">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
-                <Layers className={`w-6 h-6 ${t.textAccent}`} />
+            <div className="flex items-center justify-between w-full mb-2 sm:mb-3">
+              <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
+                <Layers className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className={`text-sm sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Two-Box System</h3>
-                  <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse' : t.badge}`}>
-                    {isCleanupHourActive() ? "🧹 9PM-12AM LIVE" : "DISCIPLINE"}
-                  </span>
-                </div>
-                <p className={`text-[9px] sm:text-xs mt-0.5 ${t.textMuted}`}>Box 1 Failures • Box 2 Achievements • 9 PM - 12 AM Cleanup.</p>
-              </div>
+              <span className={`text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black ${isCleanupHourActive() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse' : t.badge}`}>
+                {isCleanupHourActive() ? "9PM LIVE" : "2-BOX"}
+              </span>
             </div>
-            <MoveRight size={18} className={`text-current opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${t.textAccent}`} />
-          </button>
-        </div>
-
-        {/* 8 FEATURE ACTION TILES */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
-          <button onClick={() => setHabitRoute("arena")} className={`p-5 sm:p-6 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border ${t.cardInner} hover:${t.borderAccent}`}>
-            <Swords className={`absolute -right-4 -bottom-4 w-28 h-28 sm:w-36 sm:h-36 opacity-10 group-hover:scale-110 group-hover:opacity-20 transition-all duration-500 ${t.textAccent}`} />
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-md border ${t.card} ${t.borderAccent}`}>
-              <Swords className={`w-6 h-6 sm:w-7 sm:h-7 transition-colors ${t.textAccent} group-hover:${t.textMain}`} />
-            </div>
-            <h2 className={`text-lg sm:text-2xl font-black relative z-10 tracking-tight ${t.textMain} ${t.fontHeading}`}>Enter Arena</h2>
-            <p className={`text-[10px] sm:text-sm mt-1 relative z-10 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Execute daily tasks & conquer calendar levels.</p>
-          </button>
-
-          <button onClick={() => setHabitRoute("shop")} className={`p-5 sm:p-6 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border ${t.cardInner} hover:${t.borderAccent}`}>
-            <ShoppingCart className={`absolute -right-4 -bottom-4 w-28 h-28 sm:w-36 sm:h-36 opacity-10 group-hover:scale-110 group-hover:opacity-20 transition-all duration-500 ${t.textAccent}`} />
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-md border ${t.card} ${t.borderAccent}`}>
-              <ShoppingCart className={`w-6 h-6 sm:w-7 sm:h-7 transition-colors ${t.textAccent} group-hover:${t.textMain}`} />
-            </div>
-            <h2 className={`text-lg sm:text-2xl font-black relative z-10 tracking-tight ${t.textMain} ${t.fontHeading}`}>Reward Shop</h2>
-            <p className={`text-[10px] sm:text-sm mt-1 relative z-10 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Spend earned stars on guilt-free perks.</p>
-          </button>
-
-          <button onClick={() => setHabitRoute("analysis")} className={`col-span-1 sm:col-span-2 p-5 sm:p-6 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border ${t.cardInner} hover:${t.borderAccent}`}>
-            <BarChart2 className={`absolute -right-4 -bottom-4 w-32 h-32 sm:w-44 sm:h-44 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-500 ${t.textAccent}`} />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border transition-transform group-hover:scale-105 ${t.card} ${t.borderAccent}`}>
-                <BarChart2 className={`w-7 h-7 sm:w-9 sm:h-9 ${t.textAccent}`} />
-              </div>
-              <div>
-                <h2 className={`text-base sm:text-2xl font-black tracking-tight ${t.textMain} ${t.fontHeading}`}>Performance Analytics</h2>
-                <p className={`text-[10px] sm:text-sm mt-0.5 sm:mt-1 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Track perfect day streaks, completion ratios & weekly trends.</p>
-              </div>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Two-Box System</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Failures & Achievements.</p>
             </div>
           </button>
 
-          <button onClick={() => setHabitRoute("plan")} className={`p-5 sm:p-6 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border ${t.cardInner} hover:${t.borderAccent}`}>
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
-              <Briefcase className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+          {/* Enter Arena */}
+          <button
+            onClick={() => setHabitRoute("arena")}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <Swords className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
             </div>
-            <h2 className={`text-sm sm:text-lg font-black relative z-10 tracking-tight ${t.textMain} ${t.fontHeading}`}>Ongoing Plan</h2>
-            <p className={`text-[9px] sm:text-xs mt-1 relative z-10 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Active perks, countdown timers & history log.</p>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Level Map</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Daily calendar arena.</p>
+            </div>
           </button>
 
-          <button onClick={() => setHabitRoute("coach")} className={`p-5 sm:p-6 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-xl border ${t.cardInner} hover:${t.borderAccent}`}>
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
+          {/* Reward Shop */}
+          <button
+            onClick={() => setHabitRoute("shop")}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <ShoppingCart className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+            </div>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Reward Shop</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Spend earned stars.</p>
+            </div>
+          </button>
+
+          {/* Performance Analytics */}
+          <button
+            onClick={() => setHabitRoute("analysis")}
+            className={`col-span-2 sm:col-span-2 lg:col-span-1 p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex items-center gap-3 ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <BarChart2 className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+            </div>
+            <div className="min-w-0">
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Analytics & Heatmap</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} truncate`}>Streaks, ratios & weekly trends.</p>
+            </div>
+          </button>
+
+          {/* AI Habit Coach */}
+          <button
+            onClick={() => setHabitRoute("coach")}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
               <Bot className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
             </div>
-            <h2 className={`text-sm sm:text-lg font-black relative z-10 tracking-tight ${t.textMain} ${t.fontHeading}`}>AI Habit Coach</h2>
-            <p className={`text-[9px] sm:text-xs mt-1 relative z-10 leading-relaxed ${t.textMuted} ${t.fontHeading}`}>Your personal AI discipline strategist & mentor.</p>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>AI Coach</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Discipline mentor.</p>
+            </div>
           </button>
 
-          <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
-            <button onClick={() => setIsScheduleModalOpen(true)} className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg flex items-center justify-center sm:justify-start gap-3.5 border ${t.cardInner} hover:${t.borderAccent}`}>
-              <div className={`p-2.5 rounded-xl border ${t.card} ${t.borderAccent}`}>
-                <CalendarDays className={`w-5 h-5 ${t.textAccent}`} />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-xs sm:text-sm font-black block ${t.textMain} ${t.fontHeading}`}>Dispatcher</span>
-                  {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length > 0 && (
-                    <span className={`text-[7px] px-1.5 py-0.2 rounded-full font-black ${t.badge}`}>
-                      {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
-                    </span>
-                  )}
-                </div>
-                <span className={`text-[8px] sm:text-[10px] ${t.textMuted}`}>Classes & meetings</span>
-              </div>
-            </button>
+          {/* Ongoing Plan */}
+          <button
+            onClick={() => setHabitRoute("plan")}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <Briefcase className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+            </div>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Active Plan</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Perks & countdowns.</p>
+            </div>
+          </button>
 
-            <button onClick={() => setHabitRoute("vault")} className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg flex items-center justify-center sm:justify-start gap-3.5 border ${t.cardInner} hover:${t.borderAccent}`}>
-              <div className={`p-2.5 rounded-xl border ${t.card} ${t.borderAccent}`}>
-                <Download className={`w-5 h-5 ${t.textAccent}`} />
+          {/* Schedule Dispatcher */}
+          <button
+            onClick={() => setIsScheduleModalOpen(true)}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className="flex items-center justify-between w-full mb-2 sm:mb-3">
+              <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-md border ${t.card} ${t.borderAccent}`}>
+                <CalendarDays className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
               </div>
-              <div>
-                <span className={`text-xs sm:text-sm font-black block ${t.textMain} ${t.fontHeading}`}>Data Vault</span>
-                <span className={`text-[8px] sm:text-[10px] ${t.textMuted}`}>Export dark HTML & backup</span>
-              </div>
-            </button>
+              {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length > 0 && (
+                <span className={`text-[7px] sm:text-[8px] px-1.5 py-0.2 rounded-full font-black ${t.badge}`}>
+                  {(brain.scheduledEvents || []).filter((e: ScheduledEvent) => !e.completed).length}
+                </span>
+              )}
+            </div>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Dispatcher</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Classes & meetings.</p>
+            </div>
+          </button>
 
-            <button onClick={() => setHabitRoute("settings")} className={`p-4 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg flex items-center justify-center sm:justify-start gap-3.5 border ${t.cardInner} hover:${t.borderAccent}`}>
-              <div className={`p-2.5 rounded-xl border ${t.card} ${t.borderAccent}`}>
-                <Settings className={`w-5 h-5 ${t.textAccent}`} />
-              </div>
-              <div>
-                <span className={`text-xs sm:text-sm font-black block ${t.textMain} ${t.fontHeading}`}>Command Center</span>
-                <span className={`text-[8px] sm:text-[10px] ${t.textMuted}`}>Custom tasks, themes & keys</span>
-              </div>
-            </button>
-          </div>
+          {/* Data Vault */}
+          <button
+            onClick={() => setHabitRoute("vault")}
+            className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <Download className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+            </div>
+            <div>
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Data Vault</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} line-clamp-1`}>Backup & export.</p>
+            </div>
+          </button>
+
+          {/* Command Center */}
+          <button
+            onClick={() => setHabitRoute("settings")}
+            className={`col-span-2 sm:col-span-1 p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex items-center gap-3 ${t.cardInner} hover:${t.borderAccent}`}
+          >
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-md border ${t.card} ${t.borderAccent}`}>
+              <Settings className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} />
+            </div>
+            <div className="min-w-0">
+              <h3 className={`text-xs sm:text-base font-black ${t.textMain} ${t.fontHeading}`}>Command Center</h3>
+              <p className={`text-[8px] sm:text-xs mt-0.5 ${t.textMuted} truncate`}>Themes, tasks & keys.</p>
+            </div>
+          </button>
         </div>
       </div>
     );
@@ -4476,71 +4512,87 @@ CORE MANNERISMS & ESSENCE:
 
   const renderBrainStudy = () => (
     <div className="space-y-6 sm:space-y-8 pb-20 animate-in fade-in duration-300 max-w-4xl mx-auto">
-      <div className={`p-5 sm:p-7 rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
-        <div className={`flex justify-between items-center mb-5 sm:mb-6 border-b pb-3 ${t.borderAccent}`}>
+      <div className={`p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl border ${t.card} ${t.borderAccent}`}>
+        <div className={`flex justify-between items-center mb-4 sm:mb-6 border-b pb-3 ${t.borderAccent}`}>
            <h3 className={`font-black uppercase tracking-widest flex items-center gap-2 text-xs sm:text-sm ${t.textAccent} ${t.fontHeading}`}>
-             <Activity size={16} /> LIQUID STRIKE QUEUE
+             <Activity size={16} /> LIQUID STRIKE QUEUE ({brain.stagingTopics.length})
            </h3>
-           <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${t.cardInner} ${t.textMuted}`}>Drag to prioritize</span>
+           <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${t.cardInner} ${t.textMuted}`}>Drag to prioritize</span>
         </div>
 
-        {/* NEW TAG INPUT */}
-        <div className="flex gap-2.5 mb-4 sm:mb-5">
-          <input
-            type="text"
-            value={newSyllabusCat}
-            onChange={(e) => setNewSyllabusCat(e.target.value)}
-            placeholder="NEW CATEGORY TAG..."
-            className={`flex-1 px-4 py-3 text-xs sm:text-sm font-black uppercase rounded-2xl outline-none transition-colors ${t.input} ${t.fontHeading}`}
-          />
-          <button
-            onClick={handleAddSyllabusCategory}
-            className={`px-5 rounded-2xl font-black uppercase tap-effect flex items-center justify-center ${t.btnPrimary}`}
-          >
-            <Plus size={20} className="stroke-[3]" />
-          </button>
+        {/* CATEGORY TAG SELECTOR CHIPS (MOBILE ERGONOMIC) */}
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${t.textMuted}`}>Category Tag:</span>
+            <span className={`text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${t.badge} ${t.textAccent}`}>Selected: {selectedSyllabusCat}</span>
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
+            {brain.syllabusCategories.map((cat: any) => {
+              const isSelected = selectedSyllabusCat === cat;
+              return (
+                <div
+                  key={cat}
+                  onClick={() => setSelectedSyllabusCat(cat)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all border cursor-pointer shrink-0 tap-effect ${
+                    isSelected
+                      ? `${t.btnPrimary} shadow-md scale-105`
+                      : `${t.cardInner} ${t.textMain} hover:${t.borderAccent}`
+                  }`}
+                >
+                  <span>{cat}</span>
+                  {cat !== "Raw Backlog" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSyllabusCategory(cat);
+                      }}
+                      className="hover:text-red-400 p-0.5 transition-colors"
+                      title="Delete Tag"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {brain.syllabusCategories.length > 1 && (
-           <div className="flex flex-wrap gap-2 mb-5 sm:mb-6">
-             {brain.syllabusCategories.map((cat: any) => (
-               <div key={cat} className={`group flex items-center gap-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-xl transition-all border ${t.cardInner} ${t.textMain} hover:${t.borderAccent}`}>
-                 {cat}
-                 {cat !== "Raw Backlog" && (
-                   <button
-                     onClick={() => handleDeleteSyllabusCategory(cat)}
-                     className={`transition-colors ${t.textMuted} hover:text-red-500`}
-                   >
-                     <Trash2 size={13} />
-                   </button>
-                 )}
-               </div>
-             ))}
-           </div>
-        )}
-
-        {/* ADD CHAPTER / TOPIC */}
-        <div className="flex gap-2.5 mb-6 sm:mb-8">
-          <select
-            value={selectedSyllabusCat}
-            onChange={(e) => setSelectedSyllabusCat(e.target.value)}
-            className={`w-1/3 px-3 py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-2xl outline-none cursor-pointer ${t.input} ${t.textAccent} ${t.fontHeading}`}
-          >
-            {brain.syllabusCategories.map((cat: any) => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+        {/* ADD CHAPTER / TOPIC (FULL WIDTH ERGONOMIC INPUT) */}
+        <div className="flex gap-2 mb-4 sm:mb-6">
           <input
             type="text"
             value={newTopic}
             onChange={(e) => setNewTopic(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddStagingTopic()}
-            placeholder="CHAPTER / TOPIC NAME..."
-            className={`flex-1 px-4 py-3 text-xs sm:text-sm font-black uppercase rounded-2xl outline-none transition-colors ${t.input} ${t.fontHeading}`}
+            placeholder={`Add topic to [${selectedSyllabusCat}]...`}
+            className={`flex-1 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-black uppercase rounded-xl sm:rounded-2xl outline-none transition-colors ${t.input} ${t.fontHeading}`}
           />
           <button
             onClick={handleAddStagingTopic}
-            className={`px-5 rounded-2xl font-black tap-effect flex items-center justify-center ${t.btnPrimary}`}
+            className={`px-4 sm:px-6 rounded-xl sm:rounded-2xl font-black uppercase tap-effect flex items-center justify-center gap-1.5 ${t.btnPrimary}`}
+            title="Add topic to queue"
           >
-            <Plus size={20} className="stroke-[3]" />
+            <Plus size={18} className="stroke-[3]" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+
+        {/* CREATE NEW CATEGORY TAG ROW */}
+        <div className="flex gap-2 mb-6 pt-3 border-t border-white/5">
+          <input
+            type="text"
+            value={newSyllabusCat}
+            onChange={(e) => setNewSyllabusCat(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddSyllabusCategory()}
+            placeholder="CREATE NEW CATEGORY TAG..."
+            className={`flex-1 px-3 py-2 text-[9px] sm:text-xs font-black uppercase rounded-xl outline-none transition-colors ${t.input} ${t.fontHeading}`}
+          />
+          <button
+            onClick={handleAddSyllabusCategory}
+            className={`px-3.5 py-2 rounded-xl text-[9px] sm:text-xs font-black uppercase tap-effect flex items-center justify-center gap-1 border ${t.cardInner} hover:${t.borderAccent} ${t.borderAccent} ${t.textAccent}`}
+          >
+            <Plus size={13} className="stroke-[3]" /> Tag
           </button>
         </div>
 
