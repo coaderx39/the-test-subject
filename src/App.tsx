@@ -1153,6 +1153,7 @@ export default function App() {
   const [box2Input, setBox2Input] = useState("");
   const [twoBoxRating, setTwoBoxRating] = useState(5);
   const [twoBoxActiveTab, setTwoBoxActiveTab] = useState<"boxes" | "cleanup" | "trophy">("boxes");
+  const [showTwoBoxGuide, setShowTwoBoxGuide] = useState(false);
 
   // ================= WEEKLY AI PERFORMANCE REVIEW STATE =================
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
@@ -1321,16 +1322,91 @@ export default function App() {
     }
   }, [brain.lastActiveDate, todayStr]);
 
+  // ==========================================
+  // 📱 REAL MOBILE HEADS-UP NOTIFICATION ENGINE
+  // ==========================================
   const toastTimerRef = useRef<any>(null);
   const showMessage = (msg: string) => {
     setToast(msg);
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate(35);
+      } catch (e) {}
+    }
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);
     }
     toastTimerRef.current = setTimeout(() => {
       setToast(null);
       toastTimerRef.current = null;
-    }, 3000);
+    }, 3500);
+  };
+
+  const parseToastDetails = (rawMsg: string) => {
+    if (!rawMsg) return { icon: "⚡", title: "System Alert", body: "", category: "System", type: "info" };
+
+    const msg = String(rawMsg).trim();
+
+    // Extract leading emoji if any
+    const emojiRegex = /^(\p{Extended_Pictographic}+|\p{Emoji_Presentation}+|\p{Emoji}️+)/u;
+    const match = msg.match(emojiRegex);
+    let icon = match ? match[0] : "";
+    let cleanText = match ? msg.replace(emojiRegex, "").trim() : msg;
+
+    let category = appMode === "habit" ? "Habit OS" : appMode === "krishna" ? "My Krishna" : "Second Brain";
+    let title = "Notification";
+    let type: "xp" | "shield" | "success" | "warning" | "schedule" | "info" = "info";
+
+    if (msg.includes("XP") || msg.includes("Star") || msg.includes("PERFECT DAY") || msg.includes("Victory") || msg.includes("Tier")) {
+      category = "Level Progression";
+      title = msg.includes("PERFECT DAY") ? "Perfect Day Cleared!" : "Reward Unlocked!";
+      if (!icon) icon = "⭐";
+      type = "xp";
+    } else if (msg.includes("Shield") || msg.includes("shield")) {
+      category = "Streak Shield";
+      title = msg.includes("Refund") ? "Shield Refunded!" : msg.includes("Used") || msg.includes("used") || msg.includes("auto-protected") ? "Shield Activated!" : "Streak Protected";
+      if (!icon) icon = "🛡️";
+      type = "shield";
+    } else if (msg.includes("Scheduled") || msg.includes("Class") || msg.includes("Meeting") || msg.includes("📅")) {
+      category = "Schedule Dispatcher";
+      title = "Calendar Event";
+      if (!icon) icon = "📅";
+      type = "schedule";
+    } else if (msg.includes("Cleaned") || msg.includes("Cleanup") || msg.includes("Two-Box") || msg.includes("Box 1") || msg.includes("Box 2")) {
+      category = "Habit Cleanup";
+      title = "Two-Box System";
+      if (!icon) icon = "🧹";
+      type = "success";
+    } else if (msg.includes("Focus") || msg.includes("Timer") || msg.includes("Break")) {
+      category = "Focus Chamber";
+      title = "Focus Session";
+      if (!icon) icon = "⚡";
+      type = "success";
+    } else if (msg.includes("⚠️") || msg.includes("❌") || msg.includes("penalty") || msg.includes("Penalty") || msg.includes("FAILED") || msg.includes("denied")) {
+      category = "System Warning";
+      title = "Attention Required";
+      if (!icon) icon = "⚠️";
+      type = "warning";
+    } else if (msg.includes("Copied") || msg.includes("Saved") || msg.includes("Updated") || msg.includes("Added") || msg.includes("Complete") || msg.includes("Activated")) {
+      category = "Action Complete";
+      title = "Success";
+      if (!icon) icon = "✅";
+      type = "success";
+    } else if (msg.includes("Tap back again")) {
+      category = "Navigation";
+      title = "Exit App";
+      if (!icon) icon = "📱";
+      type = "info";
+    } else {
+      if (!icon) icon = "🔔";
+      title = "Notice";
+    }
+
+    // Clean up text if it starts with extra punctuation
+    cleanText = cleanText.replace(/^[:\-–—\s]+/, "");
+    const body = cleanText || msg;
+
+    return { icon, title, body, category, type };
   };
 
   // ==========================================
@@ -7636,13 +7712,87 @@ One short, electrifying sentence of raw motivation.`;
         </div>
       </div>
 
+      {/* 📱 REAL MOBILE HEADS-UP NOTIFICATION BANNER (iOS & Android Style) */}
+      {toast && (() => {
+        const parsed = parseToastDetails(toast);
+        return (
+          <div
+            onClick={() => setToast(null)}
+            className="fixed top-[calc(env(safe-area-inset-top,0px)+0.65rem)] sm:top-4 left-1/2 -translate-x-1/2 z-[300] w-[calc(100%-1.25rem)] max-w-sm sm:max-w-md cursor-pointer select-none animate-mobile-notification pointer-events-auto"
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
+            <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 bg-[#0e1628]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.18)] text-white relative overflow-hidden tap-effect active:scale-[0.98]">
+              {/* Top Notch / Pull Pill */}
+              <div className="w-9 h-1 rounded-full bg-white/25 mx-auto -mt-0.5 mb-2"></div>
+
+              {/* Header: App Name & Meta */}
+              <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/10">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-md bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-[9px] font-black text-black shadow-sm">
+                    ⚡
+                  </div>
+                  <span className="text-[10px] font-black tracking-wider uppercase text-slate-200">
+                    {appMode === "habit" ? "HABIT OS" : appMode === "krishna" ? "MY KRISHNA" : "SECOND BRAIN"}
+                  </span>
+                  <span className="text-slate-600 text-[9px]">•</span>
+                  <span className="text-[9px] font-black text-amber-400 uppercase tracking-tight truncate max-w-[120px]">
+                    {parsed.category}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <span className="text-[9px] font-bold">now</span>
+                  <span className="text-slate-600 text-[9px]">•</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setToast(null);
+                    }}
+                    className="p-0.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content Body: Avatar & Notification Text */}
+              <div className="flex items-start gap-2.5">
+                <div
+                  className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg shrink-0 shadow-inner border ${
+                    parsed.type === "xp"
+                      ? "bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-amber-500/20"
+                      : parsed.type === "shield"
+                      ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 shadow-cyan-500/20"
+                      : parsed.type === "warning"
+                      ? "bg-rose-500/20 border-rose-500/40 text-rose-300 shadow-rose-500/20"
+                      : parsed.type === "schedule"
+                      ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300 shadow-indigo-500/20"
+                      : "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-emerald-500/20"
+                  }`}
+                >
+                  <span>{parsed.icon}</span>
+                </div>
+
+                <div className="flex-1 min-w-0 pr-1">
+                  <h4 className="text-xs font-black tracking-wide text-white leading-tight mb-0.5">
+                    {parsed.title}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-slate-200 font-medium leading-snug break-words">
+                    {parsed.body}
+                  </p>
+                </div>
+              </div>
+
+              {/* Subtle Bottom Auto-Dismiss Progress Line */}
+              <div className="w-full bg-white/10 h-0.5 rounded-full overflow-hidden mt-2.5">
+                <div className="h-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 animate-toast-progress"></div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* MAIN VIEWPORT CONTAINER WITH RESPONSIVE SAFE-AREA PADDING */}
       <div className="w-full max-w-4xl mx-auto px-3 sm:px-5 pt-20 sm:pt-24 pb-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] relative">
-        {toast && (
-          <div className={`fixed top-20 sm:top-24 left-1/2 transform -translate-x-1/2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-2xl shadow-2xl shadow-black/50 z-[100] animate-scale-pop flex items-center gap-2.5 text-[10px] sm:text-xs uppercase tracking-widest ${t.badge} ${t.fontHeading} border ${t.borderAccent}`}>
-            <Check size={16} className={`sm:size-5 ${t.textAccent ? t.textAccent : 'text-current'}`} /> {toast}
-          </div>
-        )}
         {errorMsg && (
           <div className={`w-full p-3 sm:p-4 mb-4 rounded-2xl flex items-start gap-2.5 shadow-2xl text-[10px] sm:text-xs uppercase tracking-widest bg-red-900/90 backdrop-blur-xl text-white ${t.fontHeading} border border-red-500/40`}>
             <AlertTriangle size={16} className="sm:size-5 mt-0.5 flex-shrink-0 text-red-300" />
@@ -8347,7 +8497,7 @@ One short, electrifying sentence of raw motivation.`;
               return (
                 <div className="flex flex-col flex-1 overflow-hidden">
                   {/* Segmented Tab Controls */}
-                  <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 mb-4 shrink-0">
+                  <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 mb-3 shrink-0">
                     <button
                       onClick={() => setTwoBoxActiveTab("boxes")}
                       className={`py-2 text-[11px] sm:text-xs font-black uppercase rounded-xl transition-all tap-effect flex items-center justify-center gap-1.5 ${
@@ -8356,7 +8506,7 @@ One short, electrifying sentence of raw motivation.`;
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
-                      <span>📦 Boxes</span>
+                      <span>📦 1. Boxes</span>
                       <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${twoBoxActiveTab === "boxes" ? "bg-black/20 text-black" : "bg-slate-800 text-slate-300"}`}>
                         {twoBoxData.failures.length + twoBoxData.achievements.length}
                       </span>
@@ -8370,7 +8520,7 @@ One short, electrifying sentence of raw motivation.`;
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
-                      <span>🧹 Cleanup</span>
+                      <span>🧹 2. Cleanup</span>
                       {isCleanupLive ? (
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                       ) : (
@@ -8390,11 +8540,54 @@ One short, electrifying sentence of raw motivation.`;
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
-                      <span>🏆 Trophy</span>
+                      <span>🏆 3. Trophy</span>
                       <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${twoBoxActiveTab === "trophy" ? "bg-black/20 text-black" : "bg-slate-800 text-slate-300"}`}>
                         {monthlyStats.totalWins}
                       </span>
                     </button>
+                  </div>
+
+                  {/* Toggleable Quick Tutorial & Guide Banner */}
+                  <div className="mb-3 shrink-0">
+                    <button
+                      onClick={() => setShowTwoBoxGuide(!showTwoBoxGuide)}
+                      className="w-full py-2 px-3 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-300 text-[11px] font-bold flex items-center justify-between transition-all tap-effect"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles size={13} className="text-amber-400" />
+                        {showTwoBoxGuide ? "Hide Quick Guide" : "💡 How to Use the Two-Box System (Quick Guide & Tutorial)"}
+                      </span>
+                      <span className="text-[10px] bg-amber-400/20 px-2 py-0.5 rounded-md font-bold">
+                        {showTwoBoxGuide ? "▲ Close" : "▼ Open Tutorial"}
+                      </span>
+                    </button>
+
+                    {showTwoBoxGuide && (
+                      <div className="mt-2 p-3.5 rounded-2xl bg-slate-900/95 border border-amber-400/40 space-y-2.5 text-xs text-slate-200 animate-in fade-in duration-200 max-h-60 overflow-y-auto">
+                        <div className="font-black text-amber-300 uppercase tracking-wide flex items-center gap-1 text-[11px]">
+                          <span>📖</span> Simple 3-Step Routine:
+                        </div>
+                        <div className="space-y-2 text-[11px] leading-relaxed">
+                          <div className="p-2 rounded-xl bg-rose-950/30 border border-rose-500/30">
+                            <span className="font-bold text-rose-300 block mb-0.5">Step 1 • Box 1 (🛑 Mistakes / Distractions):</span>
+                            Din bhar mein jo bhi distractions ya mistakes huye (jaise reels scroll karna, study skip karna) unhe yahan type karke <span className="font-bold text-white bg-rose-600 px-1 py-0.2 rounded text-[10px]">+ Log</span> dabao.
+                          </div>
+                          <div className="p-2 rounded-xl bg-emerald-950/30 border border-emerald-500/30">
+                            <span className="font-bold text-emerald-300 block mb-0.5">Step 2 • Box 2 (🏆 Wins / Victories):</span>
+                            Jo bhi productive kaam ya victories huye (jaise 2 ghante focus study, gym, urge control) unhe yahan type karke <span className="font-bold text-black bg-emerald-400 px-1 py-0.2 rounded text-[10px]">+ Win</span> dabao.
+                          </div>
+                          <div className="p-2 rounded-xl bg-amber-950/30 border border-amber-500/30">
+                            <span className="font-bold text-amber-300 block mb-0.5">Step 3 • Night Cleanup (9 PM – 12 AM):</span>
+                            Raat ko <span className="font-bold text-amber-400">🧹 Cleanup</span> tab kholo:
+                            <ul className="list-disc list-inside mt-1 space-y-1 text-slate-300 pl-1">
+                              <li><span className="text-rose-300 font-bold">🧹 Clean (+10 XP):</span> Apni mistake ko forgive karke eliminate karo.</li>
+                              <li><span className="text-emerald-300 font-bold">⚡ To Win (+20 XP):</span> Mistake ko lesson/victory mein convert karke Box 2 mein bhejo!</li>
+                              <li><span className="text-teal-300 font-bold">✨ Complete Daily Cleanup (+30 XP):</span> Sab clean hone ke baad final lock-in karo aur +30 XP lo!</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Tab Contents (Scrollable Container) */}

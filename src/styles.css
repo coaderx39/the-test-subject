@@ -287,4 +287,43 @@ button:active {
   transform: none;
 }
 
+/* ==========================================
+   Real Mobile Push Notification & Heads-Up Banner
+   ========================================== */
+@keyframes mobileNotificationDrop {
+  0% {
+    transform: translate(-50%, -120%) scale(0.88);
+    opacity: 0;
+  }
+  65% {
+    transform: translate(-50%, 6px) scale(1.02);
+    opacity: 1;
+  }
+  85% {
+    transform: translate(-50%, -2px) scale(0.99);
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-mobile-notification {
+  animation: mobileNotificationDrop 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes toastProgress {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.animate-toast-progress {
+  animation: toastProgress 3.5s linear forwards;
+}
+
+
 
