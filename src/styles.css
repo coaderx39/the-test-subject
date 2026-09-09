@@ -424,6 +424,447 @@ button:active {
   animation: floatGlyph 5.4s ease-in-out infinite 2.4s;
 }
 
+/* =========================================================
+   DUOLINGO-STYLE FLUID SPRING PHYSICS & CHARACTER MASCOT ENGINE
+   ========================================================= */
+
+/* Spring Pop-In (Duolingo Style Modals & Rewards) */
+@keyframes springPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) translateY(40px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06) translateY(-6px);
+  }
+  80% {
+    transform: scale(0.97) translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-spring-in {
+  animation: springPopIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Bottom Slide-Up Drawer for Mascot & Notifications */
+@keyframes drawerSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-drawer-slide-up {
+  animation: drawerSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* SVG Fluid Checkmark Draw-In */
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 48;
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-check-draw {
+  stroke-dasharray: 48;
+  animation: checkmarkDraw 0.42s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+/* Tactile Habit Button Press Physics */
+.btn-tactile-press {
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.12s ease;
+}
+.btn-tactile-press:active {
+  transform: scale(0.93) translateY(2px);
+}
+
+/* Dynamic Flowing SVG Streak Fire Wave */
+@keyframes fireWaveOscillate {
+  0% {
+    transform: scaleY(1) scaleX(1) rotate(-1.5deg);
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.7));
+  }
+  30% {
+    transform: scaleY(1.08) scaleX(0.96) rotate(2deg);
+    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.85)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.5));
+  }
+  60% {
+    transform: scaleY(0.96) scaleX(1.04) rotate(-2deg);
+    filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.8));
+  }
+  100% {
+    transform: scaleY(1) scaleX(1) rotate(-1.5deg);
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.7));
+  }
+}
+.animate-fire-wave {
+  animation: fireWaveOscillate 1.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Inner Core Flame Flutter */
+@keyframes flameCoreFlutter {
+  0%, 100% {
+    transform: scale(0.95) translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.1) translateY(-2px);
+    opacity: 1;
+  }
+}
+.animate-flame-core {
+  animation: flameCoreFlutter 1.1s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Ember Spark Rise */
+@keyframes emberRise {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx, 8px), -36px) scale(0);
+    opacity: 0;
+  }
+}
+.animate-ember-1 {
+  --tx: 10px;
+  animation: emberRise 1.4s ease-out infinite;
+}
+.animate-ember-2 {
+  --tx: -12px;
+  animation: emberRise 1.8s ease-out infinite 0.4s;
+}
+.animate-ember-3 {
+  --tx: 6px;
+  animation: emberRise 1.2s ease-out infinite 0.8s;
+}
+
+/* =========================================================
+   CHARACTER MASCOT: SAGE BOT / ZENITH EMOTIONAL STATES
+   ========================================================= */
+
+/* Mascot State 1: Happy Bounce (Habit Complete / Streak Keep) */
+@keyframes mascotHappyBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  20% {
+    transform: translateY(4px) scale(1.08, 0.92);
+  }
+  45% {
+    transform: translateY(-24px) scale(0.92, 1.08) rotate(4deg);
+  }
+  65% {
+    transform: translateY(-8px) scale(1.04, 0.96) rotate(-2deg);
+  }
+  85% {
+    transform: translateY(0) scale(0.98, 1.02);
+  }
+}
+.animate-mascot-happy {
+  animation: mascotHappyBounce 1.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+  transform-origin: bottom center;
+}
+
+/* Mascot State 2: Sad Droop & Warm Breathing (Missed Day / Streak at Risk) */
+@keyframes mascotSadDroop {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  30% {
+    transform: translateY(8px) rotate(-3deg) scale(0.97, 1.02);
+  }
+  70% {
+    transform: translateY(4px) rotate(2deg) scale(1.01, 0.98);
+  }
+}
+.animate-mascot-sad {
+  animation: mascotSadDroop 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Tear Drop Particle */
+@keyframes tearFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.5);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(18px) scale(1);
+  }
+}
+.animate-mascot-tear {
+  animation: tearFall 1.8s ease-in infinite;
+}
+
+/* Mascot State 3: Victory Leap (Perfect Day / Rank Promotion) */
+@keyframes mascotVictoryLeap {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  15% {
+    transform: translateY(6px) scale(1.12, 0.88);
+  }
+  35% {
+    transform: translateY(-34px) scale(0.88, 1.15) rotate(8deg);
+  }
+  50% {
+    transform: translateY(-28px) scale(1.05, 0.95) rotate(-6deg);
+  }
+  70% {
+    transform: translateY(-10px) scale(0.98, 1.02) rotate(2deg);
+  }
+}
+.animate-mascot-victory {
+  animation: mascotVictoryLeap 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  transform-origin: bottom center;
+}
+
+/* Mascot State 4: Combat Stance (PvP Arena Battling) */
+@keyframes mascotCombatStance {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(-1deg);
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+  }
+  50% {
+    transform: translateY(-6px) scale(1.04) rotate(2deg);
+    filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.9)) drop-shadow(0 0 30px rgba(239, 68, 68, 0.7));
+  }
+}
+.animate-mascot-combat {
+  animation: mascotCombatStance 0.85s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Mascot State 5: Idle Float (Peaceful Zen Orbit) */
+@keyframes mascotIdleFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+.animate-mascot-idle {
+  animation: mascotIdleFloat 3.2s ease-in-out infinite;
+}
+
+/* Orbiting Sparkles around Mascot */
+@keyframes starOrbit {
+  0% {
+    transform: rotate(0deg) translateX(36px) rotate(0deg) scale(0.7);
+    opacity: 0.3;
+  }
+  50% {
+    transform: rotate(180deg) translateX(36px) rotate(-180deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translateX(36px) rotate(-360deg) scale(0.7);
+    opacity: 0.3;
+  }
+}
+.animate-star-orbit-1 {
+  animation: starOrbit 3s linear infinite;
+}
+.animate-star-orbit-2 {
+  animation: starOrbit 3s linear infinite -1.5s;
+}
+
+/* Speech Bubble Pop-In */
+@keyframes speechBubblePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(10px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-speech-bubble {
+  animation: speechBubblePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* =========================================================
+   1v1 PVP DISCIPLINE BATTLE ARENA COMBAT VFX
+   ========================================================= */
+
+/* Combat Floating Damage Number (-100 HP!) */
+@keyframes floatDamageNumber {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.35) translateY(-14px);
+  }
+  45% {
+    transform: scale(1.1) translateY(-28px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85) translateY(-54px);
+  }
+}
+.animate-combat-damage {
+  animation: floatDamageNumber 1.1s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* Critical Strike Floating Number (CRIT! 250) */
+@keyframes floatCritNumber {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg) translateY(0);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.55) rotate(6deg) translateY(-18px);
+  }
+  50% {
+    transform: scale(1.2) rotate(-3deg) translateY(-36px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) rotate(0deg) translateY(-68px);
+  }
+}
+.animate-combat-crit {
+  animation: floatCritNumber 1.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+/* Shield Absorb Floating Number (+150 SHIELD!) */
+@keyframes floatShieldNumber {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.25) translateY(-16px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-48px);
+  }
+}
+.animate-combat-shield {
+  animation: floatShieldNumber 1.1s ease-out forwards;
+}
+
+/* Sword Slash Impact VFX Beam */
+@keyframes slashBeam {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.1) rotate(-35deg);
+  }
+  30% {
+    opacity: 1;
+    transform: scaleX(1.4) rotate(-35deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.8) rotate(-35deg) translate(30px, 30px);
+  }
+}
+.animate-slash-beam {
+  animation: slashBeam 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Screen Shake on Critical Hit */
+@keyframes combatShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px) translateY(2px); }
+  30% { transform: translateX(6px) translateY(-3px); }
+  45% { transform: translateX(-4px) translateY(1px); }
+  60% { transform: translateX(4px) translateY(-1px); }
+  75% { transform: translateX(-2px); }
+}
+.animate-combat-shake {
+  animation: combatShake 0.45s ease-in-out;
+}
+
+/* HP Bar Delayed Damage Trail (Fighting Game Style) */
+.hp-bar-trail {
+  transition: width 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.hp-bar-instant {
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Taunt Banner Pop & Slide */
+@keyframes tauntSlideBanner {
+  0% {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  30% {
+    transform: translateY(0) scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}
+.animate-taunt-banner {
+  animation: tauntSlideBanner 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Arena Radiant Ring Pulse */
+@keyframes arenaRingPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), inset 0 0 15px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(239, 68, 68, 0.7), inset 0 0 30px rgba(245, 158, 11, 0.4);
+  }
+}
+.animate-arena-ring {
+  animation: arenaRingPulse 2.4s ease-in-out infinite;
+}
+
+
 
 
 
