@@ -2055,10 +2055,10 @@ export default function App() {
       const perm = await Notification.requestPermission();
       setNotificationStatus(perm);
       if (perm === "granted") {
-        showMessage("🔔 Notifications Enabled! You will receive daily progress & class alerts.");
+        showMessage("🔔 Notifications Enabled! You will receive scheduled class & event alerts.");
         try {
-          new Notification("🔔 Daily Smart Notifications Active", {
-            body: "You'll now receive timely habit reminders, class alerts, and midnight danger warnings!",
+          new Notification("🔔 Scheduled Event Alerts Active", {
+            body: "You'll now receive timely notifications for your scheduled classes, meetings, and events!",
             icon: "./favicon.png",
           });
         } catch (e) {
@@ -2077,39 +2077,12 @@ export default function App() {
 
   const checkAndDispatchSmartNotifications = () => {
     const userName = profile?.name ? profile.name.trim().split(" ")[0] : "Prateek";
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
 
-    // 1. Habit Progress Metrics
-    const taskList = profile?.customTasks || DEFAULT_TASKS;
-    const todayRecord = trackerData[todayStr]?.tasks || {};
-    const completedTasksCount = Object.values(todayRecord).filter((v: any) => v === "X").length;
-    const totalTasksCount = taskList.length;
-    const remainingTasksCount = Math.max(0, totalTasksCount - completedTasksCount);
-    const isHabitsComplete = completedTasksCount >= totalTasksCount && totalTasksCount > 0;
-
-    // 2. Second Brain Pending Revisions
-    const pendingRevisions: { title: string; category: string }[] = [];
-    (brain.studyTopics || []).forEach((topic: any) => {
-      (topic.schedule || []).forEach((rev: any) => {
-        if (rev.targetDate <= todayStr && !rev.completed) {
-          pendingRevisions.push({ title: topic.title, category: topic.category });
-        }
-      });
-    });
-
-    // 3. Pending Custom Missions
-    const pendingMissions = (brain.customMissions || []).filter(
-      (m: any) => m.targetDate <= todayStr && !m.completed
-    );
-
-    // 4. Scheduled Classes & Events Today
+    // Scheduled Classes & Meetings on Target Date
     const todayClasses: ScheduledEvent[] = (brain.scheduledEvents || []).filter(
       (ev: ScheduledEvent) => ev.date === todayStr && !ev.completed
     );
 
-    // RULE 1: Scheduled Classes & Meetings on Target Date
     todayClasses.forEach((ev) => {
       const classKey = `${todayStr}_scheduled_event_${ev.id}`;
       sendSmartPushNotification(
@@ -2118,59 +2091,6 @@ export default function App() {
         `${userName}, today is your "${ev.title}"${ev.time ? ` at ${ev.time}` : ""}. Don't forget it!`
       );
     });
-
-    // RULE 2: Morning Protocol Kickoff (8:00 AM – 11:59 AM)
-    if (currentHour >= 8 && currentHour < 12) {
-      const morningKey = `${todayStr}_morning_kickoff`;
-      const missionCount = totalTasksCount + pendingRevisions.length + todayClasses.length;
-      sendSmartPushNotification(
-        morningKey,
-        "☀️ Morning Protocol Ready",
-        `Good morning ${userName}! You have ${missionCount} goals locked for today (${totalTasksCount} habits, ${pendingRevisions.length} revisions). Start strong!`
-      );
-    }
-
-    // RULE 3: Afternoon Habit Progress Check (2:00 PM – 5:59 PM)
-    if (currentHour >= 14 && currentHour < 18 && !isHabitsComplete) {
-      const afternoonKey = `${todayStr}_afternoon_progress_check`;
-      sendSmartPushNotification(
-        afternoonKey,
-        "⚡ Daily Task Progress Check",
-        `${userName}, you have completed ${completedTasksCount}/${totalTasksCount} daily tasks so far. ${remainingTasksCount} left — keep your momentum alive!`
-      );
-    }
-
-    // RULE 4: Evening Revision Reminder (6:00 PM – 8:59 PM)
-    if (currentHour >= 18 && currentHour < 21 && pendingRevisions.length > 0) {
-      const revisionKey = `${todayStr}_evening_revision_check`;
-      const firstTopic = pendingRevisions[0]?.title || "your study topic";
-      sendSmartPushNotification(
-        revisionKey,
-        "🧠 Pending Revision Reminder",
-        `${userName}, you still haven't completed your "${firstTopic}" revision (${pendingRevisions.length} total pending)! Review it now to lock in retention.`
-      );
-    }
-
-    // RULE 5: 9 PM – 12 AM Two-Box Cleanup Window Active
-    if (currentHour >= 21 && currentHour <= 23) {
-      const cleanupKey = `${todayStr}_two_box_cleanup_window`;
-      sendSmartPushNotification(
-        cleanupKey,
-        "🧹 9 PM Cleanup Hour Active",
-        `${userName}, the Two-Box Reflection window is active! Review your Box 1 distractions and Box 2 achievements before sleep.`
-      );
-    }
-
-    // RULE 6: Late Night 11:30 PM Incomplete Tasks Alert
-    const isLateNight = (currentHour === 23 && currentMinutes >= 30) || (currentHour === 23 && currentMinutes >= 15);
-    if (isLateNight && (!isHabitsComplete || pendingMissions.length > 0 || pendingRevisions.length > 0)) {
-      const lateNightKey = `${todayStr}_late_night_1130_danger`;
-      sendSmartPushNotification(
-        lateNightKey,
-        "🚨 It's 11:30 PM & Tasks are Incomplete!",
-        `It's 11:30 PM, ${userName}, and you still haven't completed all your tasks (${remainingTasksCount} habits & ${pendingRevisions.length} revisions left)! Lock in before midnight to protect your streak!`
-      );
-    }
   };
 
   const addScheduledEvent = (
