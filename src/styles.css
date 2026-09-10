@@ -428,6 +428,21 @@ button:active {
    DUOLINGO-STYLE FLUID SPRING PHYSICS & CHARACTER MASCOT ENGINE
    ========================================================= */
 
+/* Sleek Smooth Modal Entrance */
+@keyframes modalSleekFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-modal-sleek {
+  animation: modalSleekFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Spring Pop-In (Duolingo Style Modals & Rewards) */
 @keyframes springPopIn {
   0% {

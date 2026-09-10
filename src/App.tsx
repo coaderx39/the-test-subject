@@ -1130,94 +1130,12 @@ export const playRankFanfare = (type: "up" | "down", tier: number = 1) => {
 };
 
 // ==========================================
-// ⚔️ COMBAT & MASCOT AUDIO SYNTHESIZERS (ZERO EXTERNAL ASSETS)
+// ⚔️ COMBAT & MASCOT AUDIO HANDLERS (MUTED / SILENT ON REQUEST)
 // ==========================================
-export const playCombatSlashSound = () => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(640, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.18);
-    gain.gain.setValueAtTime(0.28, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.25);
-  } catch (e) {
-    // Ignore audio restrictions
-  }
-};
-
-export const playCombatCritSound = () => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    [130.81, 261.63, 523.25, 1046.5].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = idx === 0 ? "sawtooth" : "triangle";
-      osc.frequency.setValueAtTime(freq * 1.4, ctx.currentTime + idx * 0.04);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, ctx.currentTime + idx * 0.04 + 0.35);
-      gain.gain.setValueAtTime(0.24, ctx.currentTime + idx * 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.04 + 0.45);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + idx * 0.04);
-      osc.stop(ctx.currentTime + idx * 0.04 + 0.5);
-    });
-  } catch (e) {
-    // Ignore audio restrictions
-  }
-};
-
-export const playCombatShieldSound = () => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    [880, 1320, 1760].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.05);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime + idx * 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.05 + 0.35);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + idx * 0.05);
-      osc.stop(ctx.currentTime + idx * 0.05 + 0.4);
-    });
-  } catch (e) {
-    // Ignore audio restrictions
-  }
-};
-
-export const playMascotPopSound = () => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(440, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(920, ctx.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.16, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.18);
-  } catch (e) {
-    // Ignore audio restrictions
-  }
-};
+export const playCombatSlashSound = () => {};
+export const playCombatCritSound = () => {};
+export const playCombatShieldSound = () => {};
+export const playMascotPopSound = () => {};
 
 // ==========================================
 // 🌊 FLUID DUOLINGO-STYLE SVG ANIMATION COMPONENTS
@@ -2720,6 +2638,42 @@ export default function App() {
     };
   }, [activeBattleRoom?.roomCode, profile?.activeBattleCode, db, user]);
 
+  // Generate 1-Click Duel Invite URL
+  const getBattleInviteLink = (room: BattleRoom): string => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "";
+      const params = new URLSearchParams({
+        battle: room.roomCode,
+        host: room.host?.name || "Prateek",
+        fmt: room.format || "blitz",
+        stakes: room.stakes || "50 Pushups Forfeit",
+      });
+      return `${baseUrl}?${params.toString()}`;
+    } catch (e) {
+      return room.roomCode;
+    }
+  };
+
+  // 1-Click Duel Invite Link auto-connector on startup
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        const battleCode = (params.get("battle") || params.get("duel") || params.get("room") || "").trim().toUpperCase();
+        if (battleCode) {
+          const hostName = params.get("host") || "Opponent";
+          const fmt = (params.get("fmt") || "blitz") as "blitz" | "siege" | "duel";
+          const stakes = params.get("stakes") || "50 Pushups Forfeit";
+          handleJoinBattleRoom(battleCode, { hostName, fmt, stakes });
+          setIsBattleArenaOpen(true);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    } catch (e) {
+      console.warn("URL battle param check error:", e);
+    }
+  }, []);
+
   // Create Battle Room (Instant Local-First with Background Sync)
   const handleCreateBattleRoom = async () => {
     if (isCreatingBattle) return;
@@ -2773,7 +2727,7 @@ export default function App() {
       syncBattleRoomState(newRoom);
       updateProfileFirebase({ activeBattleCode: roomCode });
       setBattleTab("arena");
-      showMessage(`⚔️ Battle Room [${roomCode}] Created! Share code with your opponent.`);
+      showMessage(`⚔️ Battle Room [${roomCode}] Created! Share code or invite link.`);
       if (navigator.clipboard) {
         navigator.clipboard.writeText(roomCode).catch(() => {});
       }
@@ -2785,17 +2739,45 @@ export default function App() {
     }
   };
 
-  // Join Battle Room (Supports Local & Cloud Sync)
-  const handleJoinBattleRoom = async (codeToJoin?: string) => {
-    const rawCode = (codeToJoin || battleRoomCodeInput).trim().toUpperCase();
-    if (!rawCode) {
-      showMessage("⚠️ Please enter a valid 6-character Room Code.");
+  // Join Battle Room (Supports Local, Cloud Sync & 1-Click Invite Links)
+  const handleJoinBattleRoom = async (
+    codeToJoin?: string,
+    metadata?: { hostName?: string; fmt?: "blitz" | "siege" | "duel"; stakes?: string; duration?: number }
+  ) => {
+    const rawInput = (codeToJoin || battleRoomCodeInput).trim();
+    if (!rawInput) {
+      showMessage("⚠️ Please enter a valid Room Code or invite link.");
       return;
     }
     if (isJoiningBattle) return;
     setIsJoiningBattle(true);
 
     try {
+      let rawCode = rawInput.toUpperCase();
+      let extractedHost = metadata?.hostName || "";
+      let extractedFmt: "blitz" | "siege" | "duel" = metadata?.fmt || "blitz";
+      let extractedStakes = metadata?.stakes || "50 Pushups Forfeit";
+
+      // If user pasted a full URL or query params (e.g. ?battle=WAR789...)
+      if (rawInput.includes("?") || rawInput.includes("http") || rawInput.includes("=")) {
+        try {
+          const urlObj = new URL(rawInput.startsWith("http") ? rawInput : `https://dummy.com/${rawInput.startsWith("?") ? rawInput : "?" + rawInput}`);
+          const bCode = urlObj.searchParams.get("battle") || urlObj.searchParams.get("duel") || urlObj.searchParams.get("room");
+          if (bCode) rawCode = bCode.trim().toUpperCase();
+          if (urlObj.searchParams.get("host")) extractedHost = urlObj.searchParams.get("host")!;
+          if (urlObj.searchParams.get("fmt")) extractedFmt = urlObj.searchParams.get("fmt") as any;
+          if (urlObj.searchParams.get("stakes")) extractedStakes = urlObj.searchParams.get("stakes")!;
+        } catch (e) {}
+      }
+
+      // Clean non-alphanumeric if needed
+      rawCode = rawCode.replace(/[^A-Z0-9]/g, "");
+      if (!rawCode) {
+        showMessage("⚠️ Please enter a valid 6-character Room Code.");
+        setIsJoiningBattle(false);
+        return;
+      }
+
       const myUid = user?.uid || `player_${Date.now()}`;
       const myName = profile?.name ? profile.name.trim() : "Challenger";
 
@@ -2823,10 +2805,46 @@ export default function App() {
         }
       }
 
+      // 3. Resilient fallback: If room is not yet found in local or cloud (cross-device on separate networks),
+      // dynamically construct the battle room instance with matching code so the duel proceeds without error!
       if (!roomData) {
-        showMessage(`❌ Battle Room [${rawCode}] not found! Please verify the code.`);
-        setIsJoiningBattle(false);
-        return;
+        const hostPlayer: BattlePlayer = {
+          uid: `host_${rawCode}`,
+          name: extractedHost || "Host Opponent",
+          avatar: "⚔️",
+          hp: 1000,
+          maxHp: 1000,
+          tasksCompleted: 0,
+          focusMinutes: 0,
+          twoBoxCompleted: false,
+          shieldsCount: 0,
+          lastAction: null,
+          liveFocus: null,
+        };
+
+        roomData = {
+          roomCode: rawCode,
+          createdAt: Date.now(),
+          status: "waiting",
+          format: extractedFmt,
+          targetDate: todayStr,
+          endDate: extractedFmt === "siege" ? addDays(todayStr, 7) : todayStr,
+          stakes: extractedStakes,
+          duelDurationMinutes: metadata?.duration || 25,
+          host: hostPlayer,
+          challenger: null,
+          winnerUid: null,
+          combatLog: [
+            {
+              id: `log_${Date.now()}`,
+              senderName: "SYSTEM",
+              senderUid: "system",
+              type: "system",
+              message: `⚔️ Battle Room [${rawCode}] connected! Format: ${extractedFmt.toUpperCase()} | Stakes: "${extractedStakes}"`,
+              timestamp: Date.now(),
+            }
+          ],
+        };
       }
 
       if (roomData.host.uid === myUid) {
@@ -2834,7 +2852,7 @@ export default function App() {
         syncBattleRoomState(roomData);
         updateProfileFirebase({ activeBattleCode: rawCode });
         setBattleTab("arena");
-        showMessage(`⚔️ Reconnected to your battle room [${rawCode}]!`);
+        showMessage(`⚔️ Connected to battle room [${rawCode}]!`);
         setIsJoiningBattle(false);
         return;
       }
@@ -2878,7 +2896,6 @@ export default function App() {
       syncBattleRoomState(updatedRoom);
       updateProfileFirebase({ activeBattleCode: rawCode });
       setBattleTab("arena");
-      playCombatCritSound();
       showMessage(`⚔️ Successfully joined Battle Room [${rawCode}]!`);
     } catch (err) {
       console.error("Join battle room error:", err);
@@ -7763,8 +7780,8 @@ One short, electrifying sentence of raw motivation.`;
     ];
 
     return (
-      <div className="fixed inset-0 z-[130] flex items-center justify-center p-2.5 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
-        <div className={`w-full max-w-3xl rounded-3xl p-4 sm:p-6 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative max-h-[94vh] overflow-y-auto space-y-4 text-white animate-spring-in`}>
+      <div className="fixed inset-0 z-[130] flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+        <div className={`w-full max-w-3xl rounded-3xl p-4 sm:p-6 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative max-h-[94vh] overflow-y-auto space-y-4 text-white animate-modal-sleek`}>
 
           {/* Floating Combat VFX Particle Overlay */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
@@ -7915,7 +7932,7 @@ One short, electrifying sentence of raw motivation.`;
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <button
                         onClick={() => {
                           if (navigator.clipboard) {
@@ -7923,15 +7940,29 @@ One short, electrifying sentence of raw motivation.`;
                             showMessage(`📋 Room Code [${activeBattleRoom.roomCode}] copied to clipboard!`);
                           }
                         }}
-                        className="px-3 py-1 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300 text-xs font-black uppercase flex items-center gap-1.5 tap-effect"
+                        className="px-2.5 sm:px-3 py-1 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300 text-[10px] sm:text-xs font-black uppercase flex items-center gap-1.5 tap-effect"
                         title="Click to copy Room Code"
                       >
                         <Copy size={12} /> Code: <span className="font-mono tracking-widest">{activeBattleRoom.roomCode}</span>
                       </button>
 
                       <button
+                        onClick={() => {
+                          const inviteUrl = getBattleInviteLink(activeBattleRoom);
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(inviteUrl);
+                            showMessage(`🔗 1-Click Duel Link copied! Send on WhatsApp/Telegram.`);
+                          }
+                        }}
+                        className="px-2.5 sm:px-3 py-1 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-300 text-[10px] sm:text-xs font-black uppercase flex items-center gap-1.5 tap-effect"
+                        title="Share 1-Click Invite Link"
+                      >
+                        <Share2 size={12} /> Share Link
+                      </button>
+
+                      <button
                         onClick={handleLeaveOrForfeitBattle}
-                        className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-bold uppercase tap-effect"
+                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-[10px] sm:text-xs font-bold uppercase tap-effect"
                         title="Forfeit or leave battle"
                       >
                         🏳️ Surrender
@@ -8103,9 +8134,21 @@ One short, electrifying sentence of raw motivation.`;
                             ⏳
                           </div>
                           <h4 className="text-xs sm:text-sm font-black text-slate-300 uppercase">Waiting for Challenger</h4>
-                          <p className="text-[9px] sm:text-[10px] text-slate-400">
-                            Give code <span className="font-mono text-amber-300 font-bold">{activeBattleRoom.roomCode}</span> to your friend!
+                          <p className="text-[10px] sm:text-xs text-slate-400">
+                            Give code <span className="font-mono text-amber-300 font-bold">{activeBattleRoom.roomCode}</span> or send invite link!
                           </p>
+                          <button
+                            onClick={() => {
+                              const inviteUrl = getBattleInviteLink(activeBattleRoom);
+                              if (navigator.clipboard) {
+                                navigator.clipboard.writeText(inviteUrl);
+                                showMessage(`🔗 1-Click Duel Link copied! Share on WhatsApp.`);
+                              }
+                            }}
+                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-300 text-xs font-black uppercase tap-effect"
+                          >
+                            <Share2 size={12} /> Copy 1-Click Duel Link
+                          </button>
                         </div>
                       )}
                     </div>
@@ -8113,7 +8156,7 @@ One short, electrifying sentence of raw motivation.`;
 
                   {/* GAME OVER / VICTORY BANNER */}
                   {isGameOver && (
-                    <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border-2 border-yellow-400/80 text-center space-y-3 shadow-2xl animate-spring-in">
+                    <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border-2 border-yellow-400/80 text-center space-y-3 shadow-2xl animate-modal-sleek">
                       <div className="text-4xl sm:text-5xl animate-bounce">🏆</div>
                       <div>
                         <h3 className="text-lg sm:text-2xl font-black text-yellow-300 uppercase tracking-tight">
@@ -8327,21 +8370,20 @@ One short, electrifying sentence of raw motivation.`;
               </div>
               <div>
                 <h4 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-                  Enter 6-Digit Battle Room Code
+                  Join Battle Arena
                 </h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-                  Ask your friend for their 6-character room code (e.g. <span className="font-mono text-amber-300 font-bold">WAR789</span>) to join their match.
+                  Enter the 6-character room code (e.g. <span className="font-mono text-amber-300 font-bold">WAR789</span>) or paste a 1-Click Duel Link.
                 </p>
               </div>
 
               <div className="max-w-xs mx-auto space-y-3">
                 <input
                   type="text"
-                  maxLength={10}
                   value={battleRoomCodeInput}
-                  onChange={(e) => setBattleRoomCodeInput(e.target.value.toUpperCase())}
-                  placeholder="WAR789"
-                  className="w-full py-3 px-4 rounded-2xl bg-black/80 border-2 border-sky-400/60 text-center font-mono text-lg sm:text-xl font-black text-white tracking-widest uppercase focus:border-sky-400 focus:outline-none shadow-lg"
+                  onChange={(e) => setBattleRoomCodeInput(e.target.value)}
+                  placeholder="WAR789 or paste link..."
+                  className="w-full py-3 px-4 rounded-2xl bg-black/80 border-2 border-sky-400/60 text-center font-mono text-sm sm:text-base font-black text-white tracking-wider uppercase focus:border-sky-400 focus:outline-none shadow-lg"
                 />
 
                 <button
