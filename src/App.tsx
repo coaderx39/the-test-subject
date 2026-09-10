@@ -2633,23 +2633,29 @@ export default function App() {
         console.log("Incoming challenger peer connection received!");
         battleConnRef.current = conn;
 
-        conn.on("open", () => {
-          conn.send({ type: "ROOM_STATE", room: battleRoomRef.current || initialRoom });
-        });
-
         conn.on("data", (data: any) => {
           if (!data || typeof data !== "object") return;
 
           if (data.type === "HELLO_JOIN") {
             const joiningPlayer = data.player as BattlePlayer;
             const current = battleRoomRef.current || initialRoom;
+
+            // Already this same challenger — just re-send the authoritative room
+            // (handles duplicate HELLO_JOIN retries without spamming the log)
+            if (current.challenger && current.challenger.uid === joiningPlayer.uid) {
+              conn.send({ type: "ROOM_STATE", room: current });
+              setBattleConnectionStatus("connected");
+              return;
+            }
+
+            // Room genuinely occupied by a DIFFERENT challenger
             if (current.challenger && current.challenger.uid !== joiningPlayer.uid && current.status === "active") {
               conn.send({ type: "ERROR", message: `Battle Room [${roomCode}] is already full with another challenger!` });
               return;
             }
 
             const joinLog: CombatLogItem = {
-              id: `log_${Date.now()}`,
+              id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
               senderName: "SYSTEM",
               senderUid: "system",
               type: "system",
@@ -2717,8 +2723,8 @@ export default function App() {
     }
   };
 
-  // Start Challenger WebRTC Peer (Connects to Host Peer)
-  const startChallengerPeer = (rawCode: string, challengerPlayer: BattlePlayer, timeoutMs = 8000) => {
+  // Start Challenger WebRTC Peer (Connects to Host Peer, retries until host acknowledges)
+  const startChallengerPeer = (rawCode: string, challengerPlayer: BattlePlayer, timeoutMs = 12000) => {
     try {
       if (battlePeerRef.current) {
         battlePeerRef.current.destroy();
@@ -2729,16 +2735,30 @@ export default function App() {
     setIsJoiningBattle(true);
     setBattleConnectionStatus("connecting");
 
-    let connectionSuccessful = false;
+    let joined = false; // true only once host's room contains our challenger slot
+    let helloRetryTimer: any = null;
+    let cleanupDone = false;
+
+    const cleanupAfterFailure = (msg: string) => {
+      if (cleanupDone) return;
+      cleanupDone = true;
+      setIsJoiningBattle(false);
+      setBattleConnectionStatus("disconnected");
+      try {
+        if (helloRetryTimer) clearInterval(helloRetryTimer);
+      } catch (e) {}
+      try {
+        if (battleConnRef.current) battleConnRef.current.close();
+        if (battlePeerRef.current) battlePeerRef.current.destroy();
+      } catch (e) {}
+      showMessage(msg);
+    };
+
     const timeoutTimer = setTimeout(() => {
-      if (!connectionSuccessful) {
-        setIsJoiningBattle(false);
-        setBattleConnectionStatus("disconnected");
-        try {
-          if (battleConnRef.current) battleConnRef.current.close();
-          if (battlePeerRef.current) battlePeerRef.current.destroy();
-        } catch (e) {}
-        showMessage(`❌ Battle Room [${rawCode}] not found or Host is offline!\n\nEnsure your friend has generated the room and is waiting in the Arena.`);
+      if (!joined) {
+        cleanupAfterFailure(
+          `❌ Battle Room [${rawCode}] not found or Host is offline!\n\nEnsure your friend has generated the room and is waiting in the Arena.`
+        );
       }
     }, timeoutMs);
 
@@ -2752,34 +2772,49 @@ export default function App() {
         const conn = peer.connect(targetPeerId, { reliable: true });
         battleConnRef.current = conn;
 
+        const sendHelloJoin = () => {
+          if (!joined && conn && conn.open) {
+            try {
+              conn.send({ type: "HELLO_JOIN", player: challengerPlayer });
+            } catch (e) {
+              console.warn("HELLO_JOIN send error:", e);
+            }
+          }
+        };
+
         conn.on("open", () => {
           console.log("Connected to Host data channel!");
-          conn.send({ type: "HELLO_JOIN", player: challengerPlayer });
+          sendHelloJoin();
+          // Retry every 2s until the host acknowledges (self-heals a dropped message)
+          if (helloRetryTimer) clearInterval(helloRetryTimer);
+          helloRetryTimer = setInterval(sendHelloJoin, 2000);
         });
 
         conn.on("data", (data: any) => {
           if (!data || typeof data !== "object") return;
 
           if (data.type === "ROOM_STATE" && data.room) {
-            connectionSuccessful = true;
+            const room = data.room as BattleRoom;
+            // Only count as JOINED when the host's authoritative room includes OUR challenger slot
+            joined = !!(room.challenger && room.challenger.uid === challengerPlayer.uid);
             clearTimeout(timeoutTimer);
+            if (helloRetryTimer) clearInterval(helloRetryTimer);
             setIsJoiningBattle(false);
-            setBattleConnectionStatus("connected");
-            battleRoomRef.current = data.room;
-            setActiveBattleRoom(data.room);
-            syncBattleRoomState(data.room, false);
+            battleRoomRef.current = room;
+            setActiveBattleRoom(room);
+            syncBattleRoomState(room, false);
             setBattleTab("arena");
-            showMessage(`⚔️ Successfully joined Battle Room [${rawCode}] with ${data.room.host.name}!`);
+            if (joined) {
+              setBattleConnectionStatus("connected");
+              showMessage(`⚔️ Successfully joined Battle Room [${rawCode}] against ${room.host.name}!`);
+            } else {
+              // Live host responded but hasn't assigned us yet (rare delay) — keep pill honest
+              setBattleConnectionStatus("connecting");
+            }
           } else if (data.type === "ERROR") {
-            connectionSuccessful = true;
+            joined = false;
             clearTimeout(timeoutTimer);
-            setIsJoiningBattle(false);
-            setBattleConnectionStatus("disconnected");
-            showMessage(`⚠️ ${data.message || "Could not join battle room"}`);
-            try {
-              conn.close();
-              peer.destroy();
-            } catch (e) {}
+            cleanupAfterFailure(`⚠️ ${data.message || "Could not join battle room"}`);
           } else if (data.type === "COMBAT_ACTION") {
             if (data.vfx) emitCombatVFX(data.vfx.text, data.vfx.type);
             if (data.room) {
@@ -2816,17 +2851,13 @@ export default function App() {
         console.warn("Challenger peer error:", err);
         if (err.type === "peer-unavailable") {
           clearTimeout(timeoutTimer);
-          setIsJoiningBattle(false);
-          setBattleConnectionStatus("disconnected");
-          showMessage(`❌ Battle Room [${rawCode}] does not exist or Host is offline!`);
+          cleanupAfterFailure(`❌ Battle Room [${rawCode}] does not exist or Host is offline!`);
         }
       });
     } catch (err) {
       clearTimeout(timeoutTimer);
-      setIsJoiningBattle(false);
-      setBattleConnectionStatus("disconnected");
+      cleanupAfterFailure(`❌ Error connecting to room [${rawCode}].`);
       console.error("Challenger Peer init error:", err);
-      showMessage(`❌ Error connecting to room [${rawCode}].`);
     }
   };
 
