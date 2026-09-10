@@ -1297,173 +1297,6 @@ export const FlowingStreakFlame = ({ count = 0, size = "md" }: { count?: number;
 };
 
 // ==========================================
-// 🤖 ZENITH / SAGE MASCOT COMPANION COMPONENT
-// ==========================================
-export interface SageMascotProps {
-  emotion: "happy" | "sad" | "victory" | "combat" | "idle";
-  message?: string | null;
-  onTap?: () => void;
-  onDismiss?: () => void;
-  size?: "sm" | "md" | "lg";
-}
-
-export const SageMascot = ({ emotion = "idle", message, onTap, onDismiss, size = "md" }: SageMascotProps) => {
-  const getEmotionClass = () => {
-    switch (emotion) {
-      case "happy": return "animate-mascot-happy";
-      case "sad": return "animate-mascot-sad";
-      case "victory": return "animate-mascot-victory";
-      case "combat": return "animate-mascot-combat";
-      default: return "animate-mascot-idle";
-    }
-  };
-
-  const getAuraColor = () => {
-    switch (emotion) {
-      case "happy": return "from-amber-500/30 via-emerald-500/20 to-transparent";
-      case "sad": return "from-sky-500/25 via-blue-500/15 to-transparent";
-      case "victory": return "from-yellow-400/40 via-amber-500/30 to-purple-600/20";
-      case "combat": return "from-red-500/40 via-amber-600/30 to-rose-600/20";
-      default: return "from-indigo-500/25 via-purple-500/15 to-transparent";
-    }
-  };
-
-  const isLg = size === "lg";
-  const mascotDim = isLg ? "w-28 h-28 sm:w-36 sm:h-36" : "w-16 h-16 sm:w-20 sm:h-20";
-
-  return (
-    <div className="relative inline-flex flex-col items-center select-none group cursor-pointer" onClick={onTap}>
-      {/* Background Aura Glow */}
-      <div className={`absolute -inset-4 rounded-full bg-gradient-to-t ${getAuraColor()} blur-xl opacity-80 pointer-events-none transition-all duration-500`} />
-
-      {/* Orbiting Sparkles */}
-      {(emotion === "victory" || emotion === "happy") && (
-        <>
-          <div className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-300 shadow-[0_0_8px_#fde047] animate-star-orbit-1 pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#f59e0b] animate-star-orbit-2 pointer-events-none" />
-        </>
-      )}
-
-      {/* Vector Mascot Character */}
-      <div className={`${mascotDim} relative z-10 ${getEmotionClass()} transition-transform`}>
-        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-2xl overflow-visible">
-          <defs>
-            <linearGradient id="mascotBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1e293b" />
-              <stop offset="50%" stopColor="#0f172a" />
-              <stop offset="100%" stopColor="#020617" />
-            </linearGradient>
-            <linearGradient id="mascotGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fef08a" />
-              <stop offset="50%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#b45309" />
-            </linearGradient>
-            <linearGradient id="mascotCombatBlade" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ef4444" />
-              <stop offset="100%" stopColor="#f97316" />
-            </linearGradient>
-          </defs>
-
-          {/* Floating Crown / Halo */}
-          {emotion === "victory" ? (
-            <path d="M 68 45 L 82 20 L 100 38 L 118 20 L 132 45 Z" fill="url(#mascotGold)" stroke="#ffffff" strokeWidth="2.5" />
-          ) : emotion === "combat" ? (
-            <path d="M 60 40 L 100 12 L 140 40 L 100 28 Z" fill="url(#mascotCombatBlade)" stroke="#fee2e2" strokeWidth="2" />
-          ) : (
-            <ellipse cx="100" cy="36" rx="42" ry="10" stroke="url(#mascotGold)" strokeWidth="4" fill="none" opacity="0.9" />
-          )}
-
-          {/* Antennas */}
-          <line x1="72" y1="52" x2="52" y2="30" stroke="url(#mascotGold)" strokeWidth="4" strokeLinecap="round" />
-          <circle cx="50" cy="28" r="6" fill={emotion === "combat" ? "#ef4444" : "#38bdf8"} />
-          <line x1="128" y1="52" x2="148" y2="30" stroke="url(#mascotGold)" strokeWidth="4" strokeLinecap="round" />
-          <circle cx="150" cy="28" r="6" fill={emotion === "combat" ? "#ef4444" : "#38bdf8"} />
-
-          {/* Cyber Head Squircle */}
-          <rect x="48" y="48" width="104" height="96" rx="36" fill="url(#mascotBodyGrad)" stroke="url(#mascotGold)" strokeWidth="5" />
-
-          {/* Glowing Visor Screen */}
-          <rect x="62" y="66" width="76" height="50" rx="18" fill="#030712" stroke="#38bdf8" strokeWidth="2" />
-
-          {/* Expressive Glowing Eyes */}
-          {emotion === "happy" ? (
-            <>
-              {/* Smiling Happy Arcs */}
-              <path d="M 74 94 Q 85 76 96 94" fill="none" stroke="#22c55e" strokeWidth="5.5" strokeLinecap="round" />
-              <path d="M 104 94 Q 115 76 126 94" fill="none" stroke="#22c55e" strokeWidth="5.5" strokeLinecap="round" />
-            </>
-          ) : emotion === "sad" ? (
-            <>
-              {/* Drooping Sad Eyes with Tear */}
-              <path d="M 74 86 Q 85 96 96 86" fill="none" stroke="#38bdf8" strokeWidth="5" strokeLinecap="round" />
-              <path d="M 104 86 Q 115 96 126 86" fill="none" stroke="#38bdf8" strokeWidth="5" strokeLinecap="round" />
-              <circle cx="122" cy="104" r="3.5" fill="#38bdf8" className="animate-mascot-tear" />
-            </>
-          ) : emotion === "victory" ? (
-            <>
-              {/* Star Eyes */}
-              <path d="M 85 80 L 87 90 L 97 90 L 89 96 L 92 106 L 85 100 L 78 106 L 81 96 L 73 90 L 83 90 Z" fill="#fde047" />
-              <path d="M 115 80 L 117 90 L 127 90 L 119 96 L 122 106 L 115 100 L 108 106 L 111 96 L 103 90 L 113 90 Z" fill="#fde047" />
-            </>
-          ) : emotion === "combat" ? (
-            <>
-              {/* Fierce Slanted Warrior Eyes */}
-              <polygon points="72,82 96,90 92,94 72,88" fill="#ef4444" />
-              <polygon points="128,82 104,90 108,94 128,88" fill="#ef4444" />
-            </>
-          ) : (
-            <>
-              {/* Calm Cyan Orbs with Blink/Breathing */}
-              <circle cx="82" cy="90" r="7" fill="#38bdf8" />
-              <circle cx="84" cy="88" r="2.5" fill="#ffffff" />
-              <circle cx="118" cy="90" r="7" fill="#38bdf8" />
-              <circle cx="120" cy="88" r="2.5" fill="#ffffff" />
-            </>
-          )}
-
-          {/* Chest Power Core */}
-          <circle cx="100" cy="162" r="16" fill="url(#mascotBodyGrad)" stroke="url(#mascotGold)" strokeWidth="3.5" />
-          <circle cx="100" cy="162" r="8" fill={emotion === "combat" ? "#ef4444" : emotion === "happy" ? "#22c55e" : "#f59e0b"} className="animate-pulse" />
-
-          {/* Floating Energy Hands */}
-          {emotion === "combat" ? (
-            <>
-              {/* Dual Energy Swords */}
-              <path d="M 28 170 L 48 110 L 42 108 L 22 168 Z" fill="url(#mascotCombatBlade)" stroke="#fee2e2" strokeWidth="1.5" />
-              <path d="M 172 170 L 152 110 L 158 108 L 178 168 Z" fill="url(#mascotCombatBlade)" stroke="#fee2e2" strokeWidth="1.5" />
-            </>
-          ) : (
-            <>
-              <circle cx="36" cy="148" r="11" fill="url(#mascotGold)" opacity="0.9" />
-              <circle cx="164" cy="148" r="11" fill="url(#mascotGold)" opacity="0.9" />
-            </>
-          )}
-        </svg>
-      </div>
-
-      {/* Interactive Speech Bubble (Duolingo Style) */}
-      {message && (
-        <div className="absolute -top-16 sm:-top-20 z-30 animate-speech-bubble pointer-events-auto">
-          <div className="relative px-3.5 py-2 rounded-2xl bg-slate-900 border-2 border-amber-400 text-amber-200 text-[10px] sm:text-xs font-black shadow-2xl max-w-[220px] text-center flex items-center gap-1.5 whitespace-normal">
-            <span>{message}</span>
-            {onDismiss && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onDismiss(); }}
-                className="w-4 h-4 rounded-full bg-white/10 hover:bg-white/30 text-white flex items-center justify-center flex-shrink-0 text-[9px]"
-              >
-                ✕
-              </button>
-            )}
-            {/* Bubble Tail */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[8px] border-t-amber-400" />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ==========================================
 // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA DATA MODEL
 // ==========================================
 
@@ -1905,11 +1738,6 @@ export default function App() {
   const [combatVFXList, setCombatVFXList] = useState<Array<{ id: string; text: string; type: "damage" | "crit" | "shield" | "taunt"; timestamp: number }>>([]);
   const [activeTauntBanner, setActiveTauntBanner] = useState<{ sender: string; message: string } | null>(null);
 
-  // ================= DUOLINGO-STYLE MASCOT STATE =================
-  const [mascotEmotion, setMascotEmotion] = useState<"happy" | "sad" | "victory" | "combat" | "idle">("idle");
-  const [mascotMessage, setMascotMessage] = useState<string | null>(null);
-  const [isMascotDrawerOpen, setIsMascotDrawerOpen] = useState(false);
-
   // ================= KRISHNA STATE =================
   const [krishnaState, setKrishnaState] = useState<KrishnaState>(() =>
     safeJsonParse<KrishnaState>(localStorage.getItem('apex_krishna_v5'), {
@@ -1927,6 +1755,7 @@ export default function App() {
   const lastFocusTickRef = useRef<number>(Date.now());
   const isHydratedRef = useRef<boolean>(false);
   const activeKrishnaRecognitionRef = useRef<any>(null);
+  const battleBroadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   const t = (THEMES as any)[profile.activeTheme] || THEMES.brutalist;
 
@@ -2201,7 +2030,6 @@ export default function App() {
     isWeeklyReviewOpen,
     isNightShiftOpen,
     isBattleArenaOpen,
-    isMascotDrawerOpen,
     isFocusOpen: focusState.isOpen,
     isConvDrawerOpen,
     activeConversationId: krishnaState.activeConversationId,
@@ -2222,7 +2050,6 @@ export default function App() {
       isWeeklyReviewOpen,
       isNightShiftOpen,
       isBattleArenaOpen,
-      isMascotDrawerOpen,
       isFocusOpen: focusState.isOpen,
       isConvDrawerOpen,
       activeConversationId: krishnaState.activeConversationId,
@@ -2239,7 +2066,6 @@ export default function App() {
     if (v.settingsRoute !== "menu") parts.push(`settings:${v.settingsRoute}`);
     if (v.brainTab !== "dashboard") parts.push(`brain:${v.brainTab}`);
     if (v.isBattleArenaOpen) parts.push("modal:battleArena");
-    if (v.isMascotDrawerOpen) parts.push("modal:mascotDrawer");
     if (v.isScheduleModalOpen) parts.push("modal:schedule");
     if (v.isRankRoadmapOpen) parts.push("modal:rank");
     if (v.rankTransitionModal) parts.push("modal:rankTransition");
@@ -2280,7 +2106,6 @@ export default function App() {
     settingsRoute,
     brainTab,
     isBattleArenaOpen,
-    isMascotDrawerOpen,
     isScheduleModalOpen,
     isRankRoadmapOpen,
     rankTransitionModal,
@@ -2302,10 +2127,6 @@ export default function App() {
       // 1. Modals & Overlays (Top-most priority)
       if (v.isBattleArenaOpen) {
         setIsBattleArenaOpen(false);
-        return;
-      }
-      if (v.isMascotDrawerOpen) {
-        setIsMascotDrawerOpen(false);
         return;
       }
       if (v.isScheduleModalOpen) {
@@ -2768,53 +2589,66 @@ export default function App() {
   const isPunished = checkPunishment();
 
   // ==========================================
-  // 🤖 DUOLINGO-STYLE MASCOT INTERACTION ENGINE
+  // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA ENGINE (LOCAL-FIRST RESILIENT SYNC)
   // ==========================================
-  const triggerMascotReaction = (
-    emotion: "happy" | "sad" | "victory" | "combat" | "idle",
-    customMessage?: string
-  ) => {
-    setMascotEmotion(emotion);
-    if (customMessage) {
-      setMascotMessage(customMessage);
-      playMascotPopSound();
+
+  // Cross-Tab & Cross-Window Real-Time Broadcast Channel Listener
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        const channel = new BroadcastChannel("apex_discipline_pvp_channel");
+        battleBroadcastChannelRef.current = channel;
+        channel.onmessage = (event) => {
+          if (event.data?.type === "ROOM_SYNC" && event.data.room) {
+            const incomingRoom = event.data.room as BattleRoom;
+            if (activeBattleRoom && activeBattleRoom.roomCode === incomingRoom.roomCode) {
+              setActiveBattleRoom(incomingRoom);
+            }
+          }
+        };
+      }
+    } catch (e) {
+      console.warn("BroadcastChannel not supported or error:", e);
+    }
+    return () => {
+      try {
+        if (battleBroadcastChannelRef.current) {
+          battleBroadcastChannelRef.current.close();
+        }
+      } catch (e) {}
+    };
+  }, [activeBattleRoom?.roomCode]);
+
+  // Master Synchronizer: Instantly persists to React State, LocalStorage, BroadcastChannel, and background Firestore
+  const syncBattleRoomState = (updatedRoom: BattleRoom) => {
+    setActiveBattleRoom(updatedRoom);
+    try {
+      localStorage.setItem('apex_battle_room_v5', JSON.stringify(updatedRoom));
+      const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
+      const roomsDb = JSON.parse(roomsDbStr);
+      roomsDb[updatedRoom.roomCode] = updatedRoom;
+      localStorage.setItem('apex_all_battle_rooms', JSON.stringify(roomsDb));
+    } catch (e) {
+      console.warn("Local storage write error:", e);
+    }
+
+    if (battleBroadcastChannelRef.current) {
+      try {
+        battleBroadcastChannelRef.current.postMessage({ type: "ROOM_SYNC", room: updatedRoom });
+      } catch (e) {}
+    }
+
+    if (db && updatedRoom.roomCode) {
+      try {
+        const battleRef = doc(db, "artifacts", appId, "battle_rooms", updatedRoom.roomCode);
+        setDoc(battleRef, updatedRoom, { merge: true }).catch((err) => {
+          console.warn("Background Firestore sync warning:", err);
+        });
+      } catch (e) {
+        console.warn("Firestore sync dispatch error:", e);
+      }
     }
   };
-
-  const getMascotEncouragement = (emotion: string): string => {
-    const happyQuotes = [
-      "Awesome discipline! Your streak is blazing! 🔥",
-      "Discipline > Motivation! Another win in the bag! ⚡",
-      "Building unstoppable momentum day by day! 🚀",
-      "Pure focus! Keep crushing those goals!",
-    ];
-    const sadQuotes = [
-      "A setback is a setup for a comeback! Pick it up! 🛡️",
-      "One missed step doesn't end the climb. Stay strong!",
-      "Deep breath. Consistency beats perfection every time.",
-      "Your resilience defines you. Let's conquer today!",
-    ];
-    const victoryQuotes = [
-      "UNSTOPPABLE! 100% PERFECT DAY ACCOMPLISHED! 👑",
-      "Mastery in motion! You are dominating this day! ⭐",
-      "Legendary focus achieved! Claim your glory!",
-    ];
-    const combatQuotes = [
-      "Strike hard! Discipline crushes resistance! ⚔️",
-      "Opponent took damage! Don't let up now!",
-      "Stay in the zone! Victory belongs to the relentless!",
-    ];
-
-    if (emotion === "happy") return happyQuotes[Math.floor(Math.random() * happyQuotes.length)];
-    if (emotion === "sad") return sadQuotes[Math.floor(Math.random() * sadQuotes.length)];
-    if (emotion === "victory") return victoryQuotes[Math.floor(Math.random() * victoryQuotes.length)];
-    if (emotion === "combat") return combatQuotes[Math.floor(Math.random() * combatQuotes.length)];
-    return "Ready to conquer your daily mission today?";
-  };
-
-  // ==========================================
-  // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA ENGINE
-  // ==========================================
 
   // Emit Floating Combat VFX Number
   const emitCombatVFX = (text: string, type: "damage" | "crit" | "shield" | "taunt") => {
@@ -2836,37 +2670,57 @@ export default function App() {
   // Real-Time Battle Room Firestore Listener
   useEffect(() => {
     const battleCode = activeBattleRoom?.roomCode || profile?.activeBattleCode;
-    if (!battleCode || !db) return;
+    if (!battleCode) return;
 
-    const battleRef = doc(db, "artifacts", appId, "battle_rooms", battleCode);
-    const unsubs = onSnapshot(battleRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const roomData = docSnap.data() as BattleRoom;
-        setActiveBattleRoom(roomData);
-        try {
-          localStorage.setItem('apex_battle_room_v5', JSON.stringify(roomData));
-        } catch (e) {
-          console.warn("Storage write error:", e);
-        }
+    // Check local storage for initial load
+    try {
+      const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
+      const roomsDb = JSON.parse(roomsDbStr);
+      if (roomsDb[battleCode]) {
+        setActiveBattleRoom(roomsDb[battleCode]);
+      }
+    } catch (e) {}
 
-        const myUid = user?.uid || "local_player";
-        const isHost = roomData.host?.uid === myUid;
-        const opponent = isHost ? roomData.challenger : roomData.host;
-        if (opponent?.lastAction && Date.now() - opponent.lastAction.timestamp < 3500) {
-          if (opponent.lastAction.type === "taunt") {
-            setActiveTauntBanner({ sender: opponent.name, message: opponent.lastAction.text });
-            playMascotPopSound();
+    if (!db) return;
+
+    let unsubs: (() => void) | null = null;
+    try {
+      const battleRef = doc(db, "artifacts", appId, "battle_rooms", battleCode);
+      unsubs = onSnapshot(battleRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const roomData = docSnap.data() as BattleRoom;
+          setActiveBattleRoom(roomData);
+          try {
+            localStorage.setItem('apex_battle_room_v5', JSON.stringify(roomData));
+            const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
+            const roomsDb = JSON.parse(roomsDbStr);
+            roomsDb[roomData.roomCode] = roomData;
+            localStorage.setItem('apex_all_battle_rooms', JSON.stringify(roomsDb));
+          } catch (e) {}
+
+          const myUid = user?.uid || "local_player";
+          const isHost = roomData.host?.uid === myUid;
+          const opponent = isHost ? roomData.challenger : roomData.host;
+          if (opponent?.lastAction && Date.now() - opponent.lastAction.timestamp < 3500) {
+            if (opponent.lastAction.type === "taunt") {
+              setActiveTauntBanner({ sender: opponent.name, message: opponent.lastAction.text });
+              playCombatCritSound();
+            }
           }
         }
-      }
-    });
+      }, (err) => {
+        console.warn("Firestore snapshot error (resilient fallback):", err);
+      });
+    } catch (err) {
+      console.warn("Firestore snapshot init warning:", err);
+    }
 
     return () => {
-      unsubs();
+      if (unsubs) unsubs();
     };
   }, [activeBattleRoom?.roomCode, profile?.activeBattleCode, db, user]);
 
-  // Create Battle Room
+  // Create Battle Room (Instant Local-First with Background Sync)
   const handleCreateBattleRoom = async () => {
     if (isCreatingBattle) return;
     setIsCreatingBattle(true);
@@ -2916,33 +2770,22 @@ export default function App() {
         combatLog: [initialLog],
       };
 
-      if (db) {
-        await setDoc(doc(db, "artifacts", appId, "battle_rooms", roomCode), newRoom);
-      }
-
-      setActiveBattleRoom(newRoom);
-      try {
-        localStorage.setItem('apex_battle_room_v5', JSON.stringify(newRoom));
-      } catch (e) {
-        console.warn("Storage write error:", e);
-      }
-
+      syncBattleRoomState(newRoom);
       updateProfileFirebase({ activeBattleCode: roomCode });
       setBattleTab("arena");
-      triggerMascotReaction("combat", `Battle Room [${roomCode}] Created! Share the code with your opponent! ⚔️`);
-      showMessage(`⚔️ Battle Room [${roomCode}] Created! Room Code copied.`);
+      showMessage(`⚔️ Battle Room [${roomCode}] Created! Share code with your opponent.`);
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(roomCode);
+        navigator.clipboard.writeText(roomCode).catch(() => {});
       }
     } catch (err) {
       console.error("Create battle room error:", err);
-      showMessage("❌ Error creating battle room. Please check your internet connection.");
+      showMessage("❌ An unexpected error occurred while creating the battle room.");
     } finally {
       setIsCreatingBattle(false);
     }
   };
 
-  // Join Battle Room
+  // Join Battle Room (Supports Local & Cloud Sync)
   const handleJoinBattleRoom = async (codeToJoin?: string) => {
     const rawCode = (codeToJoin || battleRoomCodeInput).trim().toUpperCase();
     if (!rawCode) {
@@ -2956,83 +2799,90 @@ export default function App() {
       const myUid = user?.uid || `player_${Date.now()}`;
       const myName = profile?.name ? profile.name.trim() : "Challenger";
 
-      if (db) {
-        const battleRef = doc(db, "artifacts", appId, "battle_rooms", rawCode);
-        const docSnap = await (await import("firebase/firestore")).getDoc(battleRef);
+      let roomData: BattleRoom | null = null;
 
-        if (!docSnap.exists()) {
-          showMessage(`❌ Battle Room [${rawCode}] not found! Please verify the code.`);
-          setIsJoiningBattle(false);
-          return;
+      // 1. Check local storage first
+      try {
+        const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
+        const roomsDb = JSON.parse(roomsDbStr);
+        if (roomsDb[rawCode]) {
+          roomData = roomsDb[rawCode];
         }
+      } catch (e) {}
 
-        const roomData = docSnap.data() as BattleRoom;
-
-        if (roomData.host.uid === myUid) {
-          // Re-joining own hosted room
-          setActiveBattleRoom(roomData);
-          updateProfileFirebase({ activeBattleCode: rawCode });
-          setBattleTab("arena");
-          showMessage(`⚔️ Reconnected to your battle room [${rawCode}]!`);
-          setIsJoiningBattle(false);
-          return;
-        }
-
-        if (roomData.challenger && roomData.challenger.uid !== myUid) {
-          showMessage(`⚠️ Battle Room [${rawCode}] is already full with another challenger!`);
-          setIsJoiningBattle(false);
-          return;
-        }
-
-        const challengerPlayer: BattlePlayer = {
-          uid: myUid,
-          name: myName,
-          avatar: "🛡️",
-          hp: 1000,
-          maxHp: 1000,
-          tasksCompleted: 0,
-          focusMinutes: 0,
-          twoBoxCompleted: false,
-          shieldsCount: profile?.streakShields || 0,
-          lastAction: null,
-          liveFocus: null,
-        };
-
-        const joinLog: CombatLogItem = {
-          id: `log_${Date.now()}`,
-          senderName: "SYSTEM",
-          senderUid: "system",
-          type: "system",
-          message: `🔥 ${myName} entered the arena as Challenger! The War has begun!`,
-          timestamp: Date.now(),
-        };
-
-        const updatedRoom: BattleRoom = {
-          ...roomData,
-          status: "active",
-          challenger: challengerPlayer,
-          combatLog: [...(roomData.combatLog || []), joinLog],
-        };
-
-        await setDoc(battleRef, updatedRoom, { merge: true });
-        setActiveBattleRoom(updatedRoom);
+      // 2. Check cloud Firestore if available
+      if (db && !roomData) {
         try {
-          localStorage.setItem('apex_battle_room_v5', JSON.stringify(updatedRoom));
+          const battleRef = doc(db, "artifacts", appId, "battle_rooms", rawCode);
+          const docSnap = await (await import("firebase/firestore")).getDoc(battleRef);
+          if (docSnap.exists()) {
+            roomData = docSnap.data() as BattleRoom;
+          }
         } catch (e) {
-          console.warn("Storage write error:", e);
+          console.warn("Firestore getDoc check warning:", e);
         }
+      }
 
+      if (!roomData) {
+        showMessage(`❌ Battle Room [${rawCode}] not found! Please verify the code.`);
+        setIsJoiningBattle(false);
+        return;
+      }
+
+      if (roomData.host.uid === myUid) {
+        // Re-joining own hosted room
+        syncBattleRoomState(roomData);
         updateProfileFirebase({ activeBattleCode: rawCode });
         setBattleTab("arena");
-        playCombatCritSound();
-        triggerMascotReaction("combat", `Joined Battle [${rawCode}] against ${roomData.host.name}! Fight for discipline! ⚔️`);
-        showMessage(`⚔️ Successfully joined Battle Room [${rawCode}]!`);
-      } else {
-        showMessage("⚠️ Firestore offline: cannot join remote room.");
+        showMessage(`⚔️ Reconnected to your battle room [${rawCode}]!`);
+        setIsJoiningBattle(false);
+        return;
       }
+
+      if (roomData.challenger && roomData.challenger.uid !== myUid) {
+        showMessage(`⚠️ Battle Room [${rawCode}] is already full with another challenger!`);
+        setIsJoiningBattle(false);
+        return;
+      }
+
+      const challengerPlayer: BattlePlayer = {
+        uid: myUid,
+        name: myName,
+        avatar: "🛡️",
+        hp: 1000,
+        maxHp: 1000,
+        tasksCompleted: 0,
+        focusMinutes: 0,
+        twoBoxCompleted: false,
+        shieldsCount: profile?.streakShields || 0,
+        lastAction: null,
+        liveFocus: null,
+      };
+
+      const joinLog: CombatLogItem = {
+        id: `log_${Date.now()}`,
+        senderName: "SYSTEM",
+        senderUid: "system",
+        type: "system",
+        message: `🔥 ${myName} entered the arena as Challenger! The War has begun!`,
+        timestamp: Date.now(),
+      };
+
+      const updatedRoom: BattleRoom = {
+        ...roomData,
+        status: "active",
+        challenger: challengerPlayer,
+        combatLog: [...(roomData.combatLog || []), joinLog],
+      };
+
+      syncBattleRoomState(updatedRoom);
+      updateProfileFirebase({ activeBattleCode: rawCode });
+      setBattleTab("arena");
+      playCombatCritSound();
+      showMessage(`⚔️ Successfully joined Battle Room [${rawCode}]!`);
     } catch (err) {
       console.error("Join battle room error:", err);
-      showMessage("❌ Error joining battle room. Please verify connection.");
+      showMessage("❌ Error joining battle room. Please verify the code.");
     } finally {
       setIsJoiningBattle(false);
     }
@@ -3051,23 +2901,23 @@ export default function App() {
       const isHost = activeBattleRoom.host.uid === myUid;
       const winnerUid = isHost ? activeBattleRoom.challenger?.uid || null : activeBattleRoom.host.uid;
 
-      if (db && activeBattleRoom.roomCode) {
-        const battleRef = doc(db, "artifacts", appId, "battle_rooms", activeBattleRoom.roomCode);
-        const forfeitLog: CombatLogItem = {
-          id: `log_${Date.now()}`,
-          senderName: "SYSTEM",
-          senderUid: "system",
-          type: "ko",
-          message: `🏳️ ${isHost ? activeBattleRoom.host.name : (activeBattleRoom.challenger?.name || "Player")} surrendered the battle!`,
-          timestamp: Date.now(),
-        };
+      const forfeitLog: CombatLogItem = {
+        id: `log_${Date.now()}`,
+        senderName: "SYSTEM",
+        senderUid: "system",
+        type: "ko",
+        message: `🏳️ ${isHost ? activeBattleRoom.host.name : (activeBattleRoom.challenger?.name || "Player")} surrendered the battle!`,
+        timestamp: Date.now(),
+      };
 
-        await setDoc(battleRef, {
-          status: "completed",
-          winnerUid,
-          combatLog: [...(activeBattleRoom.combatLog || []), forfeitLog],
-        }, { merge: true });
-      }
+      const updatedRoom: BattleRoom = {
+        ...activeBattleRoom,
+        status: "completed",
+        winnerUid,
+        combatLog: [...(activeBattleRoom.combatLog || []), forfeitLog],
+      };
+
+      syncBattleRoomState(updatedRoom);
 
       updateProfileFirebase({
         activeBattleCode: "",
@@ -3077,7 +2927,6 @@ export default function App() {
       setActiveBattleRoom(null);
       localStorage.removeItem('apex_battle_room_v5');
       showMessage("🏳️ Battle forfeited. Better luck next time!");
-      triggerMascotReaction("sad", "Defeat is a lesson, not the end! Dust off and get back to work! 🛡️");
     } catch (e) {
       console.error("Forfeit error:", e);
     }
@@ -3085,7 +2934,7 @@ export default function App() {
 
   // Dispatch In-Battle Taunt
   const handleSendBattleTaunt = async (tauntText: string) => {
-    if (!activeBattleRoom || !db) return;
+    if (!activeBattleRoom) return;
     const myUid = user?.uid || "local_player";
     const myName = profile?.name ? profile.name.trim() : "Prateek";
     const isHost = activeBattleRoom.host.uid === myUid;
@@ -3112,21 +2961,14 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    setActiveBattleRoom(updatedRoom);
+    syncBattleRoomState(updatedRoom);
     emitCombatVFX(`💬 ${tauntText}`, "taunt");
-    playMascotPopSound();
-
-    try {
-      const battleRef = doc(db, "artifacts", appId, "battle_rooms", activeBattleRoom.roomCode);
-      await setDoc(battleRef, updatedRoom, { merge: true });
-    } catch (e) {
-      console.warn("Taunt sync error:", e);
-    }
+    playCombatCritSound();
   };
 
   // Apply Strike to Battle on Habit Check
-  const applyBattleHabitStrike = async (taskId: string, taskTitle: string) => {
-    if (!activeBattleRoom || activeBattleRoom.status !== "active" || !db) return;
+  const applyBattleHabitStrike = (taskId: string, taskTitle: string) => {
+    if (!activeBattleRoom || activeBattleRoom.status !== "active") return;
     const myUid = user?.uid || "local_player";
     const isHost = activeBattleRoom.host.uid === myUid;
     const myPlayer = isHost ? activeBattleRoom.host : activeBattleRoom.challenger;
@@ -3196,7 +3038,8 @@ export default function App() {
       combatLog: updatedLog,
     };
 
-    setActiveBattleRoom(updatedRoom);
+    syncBattleRoomState(updatedRoom);
+
     if (shieldAbsorbed) {
       emitCombatVFX("🛡️ SHIELD ABSORBED!", "shield");
       playCombatShieldSound();
@@ -3211,20 +3054,13 @@ export default function App() {
         xp: (profile?.xp || 0) + 100,
         stars: (profile?.stars || 0) + 5,
       });
-      triggerMascotReaction("victory", "VICTORY IN DISCIPLINE BATTLE! 1000 HP KO ACHIEVED! 👑");
-    }
-
-    try {
-      const battleRef = doc(db, "artifacts", appId, "battle_rooms", activeBattleRoom.roomCode);
-      await setDoc(battleRef, updatedRoom, { merge: true });
-    } catch (e) {
-      console.warn("Battle strike update error:", e);
+      showMessage("👑 VICTORY IN DISCIPLINE BATTLE! 1000 HP KO ACHIEVED! +100 XP +5 Stars!");
     }
   };
 
   // Apply Critical Strike on Focus Chamber Finish
-  const applyBattleFocusStrike = async (durationMinutes: number) => {
-    if (!activeBattleRoom || activeBattleRoom.status !== "active" || !db) return;
+  const applyBattleFocusStrike = (durationMinutes: number) => {
+    if (!activeBattleRoom || activeBattleRoom.status !== "active") return;
     const myUid = user?.uid || "local_player";
     const isHost = activeBattleRoom.host.uid === myUid;
     const myPlayer = isHost ? activeBattleRoom.host : activeBattleRoom.challenger;
@@ -3269,7 +3105,7 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    setActiveBattleRoom(updatedRoom);
+    syncBattleRoomState(updatedRoom);
     emitCombatVFX("💥 CRIT! 250 DMG", "crit");
     playCombatCritSound();
 
@@ -3279,20 +3115,13 @@ export default function App() {
         xp: (profile?.xp || 0) + 100,
         stars: (profile?.stars || 0) + 5,
       });
-      triggerMascotReaction("victory", "DEEP WORK KNOCKOUT! Opponent crushed in Battle! 💥👑");
-    }
-
-    try {
-      const battleRef = doc(db, "artifacts", appId, "battle_rooms", activeBattleRoom.roomCode);
-      await setDoc(battleRef, updatedRoom, { merge: true });
-    } catch (e) {
-      console.warn("Battle crit update error:", e);
+      showMessage("👑 VICTORY IN DISCIPLINE BATTLE! 1000 HP KO ACHIEVED! +100 XP +5 Stars!");
     }
   };
 
   // Apply Two-Box Daily Cleanup Finisher
-  const applyBattleTwoBoxFinisher = async () => {
-    if (!activeBattleRoom || activeBattleRoom.status !== "active" || !db) return;
+  const applyBattleTwoBoxFinisher = () => {
+    if (!activeBattleRoom || activeBattleRoom.status !== "active") return;
     const myUid = user?.uid || "local_player";
     const isHost = activeBattleRoom.host.uid === myUid;
     const myPlayer = isHost ? activeBattleRoom.host : activeBattleRoom.challenger;
@@ -3337,15 +3166,17 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    setActiveBattleRoom(updatedRoom);
+    syncBattleRoomState(updatedRoom);
     emitCombatVFX("👑 FINISHER! 300 DMG", "crit");
     playCombatCritSound();
 
-    try {
-      const battleRef = doc(db, "artifacts", appId, "battle_rooms", activeBattleRoom.roomCode);
-      await setDoc(battleRef, updatedRoom, { merge: true });
-    } catch (e) {
-      console.warn("Battle finisher update error:", e);
+    if (isKO) {
+      updateProfileFirebase({
+        battlesWon: (profile?.battlesWon || 0) + 1,
+        xp: (profile?.xp || 0) + 100,
+        stars: (profile?.stars || 0) + 5,
+      });
+      showMessage("👑 VICTORY IN DISCIPLINE BATTLE! 1000 HP KO ACHIEVED! +100 XP +5 Stars!");
     }
   };
 
@@ -3485,13 +3316,6 @@ export default function App() {
       const matchedTask = (currentSnapshot || []).find((t: any) => t.id === taskId);
       const taskTitle = matchedTask?.title || "Habit";
       applyBattleHabitStrike(taskId, taskTitle);
-      if (isDayPerfect) {
-        triggerMascotReaction("victory", getMascotEncouragement("victory"));
-      } else {
-        triggerMascotReaction("happy", getMascotEncouragement("happy"));
-      }
-    } else if (nextVal === "O") {
-      triggerMascotReaction("sad", getMascotEncouragement("sad"));
     }
   };
 
@@ -6946,7 +6770,6 @@ CORE MANNERISMS & ESSENCE:
               }
 
               applyBattleFocusStrike(finishedMinutes);
-              triggerMascotReaction("victory", "Focus Chamber session complete! Deep work surge logged! ⚡");
               showMessage(`🎉 Focus Session Complete! +${starsEarned} Star ⭐ & +${xpEarned} XP Earned! ⚡`);
 
               const breakMins = prev.mode === "deepflow" ? 10 : 5;
@@ -7172,7 +6995,6 @@ CORE MANNERISMS & ESSENCE:
       xp: (profile.xp || 0) + 30
     });
     applyBattleTwoBoxFinisher();
-    triggerMascotReaction("victory", "Daily Habit Cleanup locked in! 300 FINISHER DMG dealt in Battle! 🧹👑");
     showMessage("🎉 Daily Habit Cleanup Complete! Locked in for tonight (+30 XP)! 🧹✨");
   };
 
@@ -8608,76 +8430,6 @@ One short, electrifying sentence of raw motivation.`;
               </div>
             </div>
           )}
-        </div>
-      </div>
-    );
-  };
-
-  // ==========================================
-  // 🤖 DUOLINGO-STYLE SAGE MASCOT (ZENITH) DRAWER
-  // ==========================================
-  const renderSageMascotDrawer = () => {
-    if (!isMascotDrawerOpen && !mascotMessage) return null;
-
-    const mascotDialogueMap = {
-      happy: "🔥 Outstanding consistency! Every habit completed reinforces your neurological fortress. Keep this momentum roaring!",
-      sad: "🌱 Don't be discouraged! Stumbling is part of the journey. Take a deep breath, activate your shield, and reclaim your streak today.",
-      victory: "👑 UNSTOPPABLE! 100% Perfect Day achieved! You have transcended ordinary discipline. The cosmos salutes your focus!",
-      combat: "⚔️ IN COMBAT STANCE! Strike your habits to deal 100 DMG per blow. Let your opponent witness supreme discipline!",
-      idle: "✨ I am Zenith, your neuro-discipline companion. Track your habits, enter the Battle Arena, and conquer your day!"
-    };
-
-    const activeMessage = mascotMessage || mascotDialogueMap[mascotEmotion] || mascotDialogueMap.idle;
-
-    return (
-      <div className="fixed inset-x-0 bottom-0 z-[125] p-3 sm:p-5 flex justify-center pointer-events-none animate-in slide-in-from-bottom-6 duration-300">
-        <div className={`w-full max-w-lg rounded-3xl p-4 sm:p-5 shadow-2xl border-2 ${t.card} ${t.borderAccent} pointer-events-auto bg-black/90 backdrop-blur-2xl flex items-center gap-3.5 sm:gap-4 relative animate-spring-in text-white`}>
-          {/* Mascot Vector Portrait */}
-          <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20">
-            <SageMascot emotion={mascotEmotion} size="md" />
-          </div>
-
-          {/* Speech Bubble / Dialogue */}
-          <div className="flex-1 min-w-0 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-xs font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1">
-                <Sparkles size={11} /> Zenith (Neural Companion)
-              </span>
-              <button
-                onClick={() => {
-                  setIsMascotDrawerOpen(false);
-                  setMascotMessage(null);
-                }}
-                className="p-1 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white tap-effect"
-              >
-                <X size={14} />
-              </button>
-            </div>
-            <p className="text-xs sm:text-sm font-medium text-slate-200 leading-snug">
-              {activeMessage}
-            </p>
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                onClick={() => {
-                  playMascotPopSound();
-                  setMascotEmotion("happy");
-                  setMascotMessage("🌟 Your discipline creates destiny. Let's conquer the next mission!");
-                }}
-                className="text-[9px] px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 hover:bg-emerald-500/30 tap-effect font-bold"
-              >
-                ⚡ Boost Me
-              </button>
-              <button
-                onClick={() => {
-                  setIsMascotDrawerOpen(false);
-                  setIsBattleArenaOpen(true);
-                }}
-                className="text-[9px] px-2 py-0.5 rounded-lg bg-red-500/20 text-red-300 border border-red-400/40 hover:bg-red-500/30 tap-effect font-bold flex items-center gap-1"
-              >
-                ⚔️ PvP Arena
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -10700,32 +10452,6 @@ One short, electrifying sentence of raw motivation.`;
       {/* ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA MODAL */}
       {/* ========================================== */}
       {isBattleArenaOpen && renderBattleArenaModal()}
-
-      {/* ========================================== */}
-      {/* 🤖 DUOLINGO-STYLE SAGE MASCOT DRAWER */}
-      {/* ========================================== */}
-      {renderSageMascotDrawer()}
-
-      {/* ========================================== */}
-      {/* 🤖 FLOATING SAGE COMPANION (ZENITH) */}
-      {/* ========================================== */}
-      {!isBattleArenaOpen && !focusState.isOpen && (
-        <button
-          onClick={() => {
-            playMascotPopSound();
-            setIsMascotDrawerOpen(true);
-          }}
-          className="fixed bottom-20 right-4 z-40 p-2 sm:p-2.5 rounded-full bg-black/80 backdrop-blur-xl border-2 border-emerald-400/60 shadow-[0_0_20px_rgba(16,185,129,0.4)] tap-effect hover:scale-110 active:scale-95 transition-all group flex items-center gap-2"
-          title="Talk with your Mascot Companion (Zenith)"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10">
-            <SageMascot emotion={mascotEmotion} size="sm" />
-          </div>
-          <span className="hidden sm:inline-block text-[10px] font-black uppercase text-emerald-300 pr-1">
-            Zenith
-          </span>
-        </button>
-      )}
 
       {/* ========================================== */}
       {/* 📅 CLASS & MEETING DISPATCHER MODAL */}
