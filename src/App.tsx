@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Peer from "peerjs";
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -1653,8 +1654,13 @@ export default function App() {
   const [battleTab, setBattleTab] = useState<"arena" | "create" | "join" | "history">("arena");
   const [isCreatingBattle, setIsCreatingBattle] = useState(false);
   const [isJoiningBattle, setIsJoiningBattle] = useState(false);
+  const [battleConnectionStatus, setBattleConnectionStatus] = useState<"disconnected" | "hosting" | "connecting" | "connected">("disconnected");
   const [combatVFXList, setCombatVFXList] = useState<Array<{ id: string; text: string; type: "damage" | "crit" | "shield" | "taunt"; timestamp: number }>>([]);
   const [activeTauntBanner, setActiveTauntBanner] = useState<{ sender: string; message: string } | null>(null);
+  const battlePeerRef = useRef<Peer | null>(null);
+  const battleConnRef = useRef<any>(null);
+  const battleBroadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const battleRoomRef = useRef<BattleRoom | null>(null);
 
   // ================= KRISHNA STATE =================
   const [krishnaState, setKrishnaState] = useState<KrishnaState>(() =>
@@ -1673,7 +1679,6 @@ export default function App() {
   const lastFocusTickRef = useRef<number>(Date.now());
   const isHydratedRef = useRef<boolean>(false);
   const activeKrishnaRecognitionRef = useRef<any>(null);
-  const battleBroadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   const t = (THEMES as any)[profile.activeTheme] || THEMES.brutalist;
 
@@ -2507,8 +2512,19 @@ export default function App() {
   const isPunished = checkPunishment();
 
   // ==========================================
-  // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA ENGINE (LOCAL-FIRST RESILIENT SYNC)
+  // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA ENGINE (WEBRTC P2P + MULTIPLAYER SYNC)
   // ==========================================
+
+  const PEER_STUN_CONFIG = {
+    config: {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:global.stun.twilio.com:3478" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun.cloudflare.com:3478" },
+      ],
+    },
+  };
 
   // Cross-Tab & Cross-Window Real-Time Broadcast Channel Listener
   useEffect(() => {
@@ -2537,8 +2553,9 @@ export default function App() {
     };
   }, [activeBattleRoom?.roomCode]);
 
-  // Master Synchronizer: Instantly persists to React State, LocalStorage, BroadcastChannel, and background Firestore
-  const syncBattleRoomState = (updatedRoom: BattleRoom) => {
+  // Master Synchronizer: Instantly persists to React State, LocalStorage, WebRTC Peer, and background Firestore
+  const syncBattleRoomState = (updatedRoom: BattleRoom, broadcastToPeer: boolean = true) => {
+    battleRoomRef.current = updatedRoom;
     setActiveBattleRoom(updatedRoom);
     try {
       localStorage.setItem('apex_battle_room_v5', JSON.stringify(updatedRoom));
@@ -2554,6 +2571,14 @@ export default function App() {
       try {
         battleBroadcastChannelRef.current.postMessage({ type: "ROOM_SYNC", room: updatedRoom });
       } catch (e) {}
+    }
+
+    if (broadcastToPeer && battleConnRef.current && battleConnRef.current.open) {
+      try {
+        battleConnRef.current.send({ type: "ROOM_STATE", room: updatedRoom });
+      } catch (e) {
+        console.warn("WebRTC Peer send error:", e);
+      }
     }
 
     if (db && updatedRoom.roomCode) {
@@ -2585,12 +2610,231 @@ export default function App() {
     return `${prefix}${num}`;
   };
 
+  // Start Host WebRTC Peer (Listens for Challenger connection)
+  const startHostPeer = (roomCode: string, initialRoom: BattleRoom) => {
+    try {
+      if (battlePeerRef.current) {
+        battlePeerRef.current.destroy();
+        battlePeerRef.current = null;
+      }
+    } catch (e) {}
+
+    try {
+      const peerId = `apex-war-room-${roomCode.toLowerCase()}`;
+      const peer = new Peer(peerId, PEER_STUN_CONFIG);
+      battlePeerRef.current = peer;
+
+      peer.on("open", (id) => {
+        console.log("Battle Arena Host Peer Online:", id);
+        setBattleConnectionStatus("hosting");
+      });
+
+      peer.on("connection", (conn) => {
+        console.log("Incoming challenger peer connection received!");
+        battleConnRef.current = conn;
+
+        conn.on("open", () => {
+          conn.send({ type: "ROOM_STATE", room: battleRoomRef.current || initialRoom });
+        });
+
+        conn.on("data", (data: any) => {
+          if (!data || typeof data !== "object") return;
+
+          if (data.type === "HELLO_JOIN") {
+            const joiningPlayer = data.player as BattlePlayer;
+            const current = battleRoomRef.current || initialRoom;
+            if (current.challenger && current.challenger.uid !== joiningPlayer.uid && current.status === "active") {
+              conn.send({ type: "ERROR", message: `Battle Room [${roomCode}] is already full with another challenger!` });
+              return;
+            }
+
+            const joinLog: CombatLogItem = {
+              id: `log_${Date.now()}`,
+              senderName: "SYSTEM",
+              senderUid: "system",
+              type: "system",
+              message: `🔥 ${joiningPlayer.name} entered the arena! The War has begun!`,
+              timestamp: Date.now(),
+            };
+
+            const updated: BattleRoom = {
+              ...current,
+              status: "active",
+              challenger: joiningPlayer,
+              combatLog: [...(current.combatLog || []), joinLog],
+            };
+
+            battleRoomRef.current = updated;
+            syncBattleRoomState(updated, false);
+            conn.send({ type: "ROOM_STATE", room: updated });
+            setBattleConnectionStatus("connected");
+            showMessage(`🔥 ${joiningPlayer.name} joined your Battle Arena!`);
+          } else if (data.type === "ROOM_STATE" && data.room) {
+            battleRoomRef.current = data.room;
+            setActiveBattleRoom(data.room);
+            syncBattleRoomState(data.room, false);
+          } else if (data.type === "COMBAT_ACTION") {
+            if (data.vfx) emitCombatVFX(data.vfx.text, data.vfx.type);
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+            }
+          } else if (data.type === "TAUNT") {
+            if (data.sender && data.message) {
+              setActiveTauntBanner({ sender: data.sender, message: data.message });
+              emitCombatVFX(`💬 ${data.message}`, "taunt");
+            }
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+            }
+          } else if (data.type === "FORFEIT") {
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+              showMessage("🏳️ Opponent surrendered the battle!");
+            }
+          }
+        });
+
+        conn.on("close", () => {
+          console.log("Challenger data connection closed");
+        });
+
+        conn.on("error", (err) => {
+          console.warn("Host conn error:", err);
+        });
+      });
+
+      peer.on("error", (err: any) => {
+        console.warn("Host PeerJS notification:", err);
+      });
+    } catch (err) {
+      console.error("Host Peer init error:", err);
+    }
+  };
+
+  // Start Challenger WebRTC Peer (Connects to Host Peer)
+  const startChallengerPeer = (rawCode: string, challengerPlayer: BattlePlayer, timeoutMs = 8000) => {
+    try {
+      if (battlePeerRef.current) {
+        battlePeerRef.current.destroy();
+        battlePeerRef.current = null;
+      }
+    } catch (e) {}
+
+    setIsJoiningBattle(true);
+    setBattleConnectionStatus("connecting");
+
+    let connectionSuccessful = false;
+    const timeoutTimer = setTimeout(() => {
+      if (!connectionSuccessful) {
+        setIsJoiningBattle(false);
+        setBattleConnectionStatus("disconnected");
+        try {
+          if (battleConnRef.current) battleConnRef.current.close();
+          if (battlePeerRef.current) battlePeerRef.current.destroy();
+        } catch (e) {}
+        showMessage(`❌ Battle Room [${rawCode}] not found or Host is offline!\n\nEnsure your friend has generated the room and is waiting in the Arena.`);
+      }
+    }, timeoutMs);
+
+    try {
+      const peer = new Peer(PEER_STUN_CONFIG);
+      battlePeerRef.current = peer;
+
+      peer.on("open", (id) => {
+        console.log("Challenger Peer Online:", id);
+        const targetPeerId = `apex-war-room-${rawCode.toLowerCase()}`;
+        const conn = peer.connect(targetPeerId, { reliable: true });
+        battleConnRef.current = conn;
+
+        conn.on("open", () => {
+          console.log("Connected to Host data channel!");
+          conn.send({ type: "HELLO_JOIN", player: challengerPlayer });
+        });
+
+        conn.on("data", (data: any) => {
+          if (!data || typeof data !== "object") return;
+
+          if (data.type === "ROOM_STATE" && data.room) {
+            connectionSuccessful = true;
+            clearTimeout(timeoutTimer);
+            setIsJoiningBattle(false);
+            setBattleConnectionStatus("connected");
+            battleRoomRef.current = data.room;
+            setActiveBattleRoom(data.room);
+            syncBattleRoomState(data.room, false);
+            setBattleTab("arena");
+            showMessage(`⚔️ Successfully joined Battle Room [${rawCode}] with ${data.room.host.name}!`);
+          } else if (data.type === "ERROR") {
+            connectionSuccessful = true;
+            clearTimeout(timeoutTimer);
+            setIsJoiningBattle(false);
+            setBattleConnectionStatus("disconnected");
+            showMessage(`⚠️ ${data.message || "Could not join battle room"}`);
+            try {
+              conn.close();
+              peer.destroy();
+            } catch (e) {}
+          } else if (data.type === "COMBAT_ACTION") {
+            if (data.vfx) emitCombatVFX(data.vfx.text, data.vfx.type);
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+            }
+          } else if (data.type === "TAUNT") {
+            if (data.sender && data.message) {
+              setActiveTauntBanner({ sender: data.sender, message: data.message });
+              emitCombatVFX(`💬 ${data.message}`, "taunt");
+            }
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+            }
+          } else if (data.type === "FORFEIT") {
+            if (data.room) {
+              battleRoomRef.current = data.room;
+              setActiveBattleRoom(data.room);
+              syncBattleRoomState(data.room, false);
+              showMessage("🏳️ Opponent surrendered the battle!");
+            }
+          }
+        });
+
+        conn.on("error", (err) => {
+          console.warn("Challenger conn error:", err);
+        });
+      });
+
+      peer.on("error", (err: any) => {
+        console.warn("Challenger peer error:", err);
+        if (err.type === "peer-unavailable") {
+          clearTimeout(timeoutTimer);
+          setIsJoiningBattle(false);
+          setBattleConnectionStatus("disconnected");
+          showMessage(`❌ Battle Room [${rawCode}] does not exist or Host is offline!`);
+        }
+      });
+    } catch (err) {
+      clearTimeout(timeoutTimer);
+      setIsJoiningBattle(false);
+      setBattleConnectionStatus("disconnected");
+      console.error("Challenger Peer init error:", err);
+      showMessage(`❌ Error connecting to room [${rawCode}].`);
+    }
+  };
+
   // Real-Time Battle Room Firestore Listener
   useEffect(() => {
     const battleCode = activeBattleRoom?.roomCode || profile?.activeBattleCode;
     if (!battleCode) return;
 
-    // Check local storage for initial load
     try {
       const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
       const roomsDb = JSON.parse(roomsDbStr);
@@ -2607,7 +2851,13 @@ export default function App() {
       unsubs = onSnapshot(battleRef, (docSnap) => {
         if (docSnap.exists()) {
           const roomData = docSnap.data() as BattleRoom;
-          setActiveBattleRoom(roomData);
+          // WebRTC peer-to-peer is the authoritative source. Only apply the
+          // Firestore echo when no live peer channel exists (offline / stale room).
+          const peerLive = battleConnRef.current && battleConnRef.current.open;
+          if (!peerLive) {
+            battleRoomRef.current = roomData;
+            setActiveBattleRoom(roomData);
+          }
           try {
             localStorage.setItem('apex_battle_room_v5', JSON.stringify(roomData));
             const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
@@ -2622,7 +2872,6 @@ export default function App() {
           if (opponent?.lastAction && Date.now() - opponent.lastAction.timestamp < 3500) {
             if (opponent.lastAction.type === "taunt") {
               setActiveTauntBanner({ sender: opponent.name, message: opponent.lastAction.text });
-              playCombatCritSound();
             }
           }
         }
@@ -2637,6 +2886,21 @@ export default function App() {
       if (unsubs) unsubs();
     };
   }, [activeBattleRoom?.roomCode, profile?.activeBattleCode, db, user]);
+
+  // Auto Reconnect WebRTC Peer on Session Launch
+  useEffect(() => {
+    if (!activeBattleRoom || activeBattleRoom.status === "completed") return;
+    const myUid = user?.uid || "local_player";
+    const isHost = activeBattleRoom.host?.uid === myUid;
+
+    if (!battlePeerRef.current) {
+      if (isHost) {
+        startHostPeer(activeBattleRoom.roomCode, activeBattleRoom);
+      } else if (activeBattleRoom.challenger?.uid === myUid) {
+        startChallengerPeer(activeBattleRoom.roomCode, activeBattleRoom.challenger, 10000);
+      }
+    }
+  }, [activeBattleRoom?.roomCode, activeBattleRoom?.status]);
 
   // Generate 1-Click Duel Invite URL
   const getBattleInviteLink = (room: BattleRoom): string => {
@@ -2661,10 +2925,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const battleCode = (params.get("battle") || params.get("duel") || params.get("room") || "").trim().toUpperCase();
         if (battleCode) {
-          const hostName = params.get("host") || "Opponent";
-          const fmt = (params.get("fmt") || "blitz") as "blitz" | "siege" | "duel";
-          const stakes = params.get("stakes") || "50 Pushups Forfeit";
-          handleJoinBattleRoom(battleCode, { hostName, fmt, stakes });
+          handleJoinBattleRoom(battleCode);
           setIsBattleArenaOpen(true);
           window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -2674,7 +2935,7 @@ export default function App() {
     }
   }, []);
 
-  // Create Battle Room (Instant Local-First with Background Sync)
+  // Create Battle Room (Instant WebRTC Host + Cloud Registry)
   const handleCreateBattleRoom = async () => {
     if (isCreatingBattle) return;
     setIsCreatingBattle(true);
@@ -2724,7 +2985,8 @@ export default function App() {
         combatLog: [initialLog],
       };
 
-      syncBattleRoomState(newRoom);
+      syncBattleRoomState(newRoom, false);
+      startHostPeer(roomCode, newRoom);
       updateProfileFirebase({ activeBattleCode: roomCode });
       setBattleTab("arena");
       showMessage(`⚔️ Battle Room [${roomCode}] Created! Share code or invite link.`);
@@ -2739,7 +3001,7 @@ export default function App() {
     }
   };
 
-  // Join Battle Room (Supports Local, Cloud Sync & 1-Click Invite Links)
+  // Join Battle Room (True WebRTC Peer Connection - No Fake Rooms)
   const handleJoinBattleRoom = async (
     codeToJoin?: string,
     metadata?: { hostName?: string; fmt?: "blitz" | "siege" | "duel"; stakes?: string; duration?: number }
@@ -2750,13 +3012,9 @@ export default function App() {
       return;
     }
     if (isJoiningBattle) return;
-    setIsJoiningBattle(true);
 
     try {
       let rawCode = rawInput.toUpperCase();
-      let extractedHost = metadata?.hostName || "";
-      let extractedFmt: "blitz" | "siege" | "duel" = metadata?.fmt || "blitz";
-      let extractedStakes = metadata?.stakes || "50 Pushups Forfeit";
 
       // If user pasted a full URL or query params (e.g. ?battle=WAR789...)
       if (rawInput.includes("?") || rawInput.includes("http") || rawInput.includes("=")) {
@@ -2764,102 +3022,23 @@ export default function App() {
           const urlObj = new URL(rawInput.startsWith("http") ? rawInput : `https://dummy.com/${rawInput.startsWith("?") ? rawInput : "?" + rawInput}`);
           const bCode = urlObj.searchParams.get("battle") || urlObj.searchParams.get("duel") || urlObj.searchParams.get("room");
           if (bCode) rawCode = bCode.trim().toUpperCase();
-          if (urlObj.searchParams.get("host")) extractedHost = urlObj.searchParams.get("host")!;
-          if (urlObj.searchParams.get("fmt")) extractedFmt = urlObj.searchParams.get("fmt") as any;
-          if (urlObj.searchParams.get("stakes")) extractedStakes = urlObj.searchParams.get("stakes")!;
         } catch (e) {}
       }
 
-      // Clean non-alphanumeric if needed
+      // Clean non-alphanumeric
       rawCode = rawCode.replace(/[^A-Z0-9]/g, "");
-      if (!rawCode) {
-        showMessage("⚠️ Please enter a valid 6-character Room Code.");
-        setIsJoiningBattle(false);
+      if (!rawCode || rawCode.length < 3) {
+        showMessage("⚠️ Please enter a valid Room Code (e.g. WAR789).");
         return;
       }
 
       const myUid = user?.uid || `player_${Date.now()}`;
       const myName = profile?.name ? profile.name.trim() : "Challenger";
 
-      let roomData: BattleRoom | null = null;
-
-      // 1. Check local storage first
-      try {
-        const roomsDbStr = localStorage.getItem('apex_all_battle_rooms') || '{}';
-        const roomsDb = JSON.parse(roomsDbStr);
-        if (roomsDb[rawCode]) {
-          roomData = roomsDb[rawCode];
-        }
-      } catch (e) {}
-
-      // 2. Check cloud Firestore if available
-      if (db && !roomData) {
-        try {
-          const battleRef = doc(db, "artifacts", appId, "battle_rooms", rawCode);
-          const docSnap = await (await import("firebase/firestore")).getDoc(battleRef);
-          if (docSnap.exists()) {
-            roomData = docSnap.data() as BattleRoom;
-          }
-        } catch (e) {
-          console.warn("Firestore getDoc check warning:", e);
-        }
-      }
-
-      // 3. Resilient fallback: If room is not yet found in local or cloud (cross-device on separate networks),
-      // dynamically construct the battle room instance with matching code so the duel proceeds without error!
-      if (!roomData) {
-        const hostPlayer: BattlePlayer = {
-          uid: `host_${rawCode}`,
-          name: extractedHost || "Host Opponent",
-          avatar: "⚔️",
-          hp: 1000,
-          maxHp: 1000,
-          tasksCompleted: 0,
-          focusMinutes: 0,
-          twoBoxCompleted: false,
-          shieldsCount: 0,
-          lastAction: null,
-          liveFocus: null,
-        };
-
-        roomData = {
-          roomCode: rawCode,
-          createdAt: Date.now(),
-          status: "waiting",
-          format: extractedFmt,
-          targetDate: todayStr,
-          endDate: extractedFmt === "siege" ? addDays(todayStr, 7) : todayStr,
-          stakes: extractedStakes,
-          duelDurationMinutes: metadata?.duration || 25,
-          host: hostPlayer,
-          challenger: null,
-          winnerUid: null,
-          combatLog: [
-            {
-              id: `log_${Date.now()}`,
-              senderName: "SYSTEM",
-              senderUid: "system",
-              type: "system",
-              message: `⚔️ Battle Room [${rawCode}] connected! Format: ${extractedFmt.toUpperCase()} | Stakes: "${extractedStakes}"`,
-              timestamp: Date.now(),
-            }
-          ],
-        };
-      }
-
-      if (roomData.host.uid === myUid) {
-        // Re-joining own hosted room
-        syncBattleRoomState(roomData);
-        updateProfileFirebase({ activeBattleCode: rawCode });
+      // If already host of this room
+      if (activeBattleRoom && activeBattleRoom.roomCode === rawCode && activeBattleRoom.host.uid === myUid) {
         setBattleTab("arena");
-        showMessage(`⚔️ Connected to battle room [${rawCode}]!`);
-        setIsJoiningBattle(false);
-        return;
-      }
-
-      if (roomData.challenger && roomData.challenger.uid !== myUid) {
-        showMessage(`⚠️ Battle Room [${rawCode}] is already full with another challenger!`);
-        setIsJoiningBattle(false);
+        showMessage(`⚔️ You are already hosting Battle Room [${rawCode}]!`);
         return;
       }
 
@@ -2877,30 +3056,11 @@ export default function App() {
         liveFocus: null,
       };
 
-      const joinLog: CombatLogItem = {
-        id: `log_${Date.now()}`,
-        senderName: "SYSTEM",
-        senderUid: "system",
-        type: "system",
-        message: `🔥 ${myName} entered the arena as Challenger! The War has begun!`,
-        timestamp: Date.now(),
-      };
-
-      const updatedRoom: BattleRoom = {
-        ...roomData,
-        status: "active",
-        challenger: challengerPlayer,
-        combatLog: [...(roomData.combatLog || []), joinLog],
-      };
-
-      syncBattleRoomState(updatedRoom);
-      updateProfileFirebase({ activeBattleCode: rawCode });
-      setBattleTab("arena");
-      showMessage(`⚔️ Successfully joined Battle Room [${rawCode}]!`);
+      // Connect genuinely via WebRTC Peer
+      startChallengerPeer(rawCode, challengerPlayer, 9000);
     } catch (err) {
       console.error("Join battle room error:", err);
       showMessage("❌ Error joining battle room. Please verify the code.");
-    } finally {
       setIsJoiningBattle(false);
     }
   };
@@ -2934,12 +3094,18 @@ export default function App() {
         combatLog: [...(activeBattleRoom.combatLog || []), forfeitLog],
       };
 
-      syncBattleRoomState(updatedRoom);
+      syncBattleRoomState(updatedRoom, true);
 
       updateProfileFirebase({
         activeBattleCode: "",
         battlesLost: (profile?.battlesLost || 0) + 1,
       });
+
+      try {
+        if (battleConnRef.current) battleConnRef.current.send({ type: "FORFEIT", room: updatedRoom });
+        if (battleConnRef.current) battleConnRef.current.close();
+        if (battlePeerRef.current) battlePeerRef.current.destroy();
+      } catch (e) {}
 
       setActiveBattleRoom(null);
       localStorage.removeItem('apex_battle_room_v5');
@@ -2978,9 +3144,13 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    syncBattleRoomState(updatedRoom);
+    syncBattleRoomState(updatedRoom, true);
     emitCombatVFX(`💬 ${tauntText}`, "taunt");
-    playCombatCritSound();
+    if (battleConnRef.current && battleConnRef.current.open) {
+      try {
+        battleConnRef.current.send({ type: "TAUNT", sender: myName, message: tauntText, room: updatedRoom });
+      } catch (e) {}
+    }
   };
 
   // Apply Strike to Battle on Habit Check
@@ -3055,14 +3225,25 @@ export default function App() {
       combatLog: updatedLog,
     };
 
-    syncBattleRoomState(updatedRoom);
+    syncBattleRoomState(updatedRoom, true);
 
     if (shieldAbsorbed) {
       emitCombatVFX("🛡️ SHIELD ABSORBED!", "shield");
-      playCombatShieldSound();
     } else {
       emitCombatVFX("-100 HP!", "damage");
-      playCombatSlashSound();
+    }
+
+    if (battleConnRef.current && battleConnRef.current.open) {
+      try {
+        battleConnRef.current.send({
+          type: "COMBAT_ACTION",
+          room: updatedRoom,
+          vfx: {
+            text: shieldAbsorbed ? "🛡️ SHIELD ABSORBED!" : "-100 HP!",
+            type: shieldAbsorbed ? "shield" : "damage"
+          }
+        });
+      } catch (e) {}
     }
 
     if (isKO) {
@@ -3122,9 +3303,18 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    syncBattleRoomState(updatedRoom);
+    syncBattleRoomState(updatedRoom, true);
     emitCombatVFX("💥 CRIT! 250 DMG", "crit");
-    playCombatCritSound();
+
+    if (battleConnRef.current && battleConnRef.current.open) {
+      try {
+        battleConnRef.current.send({
+          type: "COMBAT_ACTION",
+          room: updatedRoom,
+          vfx: { text: "💥 CRIT! 250 DMG", type: "crit" }
+        });
+      } catch (e) {}
+    }
 
     if (isKO) {
       updateProfileFirebase({
@@ -3183,9 +3373,18 @@ export default function App() {
       combatLog: [...(activeBattleRoom.combatLog || []).slice(-25), newLog],
     };
 
-    syncBattleRoomState(updatedRoom);
+    syncBattleRoomState(updatedRoom, true);
     emitCombatVFX("👑 FINISHER! 300 DMG", "crit");
-    playCombatCritSound();
+
+    if (battleConnRef.current && battleConnRef.current.open) {
+      try {
+        battleConnRef.current.send({
+          type: "COMBAT_ACTION",
+          room: updatedRoom,
+          vfx: { text: "👑 FINISHER! 300 DMG", type: "crit" }
+        });
+      } catch (e) {}
+    }
 
     if (isKO) {
       updateProfileFirebase({
@@ -7929,6 +8128,26 @@ One short, electrifying sentence of raw motivation.`;
                       </span>
                       <span className="text-xs font-black uppercase text-amber-300">
                         {activeBattleRoom.format === "blitz" ? "⚡ 24H Daily Blitz" : activeBattleRoom.format === "siege" ? "⚔️ 7-Day Habit Siege" : "⏱️ Focus Duel"}
+                      </span>
+                      {/* Live WebRTC Peer Status Pill */}
+                      <span className={`text-[9px] sm:text-[10px] font-black uppercase px-2 py-1 rounded-lg flex items-center gap-1 ${
+                        battleConnectionStatus === "connected"
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                          : battleConnectionStatus === "connecting"
+                          ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 animate-pulse"
+                          : battleConnectionStatus === "hosting"
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse"
+                          : "bg-slate-500/20 text-slate-400 border border-slate-500/30"
+                      }`}>
+                        {battleConnectionStatus === "connected" ? (
+                          <>🛜 <span className="hidden sm:inline">Live Peer</span></>
+                        ) : battleConnectionStatus === "connecting" ? (
+                          <>⏳ <span className="hidden sm:inline">Connecting…</span></>
+                        ) : battleConnectionStatus === "hosting" ? (
+                          <>📡 <span className="hidden sm:inline">Waiting for Challenge</span></>
+                        ) : (
+                          <>🚫 <span className="hidden sm:inline">Offline</span></>
+                        )}
                       </span>
                     </div>
 
