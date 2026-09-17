@@ -9942,6 +9942,95 @@ One short, electrifying sentence of raw motivation.`;
                 >
                   <RotateCcw size={18} />
                 </button>
+
+                {/* Skip / Fast-Forward Button */}
+                <button
+                  onClick={() => {
+                    if (focusState.mode === "stopwatch") {
+                      // Stopwatch has no end — just stop and award what's accumulated
+                      const focusedMins = Math.floor(focusState.totalFocusedSeconds / 60);
+                      if (focusedMins >= 1) {
+                        const starsEarned = 1;
+                        const xpEarned = 50;
+                        updateProfileFirebase({
+                          stars: (profile.stars || 0) + starsEarned,
+                          xp: (profile.xp || 0) + xpEarned,
+                          totalFocusMinutes: (profile.totalFocusMinutes || 0) + focusedMins,
+                        });
+                        applyBattleFocusStrike(focusedMins);
+                        showMessage(`⏩ Session skipped! +${starsEarned} Star ⭐ & +${xpEarned} XP for ${focusedMins} min focused! ⚡`);
+                      } else {
+                        showMessage("⏩ Session skipped (less than 1 min — no rewards).");
+                      }
+                      setFocusState((prev) => ({
+                        ...prev,
+                        isRunning: false,
+                        totalFocusedSeconds: 0,
+                      }));
+                      return;
+                    }
+                    // For timer / pomodoro / deepflow — force-complete the current phase
+                    setFocusState((prev) => {
+                      if (prev.isBreak) {
+                        // Skip break → go straight to next work phase
+                        showMessage("⏩ Break skipped! Starting next work session.");
+                        const workMins = prev.mode === "deepflow" ? 50 : prev.mode === "pomodoro" ? 25 : (prev.customTimerMinutes || 10);
+                        return {
+                          ...prev,
+                          isBreak: false,
+                          durationMinutes: workMins,
+                          secondsLeft: workMins * 60,
+                          isRunning: false,
+                        };
+                      }
+                      // Skip work phase → award stars/XP as if completed
+                      const finishedMinutes = prev.durationMinutes;
+                      const starsEarned = 1;
+                      const xpEarned = 50;
+                      updateProfileFirebase({
+                        stars: (profile.stars || 0) + starsEarned,
+                        xp: (profile.xp || 0) + xpEarned,
+                        totalFocusMinutes: (profile.totalFocusMinutes || 0) + finishedMinutes,
+                      });
+                      if (prev.topicId) {
+                        const updatedTopics = (brain.studyTopics || []).map((tp: any) =>
+                          tp.id === prev.topicId
+                            ? { ...tp, focusMinutes: (tp.focusMinutes || 0) + finishedMinutes }
+                            : tp
+                        );
+                        updateBrainFirebase({ studyTopics: updatedTopics });
+                      }
+                      applyBattleFocusStrike(finishedMinutes);
+                      showMessage(`⏩ Session skipped! +${starsEarned} Star ⭐ & +${xpEarned} XP Earned! ⚡`);
+
+                      if (prev.mode === "timer") {
+                        const resetMins = prev.customTimerMinutes || prev.durationMinutes || 10;
+                        return {
+                          ...prev,
+                          isBreak: false,
+                          durationMinutes: resetMins,
+                          secondsLeft: resetMins * 60,
+                          isRunning: false,
+                          totalFocusedSeconds: prev.totalFocusedSeconds,
+                        };
+                      }
+                      // Pomodoro / DeepFlow → go to break
+                      const breakMins = prev.mode === "deepflow" ? 10 : 5;
+                      return {
+                        ...prev,
+                        isBreak: true,
+                        durationMinutes: breakMins,
+                        secondsLeft: breakMins * 60,
+                        isRunning: false,
+                        totalFocusedSeconds: prev.totalFocusedSeconds,
+                      };
+                    });
+                  }}
+                  className={`p-3.5 rounded-2xl border tap-effect transition-all ${t.cardInner} ${t.borderAccent} ${t.textMain}`}
+                  title="Skip / Fast-Forward Session"
+                >
+                  <FastForward size={18} />
+                </button>
               </div>
 
               {/* Completion Reward Pill */}
