@@ -1216,6 +1216,257 @@ export const FlowingStreakFlame = ({ count = 0, size = "md" }: { count?: number;
 };
 
 // ==========================================
+// 🎛️ MODULAR WORKSPACE & FEATURE CUSTOMIZER ENGINE
+// ==========================================
+export interface EnabledFeatures {
+  pvpArena: boolean;        // ⚔️ 1v1 PvP Discipline Battle Arena
+  twoBox: boolean;          // 📦 Two-Box Rule System (Box 1 & Box 2)
+  focusChamber: boolean;    // ⚡ Focus Chamber (Pomodoro, DeepFlow & Timers)
+  activePlan: boolean;      // 📋 Active Ongoing Plan & History
+  aiCoach: boolean;         // 🤖 AI Habit Coach & Reviews
+  dispatcher: boolean;      // 📅 Schedule & Class Dispatcher
+  rpgRanks: boolean;        // 👑 15-Tier RPG Rank Progression & Lore
+  rewardShop: boolean;      // 🛒 Reward Shop & Star Economy
+  analytics: boolean;       // 📊 Analytics & Heatmap Matrix
+  levelMap: boolean;        // 🗺️ Level Map (Calendar Grid)
+  urgeInterceptor: boolean; // 🛡️ Urge Interceptor (Friction Protocol)
+  secondBrain: boolean;     // 🧠 Second Brain Workspace Mode
+  myKrishna: boolean;       // 🪶 My Krishna Spiritual Guide Mode
+}
+
+export const DEFAULT_ENABLED_FEATURES: EnabledFeatures = {
+  pvpArena: true,
+  twoBox: true,
+  focusChamber: true,
+  activePlan: true,
+  aiCoach: true,
+  dispatcher: true,
+  rpgRanks: true,
+  rewardShop: true,
+  analytics: true,
+  levelMap: true,
+  urgeInterceptor: true,
+  secondBrain: true,
+  myKrishna: true,
+};
+
+export const FEATURE_PRESETS = [
+  {
+    id: "all",
+    name: "Complete (Power User)",
+    badge: "ALL ON",
+    icon: "⚡",
+    desc: "Everything turned ON — the ultimate gamified productivity experience.",
+    features: { ...DEFAULT_ENABLED_FEATURES }
+  },
+  {
+    id: "student",
+    name: "Minimal Student",
+    badge: "STUDY FOCUSED",
+    icon: "🎓",
+    desc: "Only study sessions, habits, class dispatcher & analytics. Zero gaming clutter.",
+    features: {
+      pvpArena: false,
+      twoBox: false,
+      focusChamber: true,
+      activePlan: false,
+      aiCoach: false,
+      dispatcher: true,
+      rpgRanks: false,
+      rewardShop: false,
+      analytics: true,
+      levelMap: true,
+      urgeInterceptor: true,
+      secondBrain: false,
+      myKrishna: false,
+    }
+  },
+  {
+    id: "monk",
+    name: "Deep Work Monk",
+    badge: "RADICAL FOCUS",
+    icon: "🧘",
+    desc: "Pure deep work & radical honesty. Only Focus Chamber, Two-Box & Interceptor.",
+    features: {
+      pvpArena: false,
+      twoBox: true,
+      focusChamber: true,
+      activePlan: false,
+      aiCoach: false,
+      dispatcher: false,
+      rpgRanks: false,
+      rewardShop: false,
+      analytics: false,
+      levelMap: true,
+      urgeInterceptor: true,
+      secondBrain: false,
+      myKrishna: false,
+    }
+  },
+  {
+    id: "rpg",
+    name: "Gamified Warrior",
+    badge: "GAMIFIED",
+    icon: "⚔️",
+    desc: "For competitive achievers: PvP Battle Arena, 15-Tier RPG Ranks & Reward Shop.",
+    features: {
+      pvpArena: true,
+      twoBox: true,
+      focusChamber: true,
+      activePlan: true,
+      aiCoach: false,
+      dispatcher: false,
+      rpgRanks: true,
+      rewardShop: true,
+      analytics: true,
+      levelMap: true,
+      urgeInterceptor: false,
+      secondBrain: false,
+      myKrishna: false,
+    }
+  },
+  {
+    id: "scholar",
+    name: "Second Brain Scholar",
+    badge: "SCHOLAR",
+    icon: "📚",
+    desc: "Knowledge management, study queues, AI Coach & Krishna spiritual mentor.",
+    features: {
+      pvpArena: false,
+      twoBox: false,
+      focusChamber: true,
+      activePlan: true,
+      aiCoach: true,
+      dispatcher: true,
+      rpgRanks: false,
+      rewardShop: false,
+      analytics: true,
+      levelMap: true,
+      urgeInterceptor: true,
+      secondBrain: true,
+      myKrishna: true,
+    }
+  }
+];
+
+export const FEATURE_METADATA: {
+  key: keyof EnabledFeatures;
+  category: "focus" | "gamify" | "ai" | "core";
+  categoryLabel: string;
+  name: string;
+  desc: string;
+  icon: string;
+}[] = [
+  // Core & Focus
+  {
+    key: "focusChamber",
+    category: "focus",
+    categoryLabel: "Deep Work & Focus",
+    name: "Focus Chamber & Timers",
+    desc: "Pomodoro, DeepFlow (50/10) & custom countdown focus sessions with fast-forward skip.",
+    icon: "⚡",
+  },
+  {
+    key: "twoBox",
+    category: "focus",
+    categoryLabel: "Deep Work & Focus",
+    name: "Two-Box Discipline System",
+    desc: "Radical honesty: Box 1 (Slip-ups) & Box 2 (Victories) with 9 PM cleanup protocol.",
+    icon: "📦",
+  },
+  {
+    key: "dispatcher",
+    category: "focus",
+    categoryLabel: "Deep Work & Focus",
+    name: "Schedule & Class Dispatcher",
+    desc: "Daily college classes, exams, events & alerts with 1-click focus launcher.",
+    icon: "📅",
+  },
+  {
+    key: "urgeInterceptor",
+    category: "focus",
+    categoryLabel: "Deep Work & Focus",
+    name: "Urge Interceptor (Friction)",
+    desc: "90-second cooling timer with stoic philosophy quotes to crush impulsive habits.",
+    icon: "🛡️",
+  },
+  {
+    key: "levelMap",
+    category: "core",
+    categoryLabel: "Habits & Consistency",
+    name: "Level Map (Calendar Grid)",
+    desc: "Day-by-day monthly arena calendar grid to review and edit past discipline logs.",
+    icon: "🗺️",
+  },
+  {
+    key: "analytics",
+    category: "core",
+    categoryLabel: "Habits & Consistency",
+    name: "Analytics & Heatmap Matrix",
+    desc: "GitHub-style discipline heatmap, streak consistency ratios & weekly completion charts.",
+    icon: "📊",
+  },
+  {
+    key: "activePlan",
+    category: "core",
+    categoryLabel: "Habits & Consistency",
+    name: "Active Ongoing Plan & History",
+    desc: "Track active buffs, perks, purchased reward items, and expiration countdowns.",
+    icon: "📋",
+  },
+  // Gamification & RPG
+  {
+    key: "pvpArena",
+    category: "gamify",
+    categoryLabel: "Gamification & Combat",
+    name: "1v1 PvP Battle Arena",
+    desc: "Challenge friends to 1000 HP real-time/async habit wars with combat damage & taunts.",
+    icon: "⚔️",
+  },
+  {
+    key: "rpgRanks",
+    category: "gamify",
+    categoryLabel: "Gamification & Combat",
+    name: "15-Tier RPG Ranks & XP",
+    desc: "Earn XP, level up through 15 mythic tiers (Seeker to Zenith God), and unlock perks.",
+    icon: "👑",
+  },
+  {
+    key: "rewardShop",
+    category: "gamify",
+    categoryLabel: "Gamification & Combat",
+    name: "Reward Shop & Star Wallet",
+    desc: "Spend stars on custom rewards, Streak Freeze Shields & The History Eraser.",
+    icon: "🛒",
+  },
+  // AI & Modes
+  {
+    key: "aiCoach",
+    category: "ai",
+    categoryLabel: "AI Mentors & Workspaces",
+    name: "AI Habit Coach & Reviewer",
+    desc: "Get intelligent feedback, personalized insights and automated weekly AI reviews.",
+    icon: "🤖",
+  },
+  {
+    key: "myKrishna",
+    category: "ai",
+    categoryLabel: "AI Mentors & Workspaces",
+    name: "My Krishna (Bhagavad Gita AI)",
+    desc: "Spiritual philosophical dialogues, life guidance, shlokas & voice conversations.",
+    icon: "🪶",
+  },
+  {
+    key: "secondBrain",
+    category: "ai",
+    categoryLabel: "AI Mentors & Workspaces",
+    name: "Second Brain Workspace",
+    desc: "Full study queue manager, raw thought dump, wisdom vault & night shift planning.",
+    icon: "🧠",
+  },
+];
+
+// ==========================================
 // ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA DATA MODEL
 // ==========================================
 
@@ -1493,9 +1744,20 @@ export default function App() {
       dp: local.dp || oldV4.profilePic || "",
       activeTheme: local.activeTheme || oldV4.activeTheme || "brutalist",
       customTasks: Array.isArray(local.customTasks) && local.customTasks.length > 0 ? local.customTasks : DEFAULT_TASKS,
-      customShopItems: ensureShopItems(local.customShopItems)
+      customShopItems: ensureShopItems(local.customShopItems),
+      enabledFeatures: {
+        ...DEFAULT_ENABLED_FEATURES,
+        ...(local.enabledFeatures || oldV4.enabledFeatures || {}),
+      },
     };
   });
+
+  const isFeatureEnabled = (key: keyof EnabledFeatures): boolean => {
+    if (!profile || !profile.enabledFeatures) return true;
+    return profile.enabledFeatures[key] !== false;
+  };
+
+  const [featureCategoryFilter, setFeatureCategoryFilter] = useState<"all" | "focus" | "gamify" | "ai" | "core">("all");
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [isEraserActive, setIsEraserActive] = useState(false);
@@ -1761,6 +2023,7 @@ export default function App() {
         const data = docSnap.data();
         if (!data.customTasks || data.customTasks.length === 0) data.customTasks = DEFAULT_TASKS;
         data.customShopItems = ensureShopItems(data.customShopItems);
+        data.enabledFeatures = { ...DEFAULT_ENABLED_FEATURES, ...(data.enabledFeatures || {}) };
         setProfile((prev: any) => {
           const merged = { ...prev, ...data };
           try {
@@ -1849,11 +2112,23 @@ export default function App() {
   }, [brain.lastActiveDate, todayStr]);
 
   // ==========================================
-  // 📱 REAL MOBILE HEADS-UP NOTIFICATION ENGINE
+  // 📱 REAL MOBILE HEADS-UP NOTIFICATION ENGINE WITH SWIPE-TO-DISMISS
   // ==========================================
   const toastTimerRef = useRef<any>(null);
+  const [toastDragX, setToastDragX] = useState(0);
+  const [toastDragY, setToastDragY] = useState(0);
+  const [isToastDragging, setIsToastDragging] = useState(false);
+  const [toastDismissDir, setToastDismissDir] = useState<"left" | "right" | "up" | null>(null);
+  const toastTouchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const toastCurrentDeltaRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
   const showMessage = (msg: string) => {
     setToast(msg);
+    setToastDragX(0);
+    setToastDragY(0);
+    setIsToastDragging(false);
+    setToastDismissDir(null);
+
     if (typeof window !== "undefined" && "vibrate" in navigator) {
       try {
         navigator.vibrate(35);
@@ -1865,7 +2140,19 @@ export default function App() {
     toastTimerRef.current = setTimeout(() => {
       setToast(null);
       toastTimerRef.current = null;
-    }, 3500);
+    }, 4000);
+  };
+
+  const handleToastDismiss = (dir: "left" | "right" | "up" = "right") => {
+    setToastDismissDir(dir);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setTimeout(() => {
+      setToast(null);
+      setToastDismissDir(null);
+      setToastDragX(0);
+      setToastDragY(0);
+      setIsToastDragging(false);
+    }, 220);
   };
 
   const parseToastDetails = (rawMsg: string) => {
@@ -9377,6 +9664,7 @@ One short, electrifying sentence of raw motivation.`;
   return (
     <div className={`min-h-screen ${t.appBg} ${t.fontHeading} transition-colors duration-500 relative overflow-x-hidden`}>
       {/* FLOATING TOP MODE CAPSULE (MOBILE ERGONOMIC) */}
+      {/* 🧭 HEADER NAVIGATION BAR (MODULAR & ADAPTIVE) */}
       <div className="fixed top-0 left-0 w-full z-40 px-2.5 sm:px-4 pt-[max(env(safe-area-inset-top,0px),0.5rem)] pb-2 bg-black/60 backdrop-blur-2xl border-b border-white/10 flex justify-center items-center">
         <div className={`flex w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-1 border shadow-2xl shadow-black/40 ${t.cardInner} ${t.borderAccent}`}>
           <button
@@ -9387,39 +9675,151 @@ One short, electrifying sentence of raw motivation.`;
           >
             HABIT OS
           </button>
-          <button
-            onClick={() => setAppMode("brain")}
-            className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
-              appMode === 'brain' ? `${t.btnPrimary} shadow-md` : `${t.textMuted} hover:${t.textMain}`
-            }`}
-          >
-            SECOND BRAIN
-          </button>
-          <button
-            onClick={() => setAppMode("krishna")}
-            className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
-              appMode === 'krishna'
-                ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border border-amber-300'
-                : 'text-amber-400/80 hover:text-amber-300'
-            }`}
-          >
-            MY KRISHNA 🪶
-          </button>
+          {isFeatureEnabled("secondBrain") && (
+            <button
+              onClick={() => setAppMode("brain")}
+              className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
+                appMode === 'brain' ? `${t.btnPrimary} shadow-md` : `${t.textMuted} hover:${t.textMain}`
+              }`}
+            >
+              SECOND BRAIN
+            </button>
+          )}
+          {isFeatureEnabled("myKrishna") && (
+            <button
+              onClick={() => setAppMode("krishna")}
+              className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-wider rounded-xl sm:rounded-2xl transition-all duration-300 tap-effect ${
+                appMode === 'krishna'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border border-amber-300'
+                  : 'text-amber-400/80 hover:text-amber-300'
+              }`}
+            >
+              MY KRISHNA 🪶
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 📱 REAL MOBILE HEADS-UP NOTIFICATION BANNER (iOS & Android Style) */}
+      {/* 📱 REAL MOBILE SWIPEABLE HEADS-UP NOTIFICATION BANNER (iOS & Android Style) */}
       {toast && (() => {
         const parsed = parseToastDetails(toast);
         return (
           <div
-            onClick={() => setToast(null)}
-            className="fixed top-[calc(env(safe-area-inset-top,0px)+0.65rem)] sm:top-4 left-1/2 -translate-x-1/2 z-[300] w-[calc(100%-1.25rem)] max-w-sm sm:max-w-md cursor-pointer select-none animate-mobile-notification pointer-events-auto"
-            style={{ WebkitTapHighlightColor: "transparent" }}
+            onPointerDown={(e) => {
+              toastTouchStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+              toastCurrentDeltaRef.current = { x: 0, y: 0 };
+              setIsToastDragging(true);
+              if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+            }}
+            onPointerMove={(e) => {
+              if (!toastTouchStartRef.current) return;
+              const deltaX = e.clientX - toastTouchStartRef.current.x;
+              const deltaY = e.clientY - toastTouchStartRef.current.y;
+              toastCurrentDeltaRef.current = { x: deltaX, y: deltaY };
+              setToastDragX(deltaX);
+              setToastDragY(Math.min(20, deltaY));
+            }}
+            onPointerUp={() => {
+              if (!toastTouchStartRef.current) return;
+              const { x: deltaX, y: deltaY } = toastCurrentDeltaRef.current;
+              const elapsed = Date.now() - toastTouchStartRef.current.time;
+              toastTouchStartRef.current = null;
+              setIsToastDragging(false);
+
+              const isFlickX = Math.abs(deltaX) > 35 && elapsed < 280;
+              const isDragX = Math.abs(deltaX) > 65;
+              const isFlickY = deltaY < -25 && elapsed < 280;
+              const isDragY = deltaY < -40;
+
+              if (deltaX > 0 && (isDragX || isFlickX)) {
+                handleToastDismiss("right");
+              } else if (deltaX < 0 && (isDragX || isFlickX)) {
+                handleToastDismiss("left");
+              } else if (isDragY || isFlickY) {
+                handleToastDismiss("up");
+              } else {
+                setToastDragX(0);
+                setToastDragY(0);
+                if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                toastTimerRef.current = setTimeout(() => {
+                  setToast(null);
+                }, 3500);
+              }
+            }}
+            onPointerCancel={() => {
+              toastTouchStartRef.current = null;
+              setIsToastDragging(false);
+              setToastDragX(0);
+              setToastDragY(0);
+            }}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              toastTouchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+              toastCurrentDeltaRef.current = { x: 0, y: 0 };
+              setIsToastDragging(true);
+              if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+            }}
+            onTouchMove={(e) => {
+              if (!toastTouchStartRef.current) return;
+              const touch = e.touches[0];
+              const deltaX = touch.clientX - toastTouchStartRef.current.x;
+              const deltaY = touch.clientY - toastTouchStartRef.current.y;
+              toastCurrentDeltaRef.current = { x: deltaX, y: deltaY };
+              setToastDragX(deltaX);
+              setToastDragY(Math.min(20, deltaY));
+            }}
+            onTouchEnd={() => {
+              if (!toastTouchStartRef.current) return;
+              const { x: deltaX, y: deltaY } = toastCurrentDeltaRef.current;
+              const elapsed = Date.now() - toastTouchStartRef.current.time;
+              toastTouchStartRef.current = null;
+              setIsToastDragging(false);
+
+              const isFlickX = Math.abs(deltaX) > 35 && elapsed < 280;
+              const isDragX = Math.abs(deltaX) > 65;
+              const isFlickY = deltaY < -25 && elapsed < 280;
+              const isDragY = deltaY < -40;
+
+              if (deltaX > 0 && (isDragX || isFlickX)) {
+                handleToastDismiss("right");
+              } else if (deltaX < 0 && (isDragX || isFlickX)) {
+                handleToastDismiss("left");
+              } else if (isDragY || isFlickY) {
+                handleToastDismiss("up");
+              } else {
+                setToastDragX(0);
+                setToastDragY(0);
+                if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                toastTimerRef.current = setTimeout(() => {
+                  setToast(null);
+                }, 3500);
+              }
+            }}
+            className="fixed top-[calc(env(safe-area-inset-top,0px)+0.65rem)] sm:top-4 left-1/2 z-[300] w-[calc(100%-1.25rem)] max-w-sm sm:max-w-md select-none touch-none pointer-events-auto cursor-grab active:cursor-grabbing"
+            style={{
+              transform: toastDismissDir === "left"
+                ? "translate3d(calc(-50% - 130vw), 0, 0) rotate(-16deg)"
+                : toastDismissDir === "right"
+                ? "translate3d(calc(-50% + 130vw), 0, 0) rotate(16deg)"
+                : toastDismissDir === "up"
+                ? "translate3d(-50%, -150%, 0) scale(0.85)"
+                : `translate3d(calc(-50% + ${toastDragX}px), ${toastDragY}px, 0) rotate(${toastDragX * 0.04}deg)`,
+              opacity: toastDismissDir
+                ? 0
+                : Math.max(0.15, 1 - Math.abs(toastDragX) / 260 - (toastDragY < 0 ? Math.abs(toastDragY) / 100 : 0)),
+              transition: isToastDragging
+                ? "none"
+                : "transform 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease-out",
+              WebkitTapHighlightColor: "transparent",
+            }}
           >
-            <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 bg-[#0e1628]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.18)] text-white relative overflow-hidden tap-effect active:scale-[0.98]">
-              {/* Top Notch / Pull Pill */}
-              <div className="w-9 h-1 rounded-full bg-white/25 mx-auto -mt-0.5 mb-2"></div>
+            <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 bg-[#0e1628]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.18)] text-white relative overflow-hidden active:scale-[0.99] transition-transform">
+              {/* Top Notch / Pull Pill with swipe hint */}
+              <div className="flex items-center justify-center gap-1.5 -mt-0.5 mb-2">
+                <span className="text-[7px] text-white/40 tracking-widest font-mono">◂</span>
+                <div className="w-8 h-1 rounded-full bg-white/30"></div>
+                <span className="text-[7px] text-white/40 tracking-widest font-mono">▸</span>
+              </div>
 
               {/* Header: App Name & Meta */}
               <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/10">
@@ -9439,9 +9839,10 @@ One short, electrifying sentence of raw motivation.`;
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setToast(null);
+                      handleToastDismiss("right");
                     }}
                     className="p-0.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    title="Dismiss"
                   >
                     <X size={12} />
                   </button>
@@ -9476,8 +9877,15 @@ One short, electrifying sentence of raw motivation.`;
                 </div>
               </div>
 
-              {/* Subtle Bottom Auto-Dismiss Progress Line */}
-              <div className="w-full bg-white/10 h-0.5 rounded-full overflow-hidden mt-2.5">
+              {/* Swipe Left/Right Hint & Progress Line */}
+              <div className="mt-2.5 pt-1.5 border-t border-white/5 flex items-center justify-between text-[8px] font-bold uppercase tracking-wider text-slate-400/80">
+                <span className="flex items-center gap-1">
+                  <span className="text-amber-400 animate-swipe-hint">↔</span> Swipe left/right to dismiss
+                </span>
+                <span className="text-[7px] text-slate-500">Tap ✕</span>
+              </div>
+
+              <div className="w-full bg-white/10 h-0.5 rounded-full overflow-hidden mt-1.5">
                 <div className="h-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 animate-toast-progress"></div>
               </div>
             </div>
