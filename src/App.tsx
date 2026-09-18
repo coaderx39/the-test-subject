@@ -1757,6 +1757,39 @@ export default function App() {
     return profile.enabledFeatures[key] !== false;
   };
 
+  const toggleFeature = async (key: keyof EnabledFeatures) => {
+    const current = profile?.enabledFeatures || DEFAULT_ENABLED_FEATURES;
+    const next = { ...DEFAULT_ENABLED_FEATURES, ...current, [key]: current[key] === false };
+    await updateProfileFirebase({ enabledFeatures: next });
+    showMessage(next[key] ? "Feature enabled ✓" : "Feature hidden ✓");
+  };
+
+  const applyFeaturePreset = async (preset: typeof FEATURE_PRESETS[number]) => {
+    await updateProfileFirebase({ enabledFeatures: { ...DEFAULT_ENABLED_FEATURES, ...preset.features } });
+    showMessage(preset.name + " mode applied ✓");
+  };
+
+  const resetFeatureSettings = async () => {
+    await updateProfileFirebase({ enabledFeatures: { ...DEFAULT_ENABLED_FEATURES } });
+    showMessage("All features restored ✓");
+  };
+
+  useEffect(() => {
+    if (!isFeatureEnabled("pvpArena")) setIsBattleArenaOpen(false);
+    if (!isFeatureEnabled("twoBox")) setIsTwoBoxModalOpen(false);
+    if (!isFeatureEnabled("focusChamber")) setFocusState((p) => ({ ...p, isOpen: false, isRunning: false }));
+    if (!isFeatureEnabled("dispatcher")) setIsScheduleModalOpen(false);
+    if (!isFeatureEnabled("aiCoach")) { setIsWeeklyReviewOpen(false); if (habitRoute === "coach") setHabitRoute("hub"); }
+    if (!isFeatureEnabled("rpgRanks")) { setIsRankRoadmapOpen(false); setRankTransitionModal(null); }
+    if (!isFeatureEnabled("secondBrain")) { if (appMode === "brain") setAppMode("habit"); if (brainTab !== "dashboard") setBrainTab("dashboard"); }
+    else if (!isFeatureEnabled("urgeInterceptor") && brainTab === "urge") setBrainTab("dashboard");
+    if (!isFeatureEnabled("myKrishna") && appMode === "krishna") setAppMode("habit");
+    if (!isFeatureEnabled("levelMap") && habitRoute === "arena") setHabitRoute("hub");
+    if (!isFeatureEnabled("rewardShop") && habitRoute === "shop") setHabitRoute("hub");
+    if (!isFeatureEnabled("analytics") && habitRoute === "analysis") setHabitRoute("hub");
+    if (!isFeatureEnabled("activePlan") && habitRoute === "plan") setHabitRoute("hub");
+  }, [profile?.enabledFeatures, appMode, brainTab, habitRoute]);
+
   const [featureCategoryFilter, setFeatureCategoryFilter] = useState<"all" | "focus" | "gamify" | "ai" | "core">("all");
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -4872,7 +4905,7 @@ CORE MANNERISMS & ESSENCE:
                 <h1 className={`text-base sm:text-2xl font-black truncate tracking-tight ${t.textMain} ${t.fontHeading}`}>{profile.name}</h1>
                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   <button
-                    onClick={() => setIsRankRoadmapOpen(true)}
+                    onClick={() => isFeatureEnabled("rpgRanks") && setIsRankRoadmapOpen(true)}
                     className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${t.badge} ${t.fontHeading} tap-effect flex items-center gap-1 shadow-sm hover:scale-105 transition-transform`}
                     title="Click to view full 15-tier RPG Rank Progression Roadmap!"
                   >
@@ -4888,7 +4921,7 @@ CORE MANNERISMS & ESSENCE:
             {/* Total XP Badge */}
             <div className="flex-shrink-0">
               <button
-                onClick={() => setIsRankRoadmapOpen(true)}
+                onClick={() => isFeatureEnabled("rpgRanks") && setIsRankRoadmapOpen(true)}
                 className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[9px] sm:text-xs font-bold border tap-effect ${t.cardInner} ${t.borderAccent}`}
               >
                 {profile.xp || 0} XP
@@ -4967,7 +5000,7 @@ CORE MANNERISMS & ESSENCE:
 
           {/* Dynamic XP Progress Bar */}
           <div
-            onClick={() => setIsRankRoadmapOpen(true)}
+            onClick={() => isFeatureEnabled("rpgRanks") && setIsRankRoadmapOpen(true)}
             className="mt-3 cursor-pointer group"
             title="Click to view RPG Rank Progression"
           >
@@ -5075,6 +5108,7 @@ CORE MANNERISMS & ESSENCE:
         {/* ACTION CARDS GRID (CLEAN 2-COLUMN MOBILE RESPONSIVE) */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
           {/* Focus Chamber */}
+          {isFeatureEnabled("focusChamber") && (
           <button
             onClick={() => startFocusSession()}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5091,7 +5125,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Two-Box System */}
+          {isFeatureEnabled("twoBox") && (
           <button
             onClick={() => setIsTwoBoxModalOpen(true)}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5110,7 +5146,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Enter Arena */}
+          {isFeatureEnabled("levelMap") && (
           <button
             onClick={() => setHabitRoute("arena")}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5124,7 +5162,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Reward Shop */}
+          {isFeatureEnabled("rewardShop") && (
           <button
             onClick={() => setHabitRoute("shop")}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5138,7 +5178,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Performance Analytics */}
+          {isFeatureEnabled("analytics") && (
           <button
             onClick={() => setHabitRoute("analysis")}
             className={`col-span-2 sm:col-span-2 lg:col-span-1 p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex items-center gap-3 ${t.cardInner} hover:${t.borderAccent}`}
@@ -5152,7 +5194,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* AI Habit Coach */}
+          {isFeatureEnabled("aiCoach") && (
           <button
             onClick={() => setHabitRoute("coach")}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5166,7 +5210,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Ongoing Plan */}
+          {isFeatureEnabled("activePlan") && (
           <button
             onClick={() => setHabitRoute("plan")}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5180,7 +5226,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* ⚔️ 1v1 Battle Arena Action Card */}
+          {isFeatureEnabled("pvpArena") && (
           <button
             onClick={() => {
               playCombatSlashSound();
@@ -5210,7 +5258,9 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Schedule Dispatcher */}
+          {isFeatureEnabled("dispatcher") && (
           <button
             onClick={() => setIsScheduleModalOpen(true)}
             className={`p-3.5 sm:p-5 text-left group relative overflow-hidden tap-effect hover-lift rounded-2xl shadow-lg border flex flex-col justify-between ${t.cardInner} hover:${t.borderAccent}`}
@@ -5231,6 +5281,7 @@ CORE MANNERISMS & ESSENCE:
             </div>
           </button>
 
+          )}
           {/* Data Vault */}
           <button
             onClick={() => setHabitRoute("vault")}
@@ -5605,7 +5656,7 @@ CORE MANNERISMS & ESSENCE:
           </div>
 
           <button
-            onClick={() => setIsRankRoadmapOpen(true)}
+            onClick={() => isFeatureEnabled("rpgRanks") && setIsRankRoadmapOpen(true)}
             className={`self-start sm:self-auto px-3.5 py-2 rounded-2xl border flex items-center gap-2 tap-effect shadow-lg ${t.cardInner} hover:${t.borderAccent}`}
           >
             <span className="text-xl">{rankData.currentRank.badge}</span>
@@ -6089,7 +6140,7 @@ CORE MANNERISMS & ESSENCE:
                 </div>
 
                 <button
-                  onClick={() => setIsRankRoadmapOpen(true)}
+                  onClick={() => isFeatureEnabled("rpgRanks") && setIsRankRoadmapOpen(true)}
                   className={`py-3 px-5 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg tap-effect flex items-center gap-2 flex-shrink-0 ${t.btnPrimary}`}
                 >
                   <Crown size={15} /> View Full Roadmap
@@ -6934,6 +6985,52 @@ CORE MANNERISMS & ESSENCE:
   };
 
   const renderHabitSettings = () => {
+    if (settingsRoute === "features") {
+      const visibleFeatures = FEATURE_METADATA.filter((f) => featureCategoryFilter === "all" || f.category === featureCategoryFilter);
+      const enabledCount = FEATURE_METADATA.filter((f) => isFeatureEnabled(f.key)).length;
+      const grouped = visibleFeatures.reduce((a: Record<string, typeof FEATURE_METADATA>, f) => { (a[f.categoryLabel] ||= []).push(f); return a; }, {});
+      return (
+        <div className="space-y-5 max-w-3xl mx-auto pb-24 animate-in fade-in duration-300">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button onClick={() => setSettingsRoute("menu")} className={`p-2.5 sm:p-3 tap-effect rounded-xl \${t.cardInner} \${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+            <div>
+              <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 \${t.textMain} \${t.fontHeading}`}><Sliders className={`w-5 h-5 sm:w-6 sm:h-6 \${t.textAccent}`} /> Feature Control Center</h2>
+              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 \${t.textMuted}`}>{enabledCount}/{FEATURE_METADATA.length} modules enabled • Your workspace, your rules</p>
+            </div>
+          </div>
+          <div className={`p-4 sm:p-5 rounded-3xl border \${t.card} \${t.borderAccent}`}>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest \${t.textMain} \${t.fontHeading}`}>Quick Setup Presets</h3><p className={`text-[9px] sm:text-[10px] mt-1 \${t.textMuted}`}>Start with a workflow, then fine-tune every module.</p></div>
+              <button onClick={resetFeatureSettings} className={`px-3 py-2 rounded-xl border text-[9px] font-black uppercase tap-effect \${t.cardInner} \${t.textMuted} \${t.borderAccent}`}>Reset All</button>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {FEATURE_PRESETS.map((preset) => <button key={preset.id} onClick={() => applyFeaturePreset(preset)} className={`p-3 rounded-2xl border text-left tap-effect \${t.cardInner} \${t.borderAccent}`}><div className="text-xl">{preset.icon}</div><div className={`text-[10px] sm:text-xs font-black uppercase \${t.textMain}`}>{preset.name}</div><div className={`text-[8px] mt-1 \${t.textMuted}`}>{preset.desc}</div></button>)}
+            </div>
+          </div>
+          <div className={`p-3 rounded-2xl border \${t.cardInner} \${t.borderAccent}`}>
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar">
+              {[{id:"all",label:"ALL"},{id:"focus",label:"FOCUS"},{id:"gamify",label:"GAMIFICATION"},{id:"ai",label:"AI & MODES"},{id:"core",label:"CORE"}].map((tab) => <button key={tab.id} onClick={() => setFeatureCategoryFilter(tab.id as any)} className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase whitespace-nowrap tap-effect \${featureCategoryFilter === tab.id ? t.btnPrimary : t.cardInner + " " + t.textMuted}`}>{tab.label}</button>)}
+            </div>
+          </div>
+          {Object.entries(grouped).map(([category, features]) => (
+            <div key={category} className={`p-4 sm:p-5 rounded-3xl border \${t.card} \${t.borderAccent}`}>
+              <div className="flex items-center justify-between mb-3"><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest \${t.textMain} \${t.fontHeading}`}>{category}</h3><span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full \${t.badge}`}>{features.filter((f) => isFeatureEnabled(f.key)).length}/{features.length} ON</span></div>
+              <div className="space-y-2.5">
+                {features.map((feature) => { const enabled = isFeatureEnabled(feature.key); return (
+                  <div key={feature.key} className={`p-3 sm:p-4 rounded-2xl border flex items-center gap-3 \${enabled ? t.cardInner : "bg-black/20 border-white/5 opacity-60"}`}>
+                    <div className="text-2xl shrink-0">{feature.icon}</div>
+                    <div className="min-w-0 flex-1"><div className={`text-xs sm:text-sm font-black \${t.textMain} \${t.fontHeading}`}>{feature.name}</div><p className={`text-[9px] sm:text-[10px] mt-0.5 leading-relaxed \${t.textMuted}`}>{feature.desc}</p></div>
+                    <button role="switch" aria-checked={enabled} onClick={() => toggleFeature(feature.key)} className={`relative w-12 h-7 rounded-full shrink-0 transition-all border tap-effect \${enabled ? "bg-emerald-500/80 border-emerald-300/50" : "bg-slate-700/80 border-slate-500/50"}`}><span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md \${enabled ? "left-6" : "left-1"}`} /></button>
+                  </div>
+                ); })}
+              </div>
+            </div>
+          ))}
+          <div className={`p-4 rounded-2xl border \${t.cardInner} \${t.borderAccent}`}><div className="flex items-start gap-3"><ShieldAlert className={`w-5 h-5 mt-0.5 shrink-0 \${t.textAccent}`} /><div><h4 className={`text-[10px] font-black uppercase tracking-widest \${t.textMain}`}>Always-on core</h4><p className={`text-[9px] sm:text-[10px] mt-1 leading-relaxed \${t.textMuted}`}>Daily habit tracking, To-Do list, profile, themes, settings and backup remain available. Optional modules above can be toggled independently.</p></div></div></div>
+        </div>
+      );
+    }
+
     if (settingsRoute === "menu") {
       return (
         <div className="space-y-6 max-w-xl mx-auto pb-20 animate-in fade-in duration-300">
@@ -6957,6 +7054,11 @@ CORE MANNERISMS & ESSENCE:
               <Sparkles className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
               <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>App Theme Engine</h2>
               <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Visual aesthetics</p>
+            </button>
+            <button onClick={() => setSettingsRoute("features")} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border \${t.cardInner} hover:\${t.borderAccent} \${t.borderAccent}`}>
+              <Sliders className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors \${t.textAccent}`} />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 \${t.textMain} \${t.fontHeading}`}>Feature Control Center</h2>
+              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 \${t.textMuted}`}>Turn modules on/off & choose your workflow</p>
             </button>
             <button onClick={() => setSettingsRoute("profile")} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border ${t.cardInner} hover:${t.borderAccent} ${t.borderAccent}`}>
               <User className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
@@ -9907,21 +10009,21 @@ One short, electrifying sentence of raw motivation.`;
           {appMode === 'habit' && (
             <>
               {habitRoute === "hub" && renderHabitHub()}
-              {habitRoute === "arena" && renderHabitArena()}
+              {isFeatureEnabled("levelMap") && habitRoute === "arena" && renderHabitArena()}
               {habitRoute === "tracker" && renderHabitTracker()}
-              {habitRoute === "shop" && renderShop()}
+              {isFeatureEnabled("rewardShop") && habitRoute === "shop" && renderShop()}
               {habitRoute === "settings" && renderHabitSettings()}
-              {habitRoute === "analysis" && renderAnalysis()}
-              {habitRoute === "plan" && renderOngoingPlan()}
+              {isFeatureEnabled("analytics") && habitRoute === "analysis" && renderAnalysis()}
+              {isFeatureEnabled("activePlan") && habitRoute === "plan" && renderOngoingPlan()}
               {habitRoute === "vault" && renderVault()}
-              {habitRoute === "coach" && renderCoach()}
+              {isFeatureEnabled("aiCoach") && habitRoute === "coach" && renderCoach()}
 
               {/* HABIT OS MOBILE BOTTOM NAVIGATION BAR */}
               <div className={`fixed bottom-0 left-0 w-full border-t z-40 overflow-hidden backdrop-blur-2xl ${t.card} border-white/10`}>
                 <div className="max-w-md sm:max-w-lg mx-auto grid grid-cols-5 px-1 py-1 sm:py-1.5 pb-[calc(env(safe-area-inset-bottom,0px)+6px)]">
                   {[
                     { id: 'hub', icon: Trophy, label: 'HUB' },
-                    { id: 'arena', icon: Swords, label: 'ARENA' },
+                    { id: 'arena', icon: Swords, label: 'ARENA', featureKey: "levelMap" },
                     {
                       id: 'tracker',
                       icon: CheckSquare,
@@ -9932,9 +10034,9 @@ One short, electrifying sentence of raw motivation.`;
                         setHabitRoute('tracker');
                       }
                     },
-                    { id: 'shop', icon: ShoppingCart, label: 'SHOP' },
-                    { id: 'analysis', icon: BarChart2, label: 'STATS' },
-                  ].map((tab: any) => {
+                    { id: 'shop', icon: ShoppingCart, label: 'SHOP', featureKey: "rewardShop" },
+                    { id: 'analysis', icon: BarChart2, label: 'STATS', featureKey: "analytics" },
+                  ].filter((tab: any) => !tab.featureKey || isFeatureEnabled(tab.featureKey)).map((tab: any) => {
                     const isActive = habitRoute === tab.id;
                     return (
                       <button
@@ -9956,14 +10058,14 @@ One short, electrifying sentence of raw motivation.`;
             </>
           )}
 
-          {appMode === 'brain' && (
+          {appMode === 'brain' && isFeatureEnabled("secondBrain") && (
             <>
               {brainTab === 'dashboard' && renderBrainDashboard()}
               {brainTab === 'study' && renderBrainStudy()}
               {brainTab === 'history' && renderBrainHistory()}
               {brainTab === 'wisdom' && renderBrainWisdom()}
               {brainTab === 'vault' && renderBrainVault()}
-              {brainTab === 'urge' && renderBrainUrge()}
+              {isFeatureEnabled("urgeInterceptor") && brainTab === 'urge' && renderBrainUrge()}
 
               {/* Night Shift Widget */}
               {isNightTime && (
@@ -10099,7 +10201,7 @@ One short, electrifying sentence of raw motivation.`;
                     { id: 'wisdom', icon: Folder, label: 'WISDOM' },
                     { id: 'vault', icon: BrainCircuit, label: 'DUMP' },
                     { id: 'urge', icon: ShieldAlert, label: 'URGE' }
-                  ].map((tab: any) => (
+                  ].filter((tab: any) => tab.id !== 'urge' || isFeatureEnabled("urgeInterceptor")).map((tab: any) => (
                     <button
                       key={tab.id}
                       onClick={() => setBrainTab(tab.id)}
@@ -10118,14 +10220,14 @@ One short, electrifying sentence of raw motivation.`;
             </>
           )}
 
-          {appMode === 'krishna' && renderMyKrishna()}
+          {appMode === 'krishna' && isFeatureEnabled("myKrishna") && renderMyKrishna()}
         </div>
       </div>
 
       {/* ========================================== */}
       {/* 1. FOCUS CHAMBER & DEEP WORK MODAL */}
       {/* ========================================== */}
-      {focusState.isOpen && (
+      {isFeatureEnabled("focusChamber") && focusState.isOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
           <div className={`w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border-2 ${t.card} ${t.borderAccent} relative overflow-hidden flex flex-col justify-between`}>
             {/* Ambient Background Glow */}
@@ -10454,7 +10556,7 @@ One short, electrifying sentence of raw motivation.`;
       {/* ========================================== */}
       {/* 👑 15-TIER RPG RANK PROGRESSION & ROADMAP MODAL */}
       {/* ========================================== */}
-      {isRankRoadmapOpen && (
+      {isFeatureEnabled("rpgRanks") && isRankRoadmapOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300">
           <div className="w-full max-w-3xl rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400/50 bg-[#090e1a] text-white relative max-h-[92vh] overflow-y-auto space-y-6">
             {/* Header */}
@@ -11164,7 +11266,7 @@ One short, electrifying sentence of raw motivation.`;
       {/* ========================================== */}
       {/* 3. WEEKLY AI PERFORMANCE REVIEW MODAL */}
       {/* ========================================== */}
-      {isWeeklyReviewOpen && (
+      {isFeatureEnabled("aiCoach") && isWeeklyReviewOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-300">
           <div className={`w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border-2 ${t.card} ${t.borderAccent} max-h-[85vh] flex flex-col justify-between overflow-hidden relative`}>
             {/* Header */}
@@ -11240,12 +11342,12 @@ One short, electrifying sentence of raw motivation.`;
       {/* ========================================== */}
       {/* ⚔️ 1v1 PVP DISCIPLINE BATTLE ARENA MODAL */}
       {/* ========================================== */}
-      {isBattleArenaOpen && renderBattleArenaModal()}
+      {isFeatureEnabled("pvpArena") && isBattleArenaOpen && renderBattleArenaModal()}
 
       {/* ========================================== */}
       {/* 📅 CLASS & MEETING DISPATCHER MODAL */}
       {/* ========================================== */}
-      {isScheduleModalOpen && renderScheduleModal()}
+      {isFeatureEnabled("dispatcher") && isScheduleModalOpen && renderScheduleModal()}
 
       {/* ========================================== */}
       {/* 🏆 DUOLINGO-STYLE RANK UP & RANK DOWN MODAL */}
