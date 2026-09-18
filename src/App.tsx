@@ -1774,6 +1774,9 @@ export default function App() {
     showMessage("All features restored ✓");
   };
 
+  // Keep brainTab declared before the feature-state effect that references it.
+  const [brainTab, setBrainTab] = useState("dashboard");
+
   useEffect(() => {
     if (!isFeatureEnabled("pvpArena")) setIsBattleArenaOpen(false);
     if (!isFeatureEnabled("twoBox")) setIsTwoBoxModalOpen(false);
@@ -1818,7 +1821,6 @@ export default function App() {
   const [weekOffset, setWeekOffset] = useState(0);
 
   // ================= BRAIN STATE =================
-  const [brainTab, setBrainTab] = useState("dashboard");
   const [brain, setBrain] = useState<any>(() => {
     const local = safeJsonParse<Record<string, any>>(localStorage.getItem('apex_brain_v5'), {});
     const oldV4 = safeJsonParse<Record<string, any>>(localStorage.getItem('apexMindData_Final_V4'), {});
