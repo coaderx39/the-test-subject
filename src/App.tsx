@@ -6992,41 +6992,41 @@ CORE MANNERISMS & ESSENCE:
       return (
         <div className="space-y-5 max-w-3xl mx-auto pb-24 animate-in fade-in duration-300">
           <div className="flex items-center gap-3 sm:gap-4">
-            <button onClick={() => setSettingsRoute("menu")} className={`p-2.5 sm:p-3 tap-effect rounded-xl \${t.cardInner} \${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+            <button onClick={() => setSettingsRoute("menu")} className={`p-2.5 sm:p-3 tap-effect rounded-xl ${t.cardInner} ${t.textMain}`}><ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" /></button>
             <div>
-              <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 \${t.textMain} \${t.fontHeading}`}><Sliders className={`w-5 h-5 sm:w-6 sm:h-6 \${t.textAccent}`} /> Feature Control Center</h2>
-              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 \${t.textMuted}`}>{enabledCount}/{FEATURE_METADATA.length} modules enabled • Your workspace, your rules</p>
+              <h2 className={`text-lg sm:text-2xl font-black flex items-center gap-2 ${t.textMain} ${t.fontHeading}`}><Sliders className={`w-5 h-5 sm:w-6 sm:h-6 ${t.textAccent}`} /> Feature Control Center</h2>
+              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 ${t.textMuted}`}>{enabledCount}/{FEATURE_METADATA.length} modules enabled • Your workspace, your rules</p>
             </div>
           </div>
-          <div className={`p-4 sm:p-5 rounded-3xl border \${t.card} \${t.borderAccent}`}>
+          <div className={`p-4 sm:p-5 rounded-3xl border ${t.card} ${t.borderAccent}`}>
             <div className="flex items-center justify-between gap-3 mb-4">
-              <div><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest \${t.textMain} \${t.fontHeading}`}>Quick Setup Presets</h3><p className={`text-[9px] sm:text-[10px] mt-1 \${t.textMuted}`}>Start with a workflow, then fine-tune every module.</p></div>
-              <button onClick={resetFeatureSettings} className={`px-3 py-2 rounded-xl border text-[9px] font-black uppercase tap-effect \${t.cardInner} \${t.textMuted} \${t.borderAccent}`}>Reset All</button>
+              <div><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest ${t.textMain} ${t.fontHeading}`}>Quick Setup Presets</h3><p className={`text-[9px] sm:text-[10px] mt-1 ${t.textMuted}`}>Start with a workflow, then fine-tune every module.</p></div>
+              <button onClick={resetFeatureSettings} className={`px-3 py-2 rounded-xl border text-[9px] font-black uppercase tap-effect ${t.cardInner} ${t.textMuted} ${t.borderAccent}`}>Reset All</button>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-              {FEATURE_PRESETS.map((preset) => <button key={preset.id} onClick={() => applyFeaturePreset(preset)} className={`p-3 rounded-2xl border text-left tap-effect \${t.cardInner} \${t.borderAccent}`}><div className="text-xl">{preset.icon}</div><div className={`text-[10px] sm:text-xs font-black uppercase \${t.textMain}`}>{preset.name}</div><div className={`text-[8px] mt-1 \${t.textMuted}`}>{preset.desc}</div></button>)}
+              {FEATURE_PRESETS.map((preset) => <button key={preset.id} onClick={() => applyFeaturePreset(preset)} className={`p-3 rounded-2xl border text-left tap-effect ${t.cardInner} ${t.borderAccent}`}><div className="text-xl">{preset.icon}</div><div className={`text-[10px] sm:text-xs font-black uppercase ${t.textMain}`}>{preset.name}</div><div className={`text-[8px] mt-1 ${t.textMuted}`}>{preset.desc}</div></button>)}
             </div>
           </div>
-          <div className={`p-3 rounded-2xl border \${t.cardInner} \${t.borderAccent}`}>
+          <div className={`p-3 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}>
             <div className="flex gap-1.5 overflow-x-auto hide-scrollbar">
-              {[{id:"all",label:"ALL"},{id:"focus",label:"FOCUS"},{id:"gamify",label:"GAMIFICATION"},{id:"ai",label:"AI & MODES"},{id:"core",label:"CORE"}].map((tab) => <button key={tab.id} onClick={() => setFeatureCategoryFilter(tab.id as any)} className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase whitespace-nowrap tap-effect \${featureCategoryFilter === tab.id ? t.btnPrimary : t.cardInner + " " + t.textMuted}`}>{tab.label}</button>)}
+              {[{id:"all",label:"ALL"},{id:"focus",label:"FOCUS"},{id:"gamify",label:"GAMIFICATION"},{id:"ai",label:"AI & MODES"},{id:"core",label:"CORE"}].map((tab) => <button key={tab.id} onClick={() => setFeatureCategoryFilter(tab.id as any)} className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase whitespace-nowrap tap-effect ${featureCategoryFilter === tab.id ? t.btnPrimary : t.cardInner + " " + t.textMuted}`}>{tab.label}</button>)}
             </div>
           </div>
           {Object.entries(grouped).map(([category, features]) => (
-            <div key={category} className={`p-4 sm:p-5 rounded-3xl border \${t.card} \${t.borderAccent}`}>
-              <div className="flex items-center justify-between mb-3"><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest \${t.textMain} \${t.fontHeading}`}>{category}</h3><span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full \${t.badge}`}>{features.filter((f) => isFeatureEnabled(f.key)).length}/{features.length} ON</span></div>
+            <div key={category} className={`p-4 sm:p-5 rounded-3xl border ${t.card} ${t.borderAccent}`}>
+              <div className="flex items-center justify-between mb-3"><h3 className={`text-xs sm:text-sm font-black uppercase tracking-widest ${t.textMain} ${t.fontHeading}`}>{category}</h3><span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${t.badge}`}>{features.filter((f) => isFeatureEnabled(f.key)).length}/{features.length} ON</span></div>
               <div className="space-y-2.5">
                 {features.map((feature) => { const enabled = isFeatureEnabled(feature.key); return (
-                  <div key={feature.key} className={`p-3 sm:p-4 rounded-2xl border flex items-center gap-3 \${enabled ? t.cardInner : "bg-black/20 border-white/5 opacity-60"}`}>
+                  <div key={feature.key} className={`p-3 sm:p-4 rounded-2xl border flex items-center gap-3 ${enabled ? t.cardInner : "bg-black/20 border-white/5 opacity-60"}`}>
                     <div className="text-2xl shrink-0">{feature.icon}</div>
-                    <div className="min-w-0 flex-1"><div className={`text-xs sm:text-sm font-black \${t.textMain} \${t.fontHeading}`}>{feature.name}</div><p className={`text-[9px] sm:text-[10px] mt-0.5 leading-relaxed \${t.textMuted}`}>{feature.desc}</p></div>
-                    <button role="switch" aria-checked={enabled} onClick={() => toggleFeature(feature.key)} className={`relative w-12 h-7 rounded-full shrink-0 transition-all border tap-effect \${enabled ? "bg-emerald-500/80 border-emerald-300/50" : "bg-slate-700/80 border-slate-500/50"}`}><span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md \${enabled ? "left-6" : "left-1"}`} /></button>
+                    <div className="min-w-0 flex-1"><div className={`text-xs sm:text-sm font-black ${t.textMain} ${t.fontHeading}`}>{feature.name}</div><p className={`text-[9px] sm:text-[10px] mt-0.5 leading-relaxed ${t.textMuted}`}>{feature.desc}</p></div>
+                    <button role="switch" aria-checked={enabled} onClick={() => toggleFeature(feature.key)} className={`relative w-12 h-7 rounded-full shrink-0 transition-all border tap-effect ${enabled ? "bg-emerald-500/80 border-emerald-300/50" : "bg-slate-700/80 border-slate-500/50"}`}><span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md ${enabled ? "left-6" : "left-1"}`} /></button>
                   </div>
                 ); })}
               </div>
             </div>
           ))}
-          <div className={`p-4 rounded-2xl border \${t.cardInner} \${t.borderAccent}`}><div className="flex items-start gap-3"><ShieldAlert className={`w-5 h-5 mt-0.5 shrink-0 \${t.textAccent}`} /><div><h4 className={`text-[10px] font-black uppercase tracking-widest \${t.textMain}`}>Always-on core</h4><p className={`text-[9px] sm:text-[10px] mt-1 leading-relaxed \${t.textMuted}`}>Daily habit tracking, To-Do list, profile, themes, settings and backup remain available. Optional modules above can be toggled independently.</p></div></div></div>
+          <div className={`p-4 rounded-2xl border ${t.cardInner} ${t.borderAccent}`}><div className="flex items-start gap-3"><ShieldAlert className={`w-5 h-5 mt-0.5 shrink-0 ${t.textAccent}`} /><div><h4 className={`text-[10px] font-black uppercase tracking-widest ${t.textMain}`}>Always-on core</h4><p className={`text-[9px] sm:text-[10px] mt-1 leading-relaxed ${t.textMuted}`}>Daily habit tracking, To-Do list, profile, themes, settings and backup remain available. Optional modules above can be toggled independently.</p></div></div></div>
         </div>
       );
     }
@@ -7055,10 +7055,10 @@ CORE MANNERISMS & ESSENCE:
               <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>App Theme Engine</h2>
               <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Visual aesthetics</p>
             </button>
-            <button onClick={() => setSettingsRoute("features")} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border \${t.cardInner} hover:\${t.borderAccent} \${t.borderAccent}`}>
-              <Sliders className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors \${t.textAccent}`} />
-              <h2 className={`text-sm sm:text-lg font-black relative z-10 \${t.textMain} \${t.fontHeading}`}>Feature Control Center</h2>
-              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 \${t.textMuted}`}>Turn modules on/off & choose your workflow</p>
+            <button onClick={() => setSettingsRoute("features")} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border ${t.cardInner} hover:${t.borderAccent} ${t.borderAccent}`}>
+              <Sliders className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
+              <h2 className={`text-sm sm:text-lg font-black relative z-10 ${t.textMain} ${t.fontHeading}`}>Feature Control Center</h2>
+              <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 relative z-10 ${t.textMuted}`}>Turn modules on/off & choose your workflow</p>
             </button>
             <button onClick={() => setSettingsRoute("profile")} className={`p-6 sm:p-7 text-left group relative overflow-hidden rounded-3xl tap-effect border ${t.cardInner} hover:${t.borderAccent} ${t.borderAccent}`}>
               <User className={`w-7 h-7 sm:w-8 sm:h-8 mb-3 relative z-10 transition-colors ${t.textAccent}`} />
