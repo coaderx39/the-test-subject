@@ -7503,6 +7503,7 @@ CORE MANNERISMS & ESSENCE:
       taskTitle: title || "Deep Focus Chamber",
       topicId: topicId || null,
       totalFocusedSeconds: 0,
+      sessionStartedAt: Date.now(),
     });
   };
 
@@ -7517,6 +7518,7 @@ CORE MANNERISMS & ESSENCE:
       isRunning: false,
       isBreak: false,
       totalFocusedSeconds: 0,
+      sessionStartedAt: null,
     }));
   };
 
