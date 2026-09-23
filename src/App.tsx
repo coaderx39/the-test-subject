@@ -7461,6 +7461,7 @@ CORE MANNERISMS & ESSENCE:
                 secondsLeft: breakMins * 60,
                 isRunning: false,
                 totalFocusedSeconds: prev.totalFocusedSeconds + deltaSec,
+                sessionStartedAt: null,
               };
             } else {
               showMessage("☕ Break Finished! Ready for another deep work sprint?");
