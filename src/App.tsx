@@ -7500,9 +7500,6 @@ CORE MANNERISMS & ESSENCE:
         const promise = el.requestFullscreen({ navigationUI: "hide" } as any);
         if (promise?.catch) promise.catch(() => {});
       }
-      if (screen.orientation && (screen.orientation as any).lock) {
-        (screen.orientation as any).lock("landscape").catch(() => {});
-      }
     } catch {}
   };
 
@@ -7567,6 +7564,13 @@ CORE MANNERISMS & ESSENCE:
       if (prev.mode === "stopwatch") return prev;
       if (prev.mode === "timer") {
         const mins = prev.customTimerMinutes || prev.durationMinutes || 10;
+        recordFocusSession(mins * 60, prev.mode, prev.taskTitle || undefined, prev.sessionStartedAt);
+        updateProfileFirebase({
+          stars: (profile.stars || 0) + 1,
+          xp: (profile.xp || 0) + 50,
+          totalFocusMinutes: (profile.totalFocusMinutes || 0) + mins,
+        });
+        showMessage("⏩ Timer skipped — full session reward earned! +1 Star ⭐ & +50 XP");
         return {
           ...prev,
           isRunning: false,
@@ -10491,7 +10495,7 @@ One short, electrifying sentence of raw motivation.`;
                         <FastForward size={17} /> Skip
                       </button>
                       <button
-                        onClick={() => setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning, sessionStartedAt: !prev.isRunning ? (prev.sessionStartedAt || Date.now()) : prev.sessionStartedAt }))}
+                        onClick={() => { if (!focusState.isRunning) enterFocusFullscreen(); setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning, sessionStartedAt: !prev.isRunning ? (prev.sessionStartedAt || Date.now()) : prev.sessionStartedAt })); }}
                         className="flex min-w-[190px] items-center justify-center gap-2 rounded-full bg-[#f9ead0] px-8 py-3.5 text-sm font-black shadow-[0_10px_24px_rgba(95,68,35,0.12)] border border-white/80 active:scale-95 transition-transform"
                       >
                         {focusState.isRunning ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
