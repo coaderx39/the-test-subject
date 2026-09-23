@@ -1901,7 +1901,8 @@ export default function App() {
     taskTitle: string;
   };
 
-  const [focusView, setFocusView] = useState<"timer" | "stats" | "history">("timer");
+  const [focusView, setFocusView] = useState<"timer" | "stats" | "history" | "settings">("timer");
+  const [focusSettings, setFocusSettings] = useState({ pomodoro: 25, deepflow: 50, break: 5 });
   const [focusStatsRange, setFocusStatsRange] = useState<"day" | "week" | "month" | "year">("day");
   const [focusStatsDate, setFocusStatsDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [focusSessionHistory, setFocusSessionHistory] = useState<FocusSessionRecord[]>(() =>
@@ -7492,9 +7493,31 @@ CORE MANNERISMS & ESSENCE:
   // ==========================================
   // FOCUS ENGINE HELPERS
   // ==========================================
+  const enterFocusFullscreen = () => {
+    try {
+      const el = document.documentElement as any;
+      if (el.requestFullscreen && !document.fullscreenElement) {
+        const promise = el.requestFullscreen({ navigationUI: "hide" } as any);
+        if (promise?.catch) promise.catch(() => {});
+      }
+      if (screen.orientation && (screen.orientation as any).lock) {
+        (screen.orientation as any).lock("landscape").catch(() => {});
+      }
+    } catch {}
+  };
+
+  const exitFocusFullscreen = () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        const promise = document.exitFullscreen();
+        if (promise?.catch) promise.catch(() => {});
+      }
+    } catch {}
+  };
+
   const startFocusSession = (title?: string, taskId?: string, topicId?: string, defaultMode: "pomodoro" | "deepflow" | "timer" | "stopwatch" = "pomodoro") => {
     const customMins = focusState.customTimerMinutes || 10;
-    const mins = defaultMode === "deepflow" ? 50 : defaultMode === "pomodoro" ? 25 : defaultMode === "timer" ? customMins : 0;
+    const mins = defaultMode === "deepflow" ? focusSettings.deepflow : defaultMode === "pomodoro" ? focusSettings.pomodoro : defaultMode === "timer" ? customMins : 0;
     setFocusState({
       isOpen: true,
       mode: defaultMode,
@@ -7509,11 +7532,12 @@ CORE MANNERISMS & ESSENCE:
       totalFocusedSeconds: 0,
       sessionStartedAt: Date.now(),
     });
+    enterFocusFullscreen();
   };
 
   const switchFocusMode = (mode: "pomodoro" | "deepflow" | "timer" | "stopwatch") => {
     const customMins = focusState.customTimerMinutes || 10;
-    const mins = mode === "deepflow" ? 50 : mode === "pomodoro" ? 25 : mode === "timer" ? customMins : 0;
+    const mins = mode === "deepflow" ? focusSettings.deepflow : mode === "pomodoro" ? focusSettings.pomodoro : mode === "timer" ? customMins : 0;
     setFocusState((prev) => ({
       ...prev,
       mode,
@@ -7553,7 +7577,41 @@ CORE MANNERISMS & ESSENCE:
           totalFocusedSeconds: 0,
         };
       }
-      const nextMinutes = prev.isBreak ? (prev.mode === "deepflow" ? 50 : 25) : (prev.mode === "deepflow" ? 10 : 5);
+      if (prev.isBreak) {
+        const nextMinutes = prev.mode === "deepflow" ? focusSettings.deepflow : focusSettings.pomodoro;
+        return {
+          ...prev,
+          isBreak: false,
+          durationMinutes: nextMinutes,
+          secondsLeft: nextMinutes * 60,
+          isRunning: false,
+          sessionStartedAt: null,
+        };
+      }
+
+      const finishedMinutes = prev.mode === "deepflow" ? focusSettings.deepflow : focusSettings.pomodoro;
+      if (finishedMinutes > 0) {
+        const starsEarned = 1;
+        const xpEarned = 50;
+        recordFocusSession(finishedMinutes * 60, prev.mode, prev.taskTitle || undefined, prev.sessionStartedAt);
+        updateProfileFirebase({
+          stars: (profile.stars || 0) + starsEarned,
+          xp: (profile.xp || 0) + xpEarned,
+          totalFocusMinutes: (profile.totalFocusMinutes || 0) + finishedMinutes,
+        });
+        applyBattleFocusStrike(finishedMinutes);
+        showMessage(`⏩ Focus skipped — full session reward earned! +${starsEarned} Star ⭐ & +${xpEarned} XP`);
+      }
+
+      const breakMins = prev.mode === "deepflow" ? focusSettings.break : focusSettings.break;
+      return {
+        ...prev,
+        isBreak: true,
+        durationMinutes: breakMins,
+        secondsLeft: breakMins * 60,
+        isRunning: false,
+        sessionStartedAt: null,
+      };
       return {
         ...prev,
         isBreak: !prev.isBreak,
@@ -10379,7 +10437,7 @@ One short, electrifying sentence of raw motivation.`;
               const renderTimer = () => (
                 <div className="focus-timer-landscape flex min-h-full flex-col">
                   <div className="flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-7">
-                    <button onClick={() => setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false }))} className="flex items-center gap-2 rounded-full bg-[#f9ead0]/90 px-4 py-2 text-sm font-bold shadow-sm border border-white/70">
+                    <button onClick={() => { exitFocusFullscreen(); setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false })); }} className="flex items-center gap-2 rounded-full bg-[#f9ead0]/90 px-4 py-2 text-sm font-bold shadow-sm border border-white/70">
                       <span className="h-2.5 w-2.5 rounded-full bg-[#f3b64b]" /> focus chamber <ChevronRight size={15} className="text-[#8b7a61]" />
                     </button>
                     <button onClick={() => setFocusView("stats")} className="rounded-full bg-[#f9ead0]/90 p-3 shadow-sm border border-white/70"><BarChart2 size={19} /></button>
@@ -10423,10 +10481,6 @@ One short, electrifying sentence of raw motivation.`;
                       </div>
                     )}
 
-                    <div className="focus-task-pill mb-6 rounded-full bg-[#f9ead0]/90 px-5 py-2 text-xs font-bold text-[#76664f] shadow-sm border border-white/70">
-                      <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#f3b64b]" /> {focusState.taskTitle || "deep study"}
-                    </div>
-
                     <div className="focus-actions flex items-center justify-center gap-2">
                       <button
                         onClick={() => skipFocusPhase()}
@@ -10446,7 +10500,7 @@ One short, electrifying sentence of raw motivation.`;
                     </div>
 
                     <div className="focus-nav mt-6 flex items-center gap-3">
-                      <button onClick={() => setFocusView("timer")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><Sliders size={19} /></button>
+                      <button onClick={() => setFocusView("settings")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70 active:scale-95 transition-transform" title="Focus settings" aria-label="Focus settings"><Sliders size={19} /></button>
                       <button onClick={() => setFocusView("stats")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><BarChart2 size={19} /></button>
                       <button onClick={() => setFocusView("history")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><History size={19} /></button>
                     </div>
@@ -10455,11 +10509,53 @@ One short, electrifying sentence of raw motivation.`;
                 </div>
               );
 
+              const renderSettings = () => (
+                <div className="min-h-full px-4 py-5 sm:px-8 sm:py-7">
+                  <div className="mx-auto max-w-2xl">
+                    <div className="mb-5 flex items-center justify-between">
+                      <button onClick={() => setFocusView("timer")} className="flex items-center gap-2 rounded-full bg-[#f9ead0] px-4 py-2 text-sm font-bold border border-white/70"><ChevronLeft size={16} /> focus chamber</button>
+                      <div className="rounded-full bg-[#f9ead0] px-4 py-2 text-xs font-black uppercase tracking-wider text-[#806c50]">Settings</div>
+                    </div>
+                    <div className="rounded-[30px] bg-[#f9ead0]/90 border border-white/70 shadow-sm p-5 sm:p-7">
+                      <div className="mb-6">
+                        <h2 className="text-2xl font-black">Focus settings</h2>
+                        <p className="mt-1 text-sm text-[#88745a]">Set your preferred focus and break lengths. Changes apply to the next phase.</p>
+                      </div>
+                      <div className="space-y-4">
+                        {([
+                          ["pomodoro", "Pomodoro focus", focusSettings.pomodoro, 1, 180],
+                          ["deepflow", "Deep Flow focus", focusSettings.deepflow, 1, 180],
+                          ["break", "Break", focusSettings.break, 1, 60],
+                        ] as const).map(([key, label, value, min, max]) => (
+                          <div key={key} className="flex items-center justify-between gap-4 rounded-2xl bg-[#f4dfb8] p-4 border border-white/60">
+                            <div><div className="text-sm font-black">{label}</div><div className="text-[11px] font-bold text-[#8c795e]">Minutes</div></div>
+                            <input type="number" min={min} max={max} inputMode="numeric" value={value}
+                              onChange={(e) => {
+                                const next = Math.max(min, Math.min(max, Number(e.target.value) || min));
+                                setFocusSettings((prev) => ({ ...prev, [key]: next }));
+                                if (key === "pomodoro" && focusState.mode === "pomodoro" && !focusState.isRunning && !focusState.isBreak) {
+                                  setFocusState((prev) => ({ ...prev, durationMinutes: next, secondsLeft: next * 60 }));
+                                }
+                                if (key === "deepflow" && focusState.mode === "deepflow" && !focusState.isRunning && !focusState.isBreak) {
+                                  setFocusState((prev) => ({ ...prev, durationMinutes: next, secondsLeft: next * 60 }));
+                                }
+                              }}
+                              className="w-20 rounded-xl bg-white/60 px-3 py-2 text-center text-base font-black outline-none border border-white/70"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => { setFocusSettings({ pomodoro: 25, deepflow: 50, break: 5 }); switchFocusMode(focusState.mode); }} className="mt-6 w-full rounded-2xl bg-[#efc36d] px-5 py-3 text-sm font-black active:scale-[.98] transition-transform">Reset to defaults</button>
+                    </div>
+                  </div>
+                </div>
+              );
+
               const renderStats = () => (
                 <div className="min-h-full px-4 py-4 sm:px-8 sm:py-7">
                   <div className="flex items-center justify-between mb-5">
                     <button onClick={() => setFocusView("timer")} className="flex items-center gap-2 rounded-full bg-[#f9ead0] px-4 py-2 text-sm font-bold border border-white/70"><ChevronLeft size={16} /> focus chamber</button>
-                    <button onClick={() => setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false }))} className="rounded-full bg-[#f9ead0] p-2.5 border border-white/70"><X size={17} /></button>
+                    <button onClick={() => { exitFocusFullscreen(); setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false })); }} className="rounded-full bg-[#f9ead0] p-2.5 border border-white/70"><X size={17} /></button>
                   </div>
 
                   <div className="mx-auto max-w-6xl">
@@ -10538,8 +10634,8 @@ One short, electrifying sentence of raw motivation.`;
 
               return (
                 <>
-                  <style>{`@keyframes focusFlip{0%{transform:rotateX(0deg);opacity:.72}45%{transform:rotateX(-88deg);opacity:.45}100%{transform:rotateX(0deg);opacity:1}}.focus-flip{animation:focusFlip .42s cubic-bezier(.2,.7,.25,1);transform-origin:50% 50%;perspective:800px}.focus-chamber-surface{transition:border-radius .2s ease}.focus-timer-landscape{width:100%;max-width:1100px;margin:0 auto}@media (orientation:landscape) and (max-height:700px){.focus-chamber-overlay{padding:0!important;background:#f4dfb8!important;backdrop-filter:none!important}.focus-chamber-surface{border-radius:0!important;border:0!important;box-shadow:none!important;min-height:100dvh}.focus-timer-landscape{min-height:100dvh;justify-content:center}.focus-timer-landscape .focus-clock-row{transform:scale(.78);transform-origin:center}.focus-timer-landscape .focus-timer-content{padding-top:8px!important;padding-bottom:8px!important;gap:4px}.focus-timer-landscape .focus-mode-row{margin-bottom:6px}.focus-timer-landscape .focus-task-pill{margin-bottom:8px}.focus-timer-landscape .focus-actions{margin-top:8px!important}.focus-timer-landscape .focus-nav{margin-top:8px!important}}`}</style>
-                  {focusView === "timer" ? renderTimer() : focusView === "stats" ? renderStats() : renderHistory()}
+                  <style>{`@keyframes focusFlip{0%{transform:rotateX(0deg);opacity:.72}45%{transform:rotateX(-88deg);opacity:.45}100%{transform:rotateX(0deg);opacity:1}}.focus-flip{animation:focusFlip .42s cubic-bezier(.2,.7,.25,1);transform-origin:50% 50%;perspective:800px}.focus-chamber-surface{transition:border-radius .2s ease;min-height:100dvh}.focus-timer-landscape{width:100%;max-width:1100px;margin:0 auto}@media (orientation:landscape) and (max-height:700px){.focus-chamber-overlay{padding:0!important;background:#f4dfb8!important;backdrop-filter:none!important}.focus-chamber-surface{border-radius:0!important;border:0!important;box-shadow:none!important;min-height:100dvh}.focus-timer-landscape{min-height:100dvh;justify-content:center}.focus-timer-landscape .focus-clock-row{transform:scale(.78);transform-origin:center}.focus-timer-landscape .focus-timer-content{padding-top:8px!important;padding-bottom:8px!important;gap:4px}.focus-timer-landscape .focus-mode-row{margin-bottom:6px}.focus-timer-landscape .focus-task-pill{margin-bottom:8px}.focus-timer-landscape .focus-actions{margin-top:8px!important}.focus-timer-landscape .focus-nav{margin-top:8px!important}}`}</style>
+                  {focusView === "timer" ? renderTimer() : focusView === "stats" ? renderStats() : focusView === "settings" ? renderSettings() : renderHistory()}
                 </>
               );
             })()}
