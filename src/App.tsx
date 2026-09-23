@@ -7399,6 +7399,7 @@ CORE MANNERISMS & ESSENCE:
             if (prev.mode === "timer") {
               const starsEarned = 1;
               const xpEarned = 50;
+              recordFocusSession(finishedMinutes * 60, prev.mode, prev.taskTitle || undefined, prev.sessionStartedAt);
               const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
               updateProfileFirebase({
                 stars: (profile.stars || 0) + starsEarned,
@@ -7425,12 +7426,14 @@ CORE MANNERISMS & ESSENCE:
                 secondsLeft: resetMins * 60,
                 isRunning: false,
                 totalFocusedSeconds: prev.totalFocusedSeconds + deltaSec,
+                sessionStartedAt: null,
               };
             }
 
             if (!prev.isBreak) {
               const starsEarned = 1;
               const xpEarned = 50;
+              recordFocusSession(finishedMinutes * 60, prev.mode, prev.taskTitle || undefined, prev.sessionStartedAt);
               const newTotalMins = (profile.totalFocusMinutes || 0) + finishedMinutes;
               updateProfileFirebase({
                 stars: (profile.stars || 0) + starsEarned,
