@@ -7616,14 +7616,6 @@ CORE MANNERISMS & ESSENCE:
         isRunning: false,
         sessionStartedAt: null,
       };
-      return {
-        ...prev,
-        isBreak: !prev.isBreak,
-        durationMinutes: nextMinutes,
-        secondsLeft: nextMinutes * 60,
-        isRunning: false,
-        sessionStartedAt: null,
-      };
     });
   };
 
