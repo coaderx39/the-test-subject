@@ -7883,6 +7883,7 @@ One short, electrifying sentence of raw motivation.`;
         taskTitle: null,
         topicId: null,
         totalFocusedSeconds: 0,
+        sessionStartedAt: null,
       });
       setChatMessages([{ role: "ai", text: "I am your Habit Tracker Coach. What's on your mind today?" }]);
       setChatInput("");
