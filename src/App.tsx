@@ -1891,7 +1891,45 @@ export default function App() {
   const [isRealNightTime, setIsRealNightTime] = useState(new Date().getHours() >= 21 || new Date().getHours() < 4);
   const isNightTime = isRealNightTime;
 
+  useEffect(() => {
+    localStorage.setItem("apex_focus_sessions_v1", JSON.stringify(focusSessionHistory));
+  }, [focusSessionHistory]);
+
+  const recordFocusSession = (durationSeconds: number, mode: FocusSessionRecord["mode"], taskTitle?: string, startedAt?: number | null) => {
+    const seconds = Math.max(0, Math.floor(durationSeconds));
+    if (seconds < 60) return;
+    const endedAt = Date.now();
+    const started = startedAt || (endedAt - seconds * 1000);
+    setFocusSessionHistory((prev) => [
+      ...prev,
+      {
+        id: `focus-${endedAt}-${Math.random().toString(36).slice(2, 8)}`,
+        startedAt: started,
+        endedAt,
+        durationSeconds: seconds,
+        mode,
+        taskTitle: taskTitle || "Deep study",
+      },
+    ].slice(-1000));
+  };
+
   // ================= FOCUS ENGINE STATE =================
+  type FocusSessionRecord = {
+    id: string;
+    startedAt: number;
+    endedAt: number;
+    durationSeconds: number;
+    mode: "pomodoro" | "deepflow" | "timer" | "stopwatch";
+    taskTitle: string;
+  };
+
+  const [focusView, setFocusView] = useState<"timer" | "stats" | "history">("timer");
+  const [focusStatsRange, setFocusStatsRange] = useState<"day" | "week" | "month" | "year">("day");
+  const [focusStatsDate, setFocusStatsDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [focusSessionHistory, setFocusSessionHistory] = useState<FocusSessionRecord[]>(() =>
+    safeJsonParse<FocusSessionRecord[]>(localStorage.getItem("apex_focus_sessions_v1"), [])
+  );
+
   const [focusState, setFocusState] = useState<{
     isOpen: boolean;
     mode: "pomodoro" | "deepflow" | "timer" | "stopwatch";
@@ -1904,6 +1942,7 @@ export default function App() {
     taskTitle: string | null;
     topicId: string | null;
     totalFocusedSeconds: number;
+    sessionStartedAt: number | null;
   }>({
     isOpen: false,
     mode: "pomodoro",
@@ -1916,6 +1955,7 @@ export default function App() {
     taskTitle: null,
     topicId: null,
     totalFocusedSeconds: 0,
+    sessionStartedAt: null,
   });
 
   // ================= TWO-BOX REFLECTION & 9-10 PM CLEANUP STATE =================
