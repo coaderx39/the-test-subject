@@ -7501,7 +7501,7 @@ CORE MANNERISMS & ESSENCE:
       durationMinutes: mins,
       customTimerMinutes: customMins,
       secondsLeft: mins * 60,
-      isRunning: true,
+      isRunning: false,
       isBreak: false,
       taskId: taskId || null,
       taskTitle: title || "Deep Focus Chamber",
@@ -7536,6 +7536,33 @@ CORE MANNERISMS & ESSENCE:
       isRunning: false,
       isBreak: false,
     }));
+  };
+
+  const skipFocusPhase = () => {
+    setFocusState((prev) => {
+      if (prev.mode === "stopwatch") return prev;
+      if (prev.mode === "timer") {
+        const mins = prev.customTimerMinutes || prev.durationMinutes || 10;
+        return {
+          ...prev,
+          isRunning: false,
+          isBreak: false,
+          durationMinutes: mins,
+          secondsLeft: mins * 60,
+          sessionStartedAt: null,
+          totalFocusedSeconds: 0,
+        };
+      }
+      const nextMinutes = prev.isBreak ? (prev.mode === "deepflow" ? 50 : 25) : (prev.mode === "deepflow" ? 10 : 5);
+      return {
+        ...prev,
+        isBreak: !prev.isBreak,
+        durationMinutes: nextMinutes,
+        secondsLeft: nextMinutes * 60,
+        isRunning: false,
+        sessionStartedAt: null,
+      };
+    });
   };
 
   // ==========================================
@@ -10277,8 +10304,8 @@ One short, electrifying sentence of raw motivation.`;
       {/* 1. FOCUS CHAMBER — REDESIGNED FLIP CLOCK + STATS */}
       {/* ========================================== */}
       {isFeatureEnabled("focusChamber") && focusState.isOpen && (
-        <div className="fixed inset-0 z-[110] bg-[#d8c4a4]/75 backdrop-blur-xl animate-in fade-in duration-300 p-0 sm:p-3">
-          <div className="h-full w-full overflow-y-auto bg-[#f4dfb8] text-[#2f2f2f] sm:rounded-[32px] sm:shadow-2xl sm:border sm:border-white/60">
+        <div className="focus-chamber-overlay fixed inset-0 z-[110] bg-[#d8c4a4]/75 backdrop-blur-xl animate-in fade-in duration-300 p-0 sm:p-3">
+          <div className="focus-chamber-surface h-full w-full overflow-y-auto bg-[#f4dfb8] text-[#2f2f2f] sm:rounded-[32px] sm:shadow-2xl sm:border sm:border-white/60">
             {(() => {
               const pad = (n: number) => n.toString().padStart(2, "0");
               const displaySeconds = focusState.mode === "stopwatch" ? focusState.totalFocusedSeconds : focusState.secondsLeft;
@@ -10350,7 +10377,7 @@ One short, electrifying sentence of raw motivation.`;
               );
 
               const renderTimer = () => (
-                <div className="flex min-h-full flex-col">
+                <div className="focus-timer-landscape flex min-h-full flex-col">
                   <div className="flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-7">
                     <button onClick={() => setFocusState((prev) => ({ ...prev, isOpen: false, isRunning: false }))} className="flex items-center gap-2 rounded-full bg-[#f9ead0]/90 px-4 py-2 text-sm font-bold shadow-sm border border-white/70">
                       <span className="h-2.5 w-2.5 rounded-full bg-[#f3b64b]" /> focus chamber <ChevronRight size={15} className="text-[#8b7a61]" />
@@ -10359,13 +10386,13 @@ One short, electrifying sentence of raw motivation.`;
                   </div>
 
                   <div className="flex flex-1 flex-col items-center justify-center px-3 py-8 sm:px-8">
-                    <div className="mb-5 flex items-center gap-1 sm:gap-2">
+                    <div className="focus-clock-row mb-5 flex items-center gap-1 sm:gap-2">
                       <FlipUnit value={digits[0]} index={0} /><FlipUnit value={digits[1]} index={1} />
                       <span className="px-0.5 text-4xl font-black text-[#b49a73] sm:text-6xl">:</span>
                       <FlipUnit value={digits[2]} index={2} /><FlipUnit value={digits[3]} index={3} />
                     </div>
 
-                    <div className="mb-4 flex flex-wrap justify-center gap-2">
+                    <div className="focus-mode-row mb-4 flex flex-wrap justify-center gap-2">
                       {(["pomodoro", "deepflow", "timer", "stopwatch"] as const).map((mode) => (
                         <button key={mode} onClick={() => switchFocusMode(mode)} className={"rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all " + (focusState.mode === mode ? "bg-[#efc36d] text-[#493b27] shadow-sm" : "bg-[#f9ead0]/70 text-[#85745d]")}>
                           {mode === "deepflow" ? "deep flow" : mode}
@@ -10374,26 +10401,51 @@ One short, electrifying sentence of raw motivation.`;
                     </div>
 
                     {focusState.mode === "timer" && (
-                      <div className="mb-5 flex items-center gap-2 rounded-full bg-[#f9ead0]/80 p-1.5 border border-white/70">
-                        <button onClick={() => setCustomTimerDuration(Math.max(1, (focusState.customTimerMinutes || 10) - 5))} className="rounded-full px-3 py-1 text-xs font-black">−5</button>
-                        <span className="min-w-[70px] text-center text-xs font-black">{focusState.customTimerMinutes || 10} min</span>
-                        <button onClick={() => setCustomTimerDuration(Math.min(180, (focusState.customTimerMinutes || 10) + 5))} className="rounded-full px-3 py-1 text-xs font-black">+5</button>
+                      <div className="mb-5 flex items-center gap-2 rounded-full bg-[#f9ead0]/80 p-1.5 border border-white/70 shadow-sm">
+                        <button onClick={() => setCustomTimerDuration(Math.max(1, (focusState.customTimerMinutes || 10) - 5))} className="rounded-full px-3 py-1 text-xs font-black tap-effect">−5</button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={180}
+                          inputMode="numeric"
+                          value={focusState.customTimerMinutes || 10}
+                          onChange={(e) => setCustomTimerDuration(Number(e.target.value) || 1)}
+                          onWheel={(e) => {
+                            e.preventDefault();
+                            const step = e.deltaY < 0 ? 1 : -1;
+                            setCustomTimerDuration((focusState.customTimerMinutes || 10) + step);
+                          }}
+                          className="w-20 bg-transparent text-center text-sm font-black outline-none tabular-nums"
+                          aria-label="Custom timer duration in minutes"
+                        />
+                        <span className="text-xs font-black text-[#7f6c51]">min</span>
+                        <button onClick={() => setCustomTimerDuration(Math.min(180, (focusState.customTimerMinutes || 10) + 5))} className="rounded-full px-3 py-1 text-xs font-black tap-effect">+5</button>
                       </div>
                     )}
 
-                    <div className="mb-6 rounded-full bg-[#f9ead0]/90 px-5 py-2 text-xs font-bold text-[#76664f] shadow-sm border border-white/70">
+                    <div className="focus-task-pill mb-6 rounded-full bg-[#f9ead0]/90 px-5 py-2 text-xs font-bold text-[#76664f] shadow-sm border border-white/70">
                       <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#f3b64b]" /> {focusState.taskTitle || "deep study"}
                     </div>
 
-                    <button
-                      onClick={() => setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning, sessionStartedAt: !prev.isRunning ? (prev.sessionStartedAt || Date.now()) : prev.sessionStartedAt }))}
-                      className="flex min-w-[190px] items-center justify-center gap-2 rounded-full bg-[#f9ead0] px-8 py-3.5 text-sm font-black shadow-[0_10px_24px_rgba(95,68,35,0.12)] border border-white/80 active:scale-95 transition-transform"
-                    >
-                      {focusState.isRunning ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
-                      {focusState.isRunning ? "Pause Focus" : "Start Focus"}
-                    </button>
+                    <div className="focus-actions flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => skipFocusPhase()}
+                        className="rounded-full bg-[#f9ead0] px-4 py-3.5 text-xs font-black shadow-[0_10px_24px_rgba(95,68,35,0.10)] border border-white/80 active:scale-95 transition-transform flex items-center gap-1.5"
+                        title="Skip current focus phase"
+                        aria-label="Skip current focus phase"
+                      >
+                        <SkipForward size={17} /> Skip
+                      </button>
+                      <button
+                        onClick={() => setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning, sessionStartedAt: !prev.isRunning ? (prev.sessionStartedAt || Date.now()) : prev.sessionStartedAt }))}
+                        className="flex min-w-[190px] items-center justify-center gap-2 rounded-full bg-[#f9ead0] px-8 py-3.5 text-sm font-black shadow-[0_10px_24px_rgba(95,68,35,0.12)] border border-white/80 active:scale-95 transition-transform"
+                      >
+                        {focusState.isRunning ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
+                        {focusState.isRunning ? "Pause Focus" : "Start Focus"}
+                      </button>
+                    </div>
 
-                    <div className="mt-6 flex items-center gap-3">
+                    <div className="focus-nav mt-6 flex items-center gap-3">
                       <button onClick={() => setFocusView("timer")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><Sliders size={19} /></button>
                       <button onClick={() => setFocusView("stats")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><BarChart2 size={19} /></button>
                       <button onClick={() => setFocusView("history")} className="rounded-2xl bg-[#f9ead0]/90 p-3 border border-white/70"><History size={19} /></button>
@@ -10486,7 +10538,7 @@ One short, electrifying sentence of raw motivation.`;
 
               return (
                 <>
-                  <style>{'@keyframes focusFlip{0%{transform:rotateX(0deg);opacity:.72}45%{transform:rotateX(-88deg);opacity:.45}100%{transform:rotateX(0deg);opacity:1}}.focus-flip{animation:focusFlip .42s cubic-bezier(.2,.7,.25,1);transform-origin:50% 50%;perspective:800px}'}</style>
+                  <style>{'@keyframes focusFlip{0%{transform:rotateX(0deg);opacity:.72}45%{transform:rotateX(-88deg);opacity:.45}100%{transform:rotateX(0deg);opacity:1}}.focus-flip{animation:focusFlip .42s cubic-bezier(.2,.7,.25,1);transform-origin:50% 50%;perspective:800px}.focus-chamber-surface{transition:border-radius .2s ease}.focus-timer-landscape{width:100%;max-width:1100px;margin:0 auto}@media (orientation:landscape) and (max-height:700px){.focus-chamber-overlay{padding:0!important;background:#f4dfb8!important;backdrop-filter:none!important}.focus-chamber-surface{border-radius:0!important;border:0!important;box-shadow:none!important;min-height:100dvh}.focus-timer-landscape{min-height:100dvh;justify-content:center}.focus-timer-landscape .focus-clock-row{transform:scale(.78);transform-origin:center}.focus-timer-landscape .focus-timer-content{padding-top:8px!important;padding-bottom:8px!important;gap:4px}.focus-timer-landscape .focus-mode-row{margin-bottom:6px}.focus-timer-landscape .focus-task-pill{margin-bottom:8px}.focus-timer-landscape .focus-actions{margin-top:8px!important}.focus-timer-landscape .focus-nav{margin-top:8px!important}}</style>
                   {focusView === "timer" ? renderTimer() : focusView === "stats" ? renderStats() : renderHistory()}
                 </>
               );
