@@ -10385,7 +10385,7 @@ One short, electrifying sentence of raw motivation.`;
                     <button onClick={() => setFocusView("stats")} className="rounded-full bg-[#f9ead0]/90 p-3 shadow-sm border border-white/70"><BarChart2 size={19} /></button>
                   </div>
 
-                  <div className="flex flex-1 flex-col items-center justify-center px-3 py-8 sm:px-8">
+                  <div className="focus-timer-content flex flex-1 flex-col items-center justify-center px-3 py-8 sm:px-8">
                     <div className="focus-clock-row mb-5 flex items-center gap-1 sm:gap-2">
                       <FlipUnit value={digits[0]} index={0} /><FlipUnit value={digits[1]} index={1} />
                       <span className="px-0.5 text-4xl font-black text-[#b49a73] sm:text-6xl">:</span>
@@ -10434,7 +10434,7 @@ One short, electrifying sentence of raw motivation.`;
                         title="Skip current focus phase"
                         aria-label="Skip current focus phase"
                       >
-                        <SkipForward size={17} /> Skip
+                        <FastForward size={17} /> Skip
                       </button>
                       <button
                         onClick={() => setFocusState((prev) => ({ ...prev, isRunning: !prev.isRunning, sessionStartedAt: !prev.isRunning ? (prev.sessionStartedAt || Date.now()) : prev.sessionStartedAt }))}
